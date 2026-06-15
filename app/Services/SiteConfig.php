@@ -2,11 +2,31 @@
 
 namespace App\Services;
 
+use App\Models\SiteContent;
+
 class SiteConfig
 {
+    private static ?array $cache = null;
+
     public static function all(): array
     {
-        return config('site', []);
+        if (self::$cache !== null) {
+            return self::$cache;
+        }
+
+        // Start with config file defaults
+        $config = config('site', []);
+
+        // Override with database values if table exists and has data
+        try {
+            $dbConfig = SiteContent::allAsConfig();
+            $config = array_replace_recursive($config, $dbConfig);
+        } catch (\Exception $e) {
+            // Table might not exist yet, fall back to config file
+        }
+
+        self::$cache = $config;
+        return $config;
     }
 
     public static function get(string $key, mixed $default = null): mixed
@@ -20,6 +40,14 @@ class SiteConfig
             $data = $data[$k];
         }
         return $data;
+    }
+
+    /**
+     * Clear the config cache (call after DB update).
+     */
+    public static function clearCache(): void
+    {
+        self::$cache = null;
     }
 
     public static function pricing(): array

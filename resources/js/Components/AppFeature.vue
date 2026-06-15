@@ -81,7 +81,7 @@ function setActive(i: number) {
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <!-- Phone Mockup with real screenshot -->
-                <div :ref="(el: any) => reveal.setItemRef(1, el)" class="flex justify-center order-2 lg:order-1">
+                <div :ref="(el: any) => reveal.setItemRef(1, el)" class="flex justify-center order-1 lg:order-1">
                     <div class="relative">
                         <!-- Glow behind phone -->
                         <div class="absolute inset-0 bg-primary-500/15 blur-3xl rounded-full" />
@@ -120,7 +120,7 @@ function setActive(i: number) {
                 </div>
 
                 <!-- Feature List -->
-                <div :ref="(el: any) => reveal.setItemRef(2, el)" class="order-1 lg:order-2">
+                <div :ref="(el: any) => reveal.setItemRef(2, el)" class="order-2 lg:order-2">
                     <div class="space-y-3">
                         <div
                             v-for="(feature, i) in features"
