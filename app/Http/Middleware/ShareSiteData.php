@@ -13,10 +13,24 @@ class ShareSiteData extends Middleware
     {
         return array_merge(parent::share($request), [
             'siteConfig' => [
-                'pricing' => SiteConfig::pricing(),
-                'demoAccounts' => SiteConfig::demoAccounts(),
-                'stats' => SiteConfig::stats(),
-                'contact' => SiteConfig::contact(),
+                'brand'        => SiteConfig::get('brand'),
+                'nav'          => SiteConfig::get('nav'),
+                'footer'       => SiteConfig::get('footer'),
+                'hero'         => SiteConfig::get('hero'),
+                'trustBar'     => SiteConfig::get('trust_bar'),
+                'stats'        => SiteConfig::get('stats'),
+                'personas'     => SiteConfig::get('personas'),
+                'features'     => SiteConfig::get('features'),
+                'howItWorks'   => SiteConfig::get('how_it_works'),
+                'pricing'      => SiteConfig::get('pricing'),
+                'testimonials' => SiteConfig::get('testimonials'),
+                'faqs'         => SiteConfig::get('faqs'),
+                'cta'          => SiteConfig::get('cta'),
+                'demo'         => SiteConfig::get('demo'),
+                'contact'      => SiteConfig::get('contact'),
+                'legal'        => SiteConfig::get('legal'),
+                'seo'          => SiteConfig::get('seo'),
+                'about'        => SiteConfig::get('about'),
             ],
         ]);
     }

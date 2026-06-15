@@ -1,0 +1,258 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useSiteConfig } from '@/composables/useSiteConfig';
+import { useImageOptimization } from '@/composables/useImageOptimization';
+import { useScrollReveal } from '@/composables/useScrollReveal';
+import {
+    Landmark,
+    PiggyBank,
+    Wallet,
+    Gift,
+    Banknote,
+    CalendarDays,
+    CalendarClock,
+    ShieldCheck,
+    TrendingDown,
+    Smartphone,
+    Check,
+    ArrowRight,
+    Sparkles,
+    Zap,
+    Clock,
+} from 'lucide-vue-next';
+
+const { products: productsConfig } = useSiteConfig();
+const { toWebP, toWebPSmall } = useImageOptimization();
+const savingProducts = computed(() => productsConfig.value?.saving ?? []);
+const loanProducts = computed(() => productsConfig.value?.loan ?? []);
+const productHighlights = computed(() => productsConfig.value?.highlights ?? []);
+
+// Scroll-reveal setup for saving & loan product cards
+const savingReveal = useScrollReveal({ staggerMs: 80 });
+const loanReveal = useScrollReveal({ staggerMs: 100 });
+const highlightReveal = useScrollReveal({ staggerMs: 60 });
+</script>
+
+<template>
+    <section id="produk" class="py-20 lg:py-28 bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-900 dark:to-neutral-950">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Section Header -->
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400 text-xs font-semibold mb-4">
+                    <Landmark class="h-3.5 w-3.5" />
+                    Produk Keuangan Koperasi
+                </span>
+                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 dark:text-white leading-tight">
+                    Kelola <span class="text-primary-600">Simpanan & Pinjaman</span> Lebih Cerdas
+                </h2>
+                <p class="mt-5 text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                    Semua produk keuangan koperasi terkelola dalam satu platform. Transparan, cepat, dan didukung AI untuk keputusan yang lebih baik.
+                </p>
+            </div>
+
+            <!-- Highlights Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+                <div
+                    v-for="(h, i) in productHighlights"
+                    :key="h.label"
+                    :ref="(el: any) => highlightReveal.setItemRef(i, el)"
+                    class="flex items-center gap-3 bg-white dark:bg-neutral-800 rounded-xl px-5 py-4 border border-neutral-100 dark:border-neutral-700"
+                >
+                    <div class="h-10 w-10 rounded-lg bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center flex-shrink-0">
+                        <component :is="h.icon === 'shield' ? ShieldCheck : h.icon === 'zap' ? Zap : h.icon === 'clock' ? Clock : Sparkles" class="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-neutral-900 dark:text-white">{{ h.value }}</p>
+                        <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ h.label }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simpanan Products -->
+            <div class="mb-20">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="h-10 w-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                        <PiggyBank class="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-neutral-900 dark:text-white">Produk Simpanan</h3>
+                        <p class="text-sm text-neutral-500 dark:text-neutral-400">Tumbuhkan kekayaan anggota dengan sistem simpanan yang terpercaya</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <div
+                        v-for="(product, i) in savingProducts"
+                        :key="product.name"
+                        :ref="(el: any) => savingReveal.setItemRef(i, el)"
+                        class="group relative bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-500 hover:shadow-xl transition-all duration-300"
+                    >
+                        <!-- Screenshot preview -->
+                        <div v-if="product.screenshot" class="relative h-32 bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-700 dark:to-neutral-800 flex items-center justify-center overflow-hidden">
+                            <div class="w-16 h-32 bg-neutral-900 dark:bg-neutral-600 rounded-t-lg p-[2px] shadow-lg group-hover:shadow-primary-500/30 group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                                <div class="w-full h-full rounded-t-md overflow-hidden bg-white">
+                                    <picture>
+                                        <source
+                                            :srcset="`${toWebPSmall(product.screenshot)} 640w, ${toWebP(product.screenshot)} 1280w`"
+                                            sizes="160px"
+                                            type="image/webp"
+                                        />
+                                        <img
+                                            :src="toWebP(product.screenshot)"
+                                            :alt="`Screenshot aplikasi ${product.name}`"
+                                            class="w-full h-full object-cover object-top"
+                                            loading="lazy"
+                                            width="64"
+                                            height="128"
+                                        />
+                                    </picture>
+                                </div>
+                            </div>
+                        </div>
+                        <div
+                            :class="[
+                                'h-12 w-12 rounded-xl flex items-center justify-center mb-4 transition-colors',
+                                product.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/40 group-hover:bg-emerald-600' : product.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/40 group-hover:bg-blue-600' : product.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/40 group-hover:bg-purple-600' : 'bg-amber-100 dark:bg-amber-900/40 group-hover:bg-amber-600'
+                            ]"
+                        >
+                            <component
+                                :is="product.icon === 'wallet' ? Wallet : product.icon === 'gift' ? Gift : product.icon === 'piggy-bank' ? PiggyBank : Landmark"
+                                :class="[
+                                    'h-6 w-6 transition-colors',
+                                    product.color === 'emerald' ? 'text-emerald-600 dark:text-emerald-400 group-hover:text-white' : product.color === 'blue' ? 'text-blue-600 dark:text-blue-400 group-hover:text-white' : product.color === 'purple' ? 'text-purple-600 dark:text-purple-400 group-hover:text-white' : 'text-amber-600 dark:text-amber-400 group-hover:text-white'
+                                ]"
+                            />
+                        </div>
+                        <h4 class="text-base font-bold text-neutral-900 dark:text-white mb-1">{{ product.name }}</h4>
+                        <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-3 min-h-[2.5rem]">{{ product.tagline }}</p>
+                        <ul class="space-y-1.5">
+                            <li
+                                v-for="point in product.benefits"
+                                :key="point"
+                                class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300"
+                            >
+                                <Check class="h-3.5 w-3.5 text-primary-500 mt-0.5 flex-shrink-0" />
+                                {{ point }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pinjaman Products -->
+            <div>
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="h-10 w-10 rounded-lg bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center">
+                        <Banknote class="h-5 w-5 text-primary-600 dark:text-primary-400" />
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-neutral-900 dark:text-white">Produk Pinjaman</h3>
+                        <p class="text-sm text-neutral-500 dark:text-neutral-400">Solusi pembiayaan fleksibel dengan persetujuan cepat & adil</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div
+                        v-for="(product, i) in loanProducts"
+                        :key="product.name"
+                        :ref="(el: any) => loanReveal.setItemRef(i, el)"
+                        class="group relative bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-500 hover:shadow-xl transition-all duration-300"
+                    >
+                        <!-- Top accent bar -->
+                        <div
+                            :class="[
+                                'h-1.5',
+                                product.accent === 'primary' ? 'bg-primary-600' : product.accent === 'amber' ? 'bg-amber-500' : 'bg-violet-600'
+                            ]"
+                        />
+                        <!-- Screenshot preview -->
+                        <div v-if="product.screenshot" class="relative h-36 bg-gradient-to-b from-neutral-50 to-neutral-100 dark:from-neutral-700 dark:to-neutral-800 flex items-center justify-center overflow-hidden">
+                            <div class="w-16 h-32 bg-neutral-900 dark:bg-neutral-600 rounded-t-lg p-[2px] shadow-lg group-hover:shadow-primary-500/30 group-hover:shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-1">
+                                <div class="w-full h-full rounded-t-md overflow-hidden bg-white">
+                                    <picture>
+                                        <source
+                                            :srcset="`${toWebPSmall(product.screenshot)} 640w, ${toWebP(product.screenshot)} 1280w`"
+                                            sizes="160px"
+                                            type="image/webp"
+                                        />
+                                        <img
+                                            :src="toWebP(product.screenshot)"
+                                            :alt="`Screenshot aplikasi ${product.name}`"
+                                            class="w-full h-full object-cover object-top"
+                                            loading="lazy"
+                                            width="64"
+                                            height="128"
+                                        />
+                                    </picture>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div
+                                    :class="[
+                                        'h-12 w-12 rounded-xl flex items-center justify-center',
+                                        product.accent === 'primary' ? 'bg-primary-100 dark:bg-primary-900/40' : product.accent === 'amber' ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-violet-100 dark:bg-violet-900/40'
+                                    ]"
+                                >
+                                    <component
+                                        :is="product.icon === 'calendar-days' ? CalendarDays : product.icon === 'calendar-clock' ? CalendarClock : TrendingDown"
+                                        :class="[
+                                            'h-6 w-6',
+                                            product.accent === 'primary' ? 'text-primary-600 dark:text-primary-400' : product.accent === 'amber' ? 'text-amber-600 dark:text-amber-400' : 'text-violet-600 dark:text-violet-400'
+                                        ]"
+                                    />
+                                </div>
+                                <span
+                                    :class="[
+                                        'px-2.5 py-0.5 rounded-full text-xs font-semibold',
+                                        product.accent === 'primary' ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400' : product.accent === 'amber' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' : 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-400'
+                                    ]"
+                                >
+                                    {{ product.badge }}
+                                </span>
+                            </div>
+                            <h4 class="text-lg font-bold text-neutral-900 dark:text-white mb-1">{{ product.name }}</h4>
+                            <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-4">{{ product.description }}</p>
+
+                            <div class="flex items-center gap-4 mb-4 pb-4 border-b border-neutral-100 dark:border-neutral-700">
+                                <div class="text-center">
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400">Bunga</p>
+                                    <p class="text-sm font-bold text-neutral-900 dark:text-white">{{ product.rate }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400">Tenor</p>
+                                    <p class="text-sm font-bold text-neutral-900 dark:text-white">{{ product.tenor }}</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400">Setuju</p>
+                                    <p class="text-sm font-bold text-neutral-900 dark:text-white">{{ product.approval }}</p>
+                                </div>
+                            </div>
+
+                            <ul class="space-y-1.5">
+                                <li
+                                    v-for="point in product.benefits"
+                                    :key="point"
+                                    class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300"
+                                >
+                                    <Check class="h-3.5 w-3.5 text-primary-500 mt-0.5 flex-shrink-0" />
+                                    {{ point }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom CTA -->
+            <div class="mt-16 text-center">
+                <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary-50 dark:bg-primary-900/30 border border-primary-100 dark:border-primary-800">
+                    <Smartphone class="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                    <span class="text-sm font-medium text-primary-700 dark:text-primary-300">Semua produk tersedia langsung dari mobile app anggota</span>
+                    <ArrowRight class="h-4 w-4 text-primary-600 dark:text-primary-400" />
+                </div>
+            </div>
+        </div>
+    </section>
+</template>

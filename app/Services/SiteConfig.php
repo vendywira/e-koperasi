@@ -6,12 +6,7 @@ class SiteConfig
 {
     public static function all(): array
     {
-        return [
-            'pricing' => self::pricing(),
-            'demo_accounts' => self::demoAccounts(),
-            'stats' => self::stats(),
-            'contact' => self::contact(),
-        ];
+        return config('site', []);
     }
 
     public static function get(string $key, mixed $default = null): mixed
@@ -19,7 +14,9 @@ class SiteConfig
         $data = self::all();
         $keys = explode('.', $key);
         foreach ($keys as $k) {
-            if (!isset($data[$k])) return $default;
+            if (!is_array($data) || !array_key_exists($k, $data)) {
+                return $default;
+            }
             $data = $data[$k];
         }
         return $data;
@@ -27,49 +24,7 @@ class SiteConfig
 
     public static function pricing(): array
     {
-        return [
-            [
-                'name' => 'Starter',
-                'price' => 'Rp 1.5jt',
-                'period' => 'bulan',
-                'highlight' => false,
-                'features' => [
-                    'Hingga 100 anggota',
-                    '1 unit koperasi',
-                    'Web dashboard',
-                    'Modul pinjaman & simpanan',
-                    'Support email',
-                ],
-            ],
-            [
-                'name' => 'Bisnis',
-                'price' => 'Rp 4jt',
-                'period' => 'bulan',
-                'highlight' => true,
-                'features' => [
-                    'Hingga 500 anggota',
-                    'Sampai 3 unit',
-                    'Web + mobile app',
-                    'Semua modul (BON, gaji, dll)',
-                    'Rule engine',
-                    'Support WhatsApp 8/5',
-                ],
-            ],
-            [
-                'name' => 'Enterprise',
-                'price' => 'Custom',
-                'period' => 'hubungi kami',
-                'highlight' => false,
-                'features' => [
-                    'Unlimited anggota & unit',
-                    'Multi-resort & multi-role',
-                    'Custom rule engine',
-                    'On-premise deployment option',
-                    'SLA 99.9% & on-site training',
-                    'Dedicated account manager',
-                ],
-            ],
-        ];
+        return self::get('pricing.tiers', []);
     }
 
     public static function demoAccounts(): array
@@ -86,20 +41,11 @@ class SiteConfig
 
     public static function stats(): array
     {
-        return [
-            ['value' => '50+', 'label' => 'Koperasi Aktif'],
-            ['value' => '10K+', 'label' => 'Anggota Terdaftar'],
-            ['value' => '40%', 'label' => 'Penurunan NPL'],
-            ['value' => '24/7', 'label' => 'Support & Uptime'],
-        ];
+        return self::get('stats', []);
     }
 
     public static function contact(): array
     {
-        return [
-            'email' => 'halo@e-koperasi.com',
-            'whatsapp' => '+62 812-3456-7890',
-            'address' => 'Tabanan, Bali, Indonesia',
-        ];
+        return self::get('contact', []);
     }
 }

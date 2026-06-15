@@ -2,32 +2,23 @@
 import SiteLayout from '@/Layouts/SiteLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import { Heart, MapPin, Calendar, ArrowRight, Users, Target, Eye } from 'lucide-vue-next';
+import { useSiteConfig } from '@/composables/useSiteConfig';
+import { computed } from 'vue';
 
-defineProps<{
-    company: {
-        name: string;
-        legal_name: string;
-        founded: string;
-        origin: string;
-        mission: string;
-        vision: string;
-        story: string;
-        values: { title: string; desc: string }[];
-        team: { name: string; role: string; bio: string }[];
-    };
-}>();
+const { about: aboutConfig } = useSiteConfig();
+const about = computed<any>(() => aboutConfig.value.company ?? {});
 </script>
 
 <template>
-    <SiteLayout title="Tentang e-Koperasi - Platform Koperasi Indonesia">
+    <SiteLayout :title="`${about.short_name} — Tentang ${about.name}`">
         <!-- Hero -->
         <section class="bg-gradient-to-b from-primary-50 to-white">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
                 <h1 class="text-4xl sm:text-5xl font-bold text-neutral-900">
-                    Cerita di Balik e-Koperasi
+                    {{ about.hero_title || 'Cerita di Balik e-Koperasi' }}
                 </h1>
                 <p class="mt-6 text-lg text-neutral-600">
-                    Dibangun dari kebutuhan nyata koperasi, untuk koperasi Indonesia.
+                    {{ about.hero_subtitle || 'Dibangun dari kebutuhan nyata koperasi, untuk koperasi Indonesia.' }}
                 </p>
             </div>
         </section>
@@ -35,7 +26,7 @@ defineProps<{
         <!-- Story -->
         <section id="cerita" class="py-16 bg-white">
             <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                <p class="text-lg text-neutral-700 leading-relaxed">{{ company.story }}</p>
+                <p class="text-lg text-neutral-700 leading-relaxed">{{ about.story }}</p>
             </div>
         </section>
 
@@ -47,14 +38,14 @@ defineProps<{
                         <Target class="h-6 w-6 text-primary-600" />
                     </div>
                     <h2 class="text-2xl font-bold text-neutral-900 mb-3">Misi</h2>
-                    <p class="text-neutral-700 leading-relaxed">{{ company.mission }}</p>
+                    <p class="text-neutral-700 leading-relaxed">{{ about.mission }}</p>
                 </div>
                 <div class="bg-white rounded-xl p-8 border border-neutral-100">
                     <div class="h-12 w-12 rounded-lg bg-primary-100 flex items-center justify-center mb-4">
                         <Eye class="h-6 w-6 text-primary-600" />
                     </div>
                     <h2 class="text-2xl font-bold text-neutral-900 mb-3">Visi</h2>
-                    <p class="text-neutral-700 leading-relaxed">{{ company.vision }}</p>
+                    <p class="text-neutral-700 leading-relaxed">{{ about.vision }}</p>
                 </div>
             </div>
         </section>
@@ -65,7 +56,7 @@ defineProps<{
                 <h2 class="text-3xl font-bold text-neutral-900 text-center mb-12">Nilai Kami</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div
-                        v-for="v in company.values"
+                        v-for="v in about.values"
                         :key="v.title"
                         class="bg-white rounded-xl p-6 border border-neutral-100"
                     >
@@ -83,7 +74,7 @@ defineProps<{
                 <h2 class="text-3xl font-bold text-neutral-900 text-center mb-12">Tim</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                     <div
-                        v-for="member in company.team"
+                        v-for="member in about.team"
                         :key="member.name"
                         class="bg-white rounded-xl p-6 border border-neutral-100 flex items-start gap-4"
                     >
@@ -106,15 +97,15 @@ defineProps<{
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-neutral-600">
                     <div class="flex items-center gap-2">
                         <Calendar class="h-4 w-4 text-primary-600" />
-                        Didirikan {{ company.founded }}
+                        Didirikan {{ about.founded }}
                     </div>
                     <div class="flex items-center gap-2">
                         <MapPin class="h-4 w-4 text-primary-600" />
-                        {{ company.origin }}
+                        {{ about.origin }}
                     </div>
                     <div class="flex items-center gap-2">
                         <Users class="h-4 w-4 text-primary-600" />
-                        {{ company.legal_name }}
+                        {{ about.legal_name }}
                     </div>
                 </div>
             </div>

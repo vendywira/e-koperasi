@@ -2,7 +2,7 @@
 import {
     Banknote,
     CreditCard,
-    PiggyBank,
+    BadgeDollarSign,
     TrendingUp,
     Cog,
     FileText,
@@ -23,7 +23,7 @@ const features = [
         desc: 'Ajukan, approval, tracking saldo BON, potong otomatis dari gaji.',
     },
     {
-        icon: PiggyBank,
+        icon: BadgeDollarSign,
         title: 'Titipan & Simpanan',
         desc: 'Simpanan pokok, wajib, sukarela. Titipan penagih. Approval flow.',
     },
@@ -61,13 +61,13 @@ const features = [
 </script>
 
 <template>
-    <section id="fitur" class="py-20 lg:py-28 bg-white">
+    <section id="fitur" class="py-20 lg:py-28 bg-white dark:bg-neutral-950">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-2xl mx-auto">
-                <h2 class="text-3xl sm:text-4xl font-bold text-neutral-900">
+                <h2 class="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white">
                     9 Fitur Unggulan
                 </h2>
-                <p class="mt-4 text-lg text-neutral-600">
+                <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
                     Platform lengkap untuk digitalisasi operasional koperasi. Setiap fitur dirancang berdasarkan kebutuhan nyata koperasi Indonesia.
                 </p>
             </div>
@@ -76,20 +76,20 @@ const features = [
                 <div
                     v-for="(f, idx) in features"
                     :key="f.title"
-                    class="group bg-white rounded-xl p-6 border border-neutral-100 hover:border-primary-200 hover:shadow-lg transition"
+                    class="group bg-white dark:bg-neutral-800 rounded-xl p-6 border border-neutral-100 dark:border-neutral-700 hover:border-primary-200 dark:hover:border-primary-500 hover:shadow-lg transition"
                 >
                     <div class="flex items-start justify-between mb-4">
-                        <div class="h-12 w-12 rounded-lg bg-primary-100 flex items-center justify-center group-hover:bg-primary-600 transition">
-                            <component :is="f.icon" class="h-6 w-6 text-primary-600 group-hover:text-white transition" />
+                        <div class="h-12 w-12 rounded-lg bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center group-hover:bg-primary-600 transition">
+                            <component :is="f.icon" class="h-6 w-6 text-primary-600 dark:text-primary-400 group-hover:text-white transition" />
                         </div>
-                        <span class="text-xs font-mono text-neutral-300">
+                        <span class="text-xs font-mono text-neutral-300 dark:text-neutral-600">
                             {{ String(idx + 1).padStart(2, '0') }}
                         </span>
                     </div>
-                    <h3 class="text-lg font-semibold text-neutral-900 mb-2">
+                    <h3 class="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
                         {{ f.title }}
                     </h3>
-                    <p class="text-sm text-neutral-600 leading-relaxed">
+                    <p class="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
                         {{ f.desc }}
                     </p>
                 </div>

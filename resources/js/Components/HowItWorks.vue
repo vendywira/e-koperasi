@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ArrowRight } from 'lucide-vue-next';
+
 const steps = [
     {
         num: '1',
@@ -19,10 +21,10 @@ const steps = [
 </script>
 
 <template>
-    <section class="py-20 lg:py-28 bg-primary-50">
+    <section class="py-20 lg:py-28 bg-primary-50 dark:bg-primary-900/20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-2xl mx-auto">
-                <h2 class="text-3xl sm:text-4xl font-bold text-neutral-900">
+                <h2 class="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white">
                     Mulai dalam 3 Langkah
                 </h2>
             </div>
@@ -33,22 +35,23 @@ const steps = [
                     :key="step.num"
                     class="relative"
                 >
-                    <div class="bg-white rounded-xl p-8 border border-neutral-100 h-full">
+                    <div class="bg-white dark:bg-neutral-800 rounded-xl p-8 border border-neutral-100 dark:border-neutral-700 h-full">
                         <div class="h-12 w-12 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold text-xl mb-4">
                             {{ step.num }}
                         </div>
-                        <h3 class="text-xl font-semibold text-neutral-900 mb-2">
+                        <h3 class="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
                             {{ step.title }}
                         </h3>
-                        <p class="text-sm text-neutral-600 leading-relaxed">
+                        <p class="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
                             {{ step.desc }}
                         </p>
                     </div>
                     <div
                         v-if="idx < steps.length - 1"
-                        class="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 text-primary-300 text-2xl"
+                        class="hidden md:flex absolute top-1/2 -right-4 transform -translate-y-1/2 items-center justify-center h-8 w-8 rounded-full bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 text-primary-400"
+                        aria-hidden="true"
                     >
-                        →
+                        <ArrowRight class="h-4 w-4" />
                     </div>
                 </div>
             </div>
