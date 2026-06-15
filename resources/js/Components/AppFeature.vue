@@ -22,8 +22,8 @@ const reveal = useScrollReveal({ staggerMs: 80, threshold: 0.05 });
 const features = [
     {
         icon: CreditCard,
-        title: 'Cek Simpanan & Pinjaman',
-        desc: 'Anggota bisa melihat saldo simpanan pokok, wajib, sukarela, dan status pinjaman kapan saja — tanpa perlu ke kantor.',
+        title: 'Cek Tabungan & Pinjaman',
+        desc: 'Anggota bisa melihat saldo tabungan dari potongan pinjaman, status pinjaman, dan riwayat transaksi kapan saja — tanpa perlu ke kantor.',
         screenshot: '/images/app-screenshots/homepage.png',
     },
     {
@@ -75,7 +75,7 @@ function setActive(i: number) {
                     Koperasi di Saku Anggota
                 </h2>
                 <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
-                    Aplikasi mobile untuk anggota koperasi. Cek simpanan, ajukan pinjaman, dan absensi — semua dari HP.
+                    Aplikasi mobile untuk anggota koperasi. Cek tabungan, ajukan pinjaman, dan absensi — semua dari HP.
                 </p>
             </div>
 

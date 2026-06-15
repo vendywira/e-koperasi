@@ -100,7 +100,7 @@ const stats = [
                 >
                     <div class="flex items-start justify-between mb-4">
                         <div class="h-12 w-12 rounded-xl bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center group-hover:bg-primary-600 transition-colors">
-                            <reason.icon class="h-6 w-6 text-primary-600 dark:text-primary-400 group-hover:text-white transition-colors" />
+                            <component :is="reason.icon" class="h-6 w-6 text-primary-600 dark:text-primary-400 group-hover:text-white transition-colors" />
                         </div>
                         <div class="text-right">
                             <p class="text-xl font-bold text-primary-600 dark:text-primary-400">{{ reason.stat }}</p>
