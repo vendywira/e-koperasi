@@ -89,3 +89,20 @@ main:focus {
         transition: none;
     }
 }
+
+/* Hero — glow pulse behind the carousel */
+.hero-glow-pulse {
+    animation: hero-glow-pulse 4.5s ease-in-out infinite;
+    will-change: opacity, transform;
+}
+
+@keyframes hero-glow-pulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50%      { opacity: 0.85; transform: scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-glow-pulse {
+        animation: none;
+    }
+}

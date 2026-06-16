@@ -29,7 +29,7 @@ defineProps<{
         description="Kelola simpan pinjam, simpanan, dan laporan keuangan koperasi Anda dengan mudah, aman, dan modern."
     >
         <HeroSection />
-        <TrustBar :items="trust" />
+<!--        <TrustBar :items="trust" />-->
         <ProductShowcase />
         <AppFeature />
         <FeatureGrid :items="features" />

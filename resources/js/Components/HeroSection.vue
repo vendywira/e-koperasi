@@ -3,13 +3,12 @@ import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useSiteConfig } from '@/composables/useSiteConfig';
 import { useImageOptimization } from '@/composables/useImageOptimization';
-import { useParallax } from '@/composables/useParallax';
 import { useScrollReveal } from '@/composables/useScrollReveal';
 import { ArrowRight, PlayCircle, Sparkles, Smartphone, ShieldCheck, Zap, TrendingDown } from 'lucide-vue-next';
+import HeroCarousel from '@/Components/HeroCarousel.vue';
 
 const { hero } = useSiteConfig();
 const { toWebP, toWebPSmall } = useImageOptimization();
-const { elementRef: phoneParallax } = useParallax({ speed: 0.12, maxOffset: 30 });
 const reveal = useScrollReveal({ staggerMs: 80, threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
 
 const heroScreenshot = '/images/app-screenshots/homepage.png';
@@ -19,6 +18,15 @@ const headline = computed(() => hero.value?.headline ?? 'Simpanan & Pinjaman Kop
 const subheadline = computed(() => hero.value?.subheadline ?? '');
 const primaryCta = computed(() => hero.value?.primary_cta ?? { label: 'Coba Demo Gratis', href: '/demo' });
 const secondaryCta = computed(() => hero.value?.secondary_cta ?? { label: 'Lihat Produk', href: '/#produk' });
+
+// Featured app screens for the 3D carousel
+const carouselSlides = [
+    { src: '/images/app-screenshots/webp/homepage.webp',         srcSmall: '/images/app-screenshots/webp/homepage-sm.webp',         alt: 'e-Koperasi App - Dashboard utama' },
+    { src: '/images/app-screenshots/webp/budget-dashboard.webp',  srcSmall: '/images/app-screenshots/webp/budget-dashboard-sm.webp',  alt: 'e-Koperasi App - Budget dashboard' },
+    { src: '/images/app-screenshots/webp/chart.webp',             srcSmall: '/images/app-screenshots/webp/chart-sm.webp',             alt: 'e-Koperasi App - Grafik performa' },
+    { src: '/images/app-screenshots/webp/transaction.webp',       srcSmall: '/images/app-screenshots/webp/transaction-sm.webp',       alt: 'e-Koperasi App - Transaksi' },
+    { src: '/images/app-screenshots/webp/list-angsuran.webp',     srcSmall: '/images/app-screenshots/webp/list-angsuran-sm.webp',     alt: 'e-Koperasi App - Daftar angsuran' },
+];
 </script>
 
 <template>
@@ -89,67 +97,16 @@ const secondaryCta = computed(() => hero.value?.secondary_cta ?? { label: 'Lihat
                 </div>
             </div>
 
-            <!-- App Mockup with real screenshots -->
-            <div :ref="(el: any) => reveal.setItemRef(6, el)" class="mt-12 lg:mt-16 relative">
-                <!-- Glow effect behind mockup -->
-                <div class="absolute inset-0 mx-8 lg:mx-16 bg-primary-500/20 blur-3xl rounded-full" />
-                
-                <div class="relative flex justify-center">
-                    <!-- Phone frame with real screenshot -->
-                    <div ref="phoneParallax" class="relative">
-                        <div class="w-[260px] h-[540px] bg-neutral-900 dark:bg-neutral-800 rounded-[2.5rem] p-[10px] shadow-2xl border-2 border-neutral-200 dark:border-neutral-700">
-                            <div class="w-full h-full rounded-[2rem] overflow-hidden bg-white">
-                                <picture>
-                                    <source
-                                        :srcset="`${toWebPSmall(heroScreenshot)} 640w, ${toWebP(heroScreenshot)} 1280w`"
-                                        sizes="260px"
-                                        type="image/webp"
-                                    />
-                                    <img
-                                        :src="toWebP(heroScreenshot)"
-                                        alt="e-Koperasi App - Dashboard utama dengan ringkasan simpanan dan pinjaman"
-                                        class="w-full h-full object-cover object-top"
-                                        loading="eager"
-                                        width="260"
-                                        height="540"
-                                    />
-                                </picture>
-                            </div>
-                        </div>
-                        <!-- Floating badges -->
-                        <div class="absolute -top-3 -right-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2">
-                            <ShieldCheck class="h-4 w-4 text-emerald-500" />
-                            <span class="text-xs font-semibold text-neutral-900 dark:text-white">Enkripsi E2E</span>
-                        </div>
-                        <div class="absolute -bottom-3 -left-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2">
-                            <Zap class="h-4 w-4 text-amber-500" />
-                            <span class="text-xs font-semibold text-neutral-900 dark:text-white">Real-time</span>
-                        </div>
-                    </div>
+            <!-- 3D Carousel of app screenshots -->
+            <div :ref="(el: any) => reveal.setItemRef(6, el)" class="mt-8 lg:mt-12 relative pb-32">
+                <!-- Glow effect behind carousel -->
+                <div class="hero-glow-pulse absolute inset-0 mx-8 lg:mx-16 bg-primary-500/20 blur-3xl rounded-full" />
 
-                    <!-- Second phone (behind, offset) -->
-                    <div class="hidden lg:block absolute -right-16 top-8 w-[220px] h-[460px] bg-neutral-900 dark:bg-neutral-800 rounded-[2rem] p-[8px] shadow-xl border border-neutral-200 dark:border-neutral-700 opacity-60 scale-90">
-                        <div class="w-full h-full rounded-[1.5rem] overflow-hidden bg-white">
-                            <picture>
-                                <source
-                                    :srcset="`${toWebPSmall(chartScreenshot)} 640w, ${toWebP(chartScreenshot)} 1280w`"
-                                    sizes="220px"
-                                    type="image/webp"
-                                />
-                                <img
-                                    :src="toWebP(chartScreenshot)"
-                                    alt="e-Koperasi App - Grafik performa keuangan"
-                                    class="w-full h-full object-cover object-top"
-                                    loading="lazy"
-                                    width="220"
-                                    height="460"
-                                />
-                            </picture>
-                        </div>
-                    </div>
+                <div class="relative flex justify-center">
+                    <HeroCarousel :slides="carouselSlides" />
                 </div>
 
-                <div class="mt-8 text-center">
+                <div class="mt-4 text-center">
                     <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-800 shadow-md border border-neutral-100 dark:border-neutral-700">
                         <Smartphone class="h-4 w-4 text-primary-600" aria-hidden="true" />
                         <span class="text-sm font-medium text-neutral-600 dark:text-neutral-300">Tersedia di iOS & Android — Pantau dari mana saja</span>

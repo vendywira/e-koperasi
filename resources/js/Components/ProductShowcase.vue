@@ -38,7 +38,7 @@ const highlightReveal = useScrollReveal({ staggerMs: 60 });
                     Produk Keuangan Koperasi
                 </span>
                 <h2 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 dark:text-white leading-tight">
-                    Pinjaman <span class="text-primary-600">Lebih Cerdas</span> dengan bantuan AI
+                    Kelola Pinjaman <span class="text-primary-600">Lebih Cerdas</span> dengan AI
                 </h2>
                 <p class="mt-5 text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
                     Kelola pinjaman anggota dalam satu platform. Transparan, cepat, dan didukung AI risk scoring untuk keputusan yang lebih adil.
