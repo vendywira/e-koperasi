@@ -24,6 +24,8 @@ export function useSiteConfig() {
         demo:         computed(() => config.value.demo ?? {}),
         contact:      computed(() => config.value.contact ?? {}),
         legal:        computed(() => config.value.legal ?? {}),
+        app_features: computed(() => config.value.app_features ?? {}),
+        about:        computed(() => config.value.about ?? {}),
         seo:          computed(() => config.value.seo ?? {}),
     };
 }

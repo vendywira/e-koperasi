@@ -49,6 +49,7 @@ function getComponentType(type: string): any {
         text: CmsInput,
         textarea: CmsTextarea,
         image: CmsImagePicker,
+        video: CmsImagePicker,
         repeater: CmsRepeater,
         link: CmsLinkEditor,
         cta: CmsCTAEditor,

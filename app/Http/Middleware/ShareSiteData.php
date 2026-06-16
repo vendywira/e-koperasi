@@ -31,6 +31,7 @@ class ShareSiteData extends Middleware
                 'legal'        => SiteConfig::get('legal'),
                 'seo'          => SiteConfig::get('seo'),
                 'about'        => SiteConfig::get('about'),
+                'app_features' => SiteConfig::get('app_features'),
             ],
         ]);
     }

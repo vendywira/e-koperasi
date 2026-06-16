@@ -33,7 +33,8 @@ const sectionLabels: Record<string, string> = {
     brand: 'Brand & Identitas', nav: 'Navigasi', footer: 'Footer',
     hero: 'Hero Section', trust_bar: 'Trust Bar', stats: 'Statistik',
     personas: 'Persona Cards', products: 'Produk', features: 'Fitur',
-    how_it_works: 'Cara Kerja', pricing: 'Harga', testimonials: 'Testimoni',
+    app_features: 'Fitur Aplikasi', how_it_works: 'Cara Kerja',
+    pricing: 'Harga', testimonials: 'Testimoni',
     faqs: 'FAQ', cta: 'Call to Action', demo: 'Demo Page',
     contact: 'Kontak', about: 'Tentang Kami', legal: 'Legal', seo: 'SEO',
 };

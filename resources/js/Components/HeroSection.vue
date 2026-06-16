@@ -2,31 +2,38 @@
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { useSiteConfig } from '@/composables/useSiteConfig';
-import { useImageOptimization } from '@/composables/useImageOptimization';
 import { useScrollReveal } from '@/composables/useScrollReveal';
 import { ArrowRight, PlayCircle, Sparkles, Smartphone, ShieldCheck, Zap, TrendingDown } from 'lucide-vue-next';
 import HeroCarousel from '@/Components/HeroCarousel.vue';
 
 const { hero } = useSiteConfig();
-const { toWebP, toWebPSmall } = useImageOptimization();
 const reveal = useScrollReveal({ staggerMs: 80, threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
 
-const heroScreenshot = '/images/app-screenshots/homepage.png';
-const chartScreenshot = '/images/app-screenshots/chart.png';
 const badge = computed(() => hero.value?.badge ?? 'Dipercaya 50+ Koperasi · 10K+ Anggota');
 const headline = computed(() => hero.value?.headline ?? 'Simpanan & Pinjaman Koperasi Lebih Cerdas');
 const subheadline = computed(() => hero.value?.subheadline ?? '');
 const primaryCta = computed(() => hero.value?.primary_cta ?? { label: 'Coba Demo Gratis', href: '/demo' });
 const secondaryCta = computed(() => hero.value?.secondary_cta ?? { label: 'Lihat Produk', href: '/#produk' });
 
-// Featured app screens for the 3D carousel
-const carouselSlides = [
-    { src: '/images/app-screenshots/webp/homepage.webp',         srcSmall: '/images/app-screenshots/webp/homepage-sm.webp',         alt: 'e-Koperasi App - Dashboard utama' },
-    { src: '/images/app-screenshots/webp/budget-dashboard.webp',  srcSmall: '/images/app-screenshots/webp/budget-dashboard-sm.webp',  alt: 'e-Koperasi App - Budget dashboard' },
-    { src: '/images/app-screenshots/webp/chart.webp',             srcSmall: '/images/app-screenshots/webp/chart-sm.webp',             alt: 'e-Koperasi App - Grafik performa' },
-    { src: '/images/app-screenshots/webp/transaction.webp',       srcSmall: '/images/app-screenshots/webp/transaction-sm.webp',       alt: 'e-Koperasi App - Transaksi' },
-    { src: '/images/app-screenshots/webp/list-angsuran.webp',     srcSmall: '/images/app-screenshots/webp/list-angsuran-sm.webp',     alt: 'e-Koperasi App - Daftar angsuran' },
-];
+// Featured app screens for the 3D carousel — loaded from CMS
+const carouselSlides = computed(() => {
+    const slides = hero.value?.carousel_slides;
+    if (slides && Array.isArray(slides) && slides.length > 0) {
+        return slides.map((s: any) => ({
+            src: s.src || '/images/app-screenshots/webp/homepage.webp',
+            srcSmall: s.src_small || s.src?.replace('.webp', '-sm.webp') || '/images/app-screenshots/webp/homepage-sm.webp',
+            alt: s.alt || 'Screenshot aplikasi',
+        }));
+    }
+    // Fallback defaults
+    return [
+        { src: '/images/app-screenshots/webp/homepage.webp',         srcSmall: '/images/app-screenshots/webp/homepage-sm.webp',         alt: 'e-Koperasi App - Dashboard utama' },
+        { src: '/images/app-screenshots/webp/budget-dashboard.webp',  srcSmall: '/images/app-screenshots/webp/budget-dashboard-sm.webp',  alt: 'e-Koperasi App - Budget dashboard' },
+        { src: '/images/app-screenshots/webp/chart.webp',             srcSmall: '/images/app-screenshots/webp/chart-sm.webp',             alt: 'e-Koperasi App - Grafik performa' },
+        { src: '/images/app-screenshots/webp/transaction.webp',       srcSmall: '/images/app-screenshots/webp/transaction-sm.webp',       alt: 'e-Koperasi App - Transaksi' },
+        { src: '/images/app-screenshots/webp/list-angsuran.webp',     srcSmall: '/images/app-screenshots/webp/list-angsuran-sm.webp',     alt: 'e-Koperasi App - Daftar angsuran' },
+    ];
+});
 </script>
 
 <template>

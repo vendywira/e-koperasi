@@ -3,6 +3,7 @@ export type FieldType =
     | 'text'
     | 'textarea'
     | 'image'
+    | 'video'
     | 'repeater'
     | 'group'
     | 'link'
@@ -73,6 +74,7 @@ export const sectionSchemas: SectionSchema[] = [
         description: 'Footer website — kolom link, deskripsi, dan copyright',
         fields: [
             { key: 'description', type: 'textarea', label: 'Deskripsi Footer', props: { rows: 2 } },
+            { key: 'tagline', type: 'text', label: 'Tagline Footer', props: { placeholder: 'Untuk Koperasi Indonesia' } },
             {
                 key: 'columns',
                 type: 'repeater',
@@ -119,6 +121,17 @@ export const sectionSchemas: SectionSchema[] = [
                 props: { variant: 'secondary', labelPlaceholder: 'Lihat Produk', hrefPlaceholder: '/#produk' },
             },
             { key: 'floating_badge', type: 'text', label: 'Floating Badge', props: { placeholder: 'UU PDP Compliant' } },
+            {
+                key: 'carousel_slides',
+                type: 'repeater',
+                label: 'Carousel Screenshots',
+                props: { addLabel: 'Tambah Slide', titleKey: 'alt' },
+                fields: [
+                    { key: 'src', type: 'image', label: 'Gambar (WebP)', props: { helpText: 'Gambar screenshot ukuran penuh, format WebP' } },
+                    { key: 'src_small', type: 'image', label: 'Gambar Kecil (WebP)', props: { helpText: '640px-wide version untuk mobile' } },
+                    { key: 'alt', type: 'text', label: 'Alt Text', props: { placeholder: 'e-Koperasi App - Dashboard utama' } },
+                ],
+            },
         ],
     },
 
@@ -446,6 +459,32 @@ export const sectionSchemas: SectionSchema[] = [
                 label: 'Tombol Sekunder',
                 props: { variant: 'secondary', labelPlaceholder: 'WhatsApp Tim', hrefPlaceholder: 'https://wa.me/...' },
             },
+        ],
+    },
+
+    // ---- App Features (Mobile App Showcase) ----
+    {
+        section: 'app_features',
+        label: 'Fitur Aplikasi',
+        icon: '📱',
+        description: 'Bagian showcase aplikasi mobile — fitur-fitur dengan screenshot',
+        fields: [
+            { key: 'badge', type: 'text', label: 'Badge', props: { placeholder: 'Mobile App' } },
+            { key: 'title', type: 'text', label: 'Judul', props: { placeholder: 'Koperasi di Saku Anggota' } },
+            { key: 'subtitle', type: 'textarea', label: 'Subjudul', props: { rows: 2, placeholder: 'Deskripsi bagian aplikasi...' } },
+            {
+                key: 'features',
+                type: 'repeater',
+                label: 'Fitur Aplikasi',
+                props: { addLabel: 'Tambah Fitur', titleKey: 'title' },
+                fields: [
+                    { key: 'title', type: 'text', label: 'Judul Fitur', props: { placeholder: 'Cek Tabungan & Pinjaman' } },
+                    { key: 'description', type: 'textarea', label: 'Deskripsi', props: { rows: 3, placeholder: 'Deskripsi fitur...' } },
+                    { key: 'screenshot', type: 'image', label: 'Screenshot', props: { helpText: 'Screenshot aplikasi untuk fitur ini' } },
+                    { key: 'icon', type: 'icon-select', label: 'Icon' },
+                ],
+            },
+            { key: 'cta_label', type: 'text', label: 'Tombol CTA', props: { placeholder: 'Coba Demo Sekarang' } },
         ],
     },
 

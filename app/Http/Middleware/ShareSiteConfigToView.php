@@ -29,6 +29,7 @@ class ShareSiteConfigToView
             'demo'         => SiteConfig::get('demo'),
             'contact'      => SiteConfig::get('contact'),
             'legal'        => SiteConfig::get('legal'),
+            'app_features' => SiteConfig::get('app_features'),
             'about'        => SiteConfig::get('about'),
             'seo'          => SiteConfig::get('seo'),
         ];

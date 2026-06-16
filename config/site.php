@@ -31,6 +31,7 @@ return [
 
     'footer' => [
         'description' => 'Platform monitoring & operasional koperasi — pinjaman, kasbon, absensi, slip gaji, dan evaluasi kinerja.',
+        'tagline' => 'Untuk Koperasi Indonesia',
         'columns' => [
             [
                 'title' => 'Produk',
@@ -81,6 +82,13 @@ return [
             'href' => '/#produk',
         ],
         'floating_badge' => 'UU PDP Compliant',
+        'carousel_slides' => [
+            ['src' => '/images/app-screenshots/webp/homepage.webp',         'src_small' => '/images/app-screenshots/webp/homepage-sm.webp',         'alt' => 'e-Koperasi App - Dashboard utama'],
+            ['src' => '/images/app-screenshots/webp/budget-dashboard.webp', 'src_small' => '/images/app-screenshots/webp/budget-dashboard-sm.webp', 'alt' => 'e-Koperasi App - Budget dashboard'],
+            ['src' => '/images/app-screenshots/webp/chart.webp',            'src_small' => '/images/app-screenshots/webp/chart-sm.webp',            'alt' => 'e-Koperasi App - Grafik performa'],
+            ['src' => '/images/app-screenshots/webp/transaction.webp',      'src_small' => '/images/app-screenshots/webp/transaction-sm.webp',      'alt' => 'e-Koperasi App - Transaksi'],
+            ['src' => '/images/app-screenshots/webp/list-angsuran.webp',    'src_small' => '/images/app-screenshots/webp/list-angsuran-sm.webp',    'alt' => 'e-Koperasi App - Daftar angsuran'],
+        ],
     ],
 
     /*
@@ -147,7 +155,7 @@ return [
                 'tagline' => 'Catatan titipan PDL & anggota real-time',
                 'icon' => 'gift',
                 'color' => 'amber',
-                'screenshot' => 'list-angsuran.webp',
+                'screenshot' => '/images/app-screenshots/webp/list-angsuran.webp',
                 'benefits' => [
                     'Input titipan harian dari PDL',
                     'Rekonsiliasi otomatis',
@@ -160,7 +168,7 @@ return [
                 'tagline' => 'Pinjaman internal dengan approval flow',
                 'icon' => 'wallet',
                 'color' => 'blue',
-                'screenshot' => 'deposit.webp',
+                'screenshot' => '/images/app-screenshots/webp/deposit.webp',
                 'benefits' => [
                     'Ajukan kasbon dari app',
                     'Approval bertingkat',
@@ -173,7 +181,7 @@ return [
                 'tagline' => 'Potongan gaji untuk tabungan anggota',
                 'icon' => 'piggy-bank',
                 'color' => 'purple',
-                'screenshot' => 'deposit.webp',
+                'screenshot' => '/images/app-screenshots/webp/deposit.webp',
                 'benefits' => [
                     'Auto potong dari slip gaji',
                     'Credit & debit tercatat',
@@ -189,7 +197,7 @@ return [
                 'badge' => 'Harian',
                 'icon' => 'calendar-days',
                 'accent' => 'primary',
-                'screenshot' => 'jatuh-tempo.webp',
+                'screenshot' => '/images/app-screenshots/webp/jatuh-tempo.webp',
                 'rate' => '20%',
                 'tenor' => '14–60 hari',
                 'approval' => '1×24 jam',
@@ -206,7 +214,7 @@ return [
                 'badge' => 'Mingguan',
                 'icon' => 'calendar-clock',
                 'accent' => 'amber',
-                'screenshot' => 'list-angsuran.webp',
+                'screenshot' => '/images/app-screenshots/webp/list-angsuran.webp',
                 'rate' => '20%',
                 'tenor' => '4–24 minggu',
                 'approval' => '1×24 jam',
@@ -223,7 +231,7 @@ return [
                 'badge' => 'Tempo',
                 'icon' => 'trending-down',
                 'accent' => 'violet',
-                'screenshot' => 'AI-recomendation-approve.webp',
+                'screenshot' => '/images/app-screenshots/webp/AI-recomendation-approve.webp',
                 'rate' => '20%',
                 'tenor' => '3–12 bulan',
                 'approval' => '2×24 jam',
@@ -487,6 +495,56 @@ return [
             'label' => 'WhatsApp Tim',
             'href' => 'https://wa.me/6281234567890',
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | App Features (Mobile App Showcase)
+    |--------------------------------------------------------------------------
+    */
+    'app_features' => [
+        'badge' => 'Mobile App',
+        'title' => 'Koperasi di Saku Anggota',
+        'subtitle' => 'Aplikasi mobile untuk anggota koperasi. Cek tabungan, ajukan pinjaman, dan absensi — semua dari HP.',
+        'features' => [
+            [
+                'title' => 'Cek Tabungan & Pinjaman',
+                'description' => 'Anggota bisa melihat saldo tabungan dan potongan pinjaman, status pinjaman, dan riwayat transaksi kapan saja — tanpa perlu ke kantor.',
+                'screenshot' => '/images/app-screenshots/homepage.png',
+                'icon' => 'credit-card',
+            ],
+            [
+                'title' => 'AI Risk Scoring & Rekomendasi',
+                'description' => 'Sistem AI menganalisis histori pembayaran dan memberikan rekomendasi approve, review, atau reject pinjaman secara objektif.',
+                'screenshot' => '/images/app-screenshots/AI-recomendation-approve.png',
+                'icon' => 'brain',
+            ],
+            [
+                'title' => 'Dashboard & Laporan',
+                'description' => 'Pantau grafik performa keuangan, profit, dan budget real-time dari HP.',
+                'screenshot' => '/images/app-screenshots/chart.png',
+                'icon' => 'bar-chart',
+            ],
+            [
+                'title' => 'Jatuh Tempo & Penagihan',
+                'description' => 'Lihat daftar jatuh tempo, status pembayaran, dan route optimization untuk penagih.',
+                'screenshot' => '/images/app-screenshots/jatuh-tempo.png',
+                'icon' => 'trending-down',
+            ],
+            [
+                'title' => 'List Angsuran & Transaksi',
+                'description' => 'Kelola daftar angsuran, riwayat transaksi, dan pencatatan harian dalam satu layar.',
+                'screenshot' => '/images/app-screenshots/list-angsuran.png',
+                'icon' => 'list-ordered',
+            ],
+            [
+                'title' => 'Slip Gaji Digital',
+                'description' => 'Download slip gaji langsung dari HP. Lihat rincian gaji pokok, tunjangan, potongan kasbon, dan insentif.',
+                'screenshot' => '/images/app-screenshots/pay-slip-dashboard.png',
+                'icon' => 'file-text',
+            ],
+        ],
+        'cta_label' => 'Coba Demo Sekarang',
     ],
 
     /*

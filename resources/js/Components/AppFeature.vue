@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
+import { useSiteConfig } from '@/composables/useSiteConfig';
 import { useImageOptimization } from '@/composables/useImageOptimization';
 import { useScrollReveal } from '@/composables/useScrollReveal';
 import {
@@ -15,51 +16,82 @@ import {
     ListOrdered,
 } from 'lucide-vue-next';
 
+const { app_features } = useSiteConfig();
+
 const activeFeature = ref(0);
 const { toWebP, toWebPSmall } = useImageOptimization();
 const reveal = useScrollReveal({ staggerMs: 80, threshold: 0.05 });
 
-const features = [
-    {
-        icon: CreditCard,
-        title: 'Cek Tabungan & Pinjaman',
-        desc: 'Anggota bisa melihat saldo tabungan dari potongan pinjaman, status pinjaman, dan riwayat transaksi kapan saja — tanpa perlu ke kantor.',
-        screenshot: '/images/app-screenshots/homepage.png',
-    },
-    {
-        icon: Brain,
-        title: 'AI Risk Scoring & Rekomendasi',
-        desc: 'Sistem AI menganalisis histori pembayaran dan memberikan rekomendasi approve, review, atau reject pinjaman secara objektif.',
-        screenshot: '/images/app-screenshots/AI-recomendation-approve.png',
-    },
-    {
-        icon: BarChart3,
-        title: 'Dashboard & Laporan',
-        desc: 'Pantau grafik performa keuangan, profit, dan budget real-time dariHP.',
-        screenshot: '/images/app-screenshots/chart.png',
-    },
-    {
-        icon: TrendingDown,
-        title: 'Jatuh Tempo & Penagihan',
-        desc: 'Lihat daftar jatuh tempo, status pembayaran, dan route optimization untuk penagih.',
-        screenshot: '/images/app-screenshots/jatuh-tempo.png',
-    },
-    {
-        icon: ListOrdered,
-        title: 'List Angsuran & Transaksi',
-        desc: 'Kelola daftar angsuran, riwayat transaksi, dan pencatatan harian dalam satu layar.',
-        screenshot: '/images/app-screenshots/list-angsuran.png',
-    },
-    {
-        icon: FileText,
-        title: 'Slip Gaji Digital',
-        desc: 'Download slip gaji langsung dari HP. Lihat rincian gaji pokok, tunjangan, potongan kasbon, dan insentif.',
-        screenshot: '/images/app-screenshots/pay-slip-dashboard.png',
-    },
-];
+// Apply WebP optimization only for known app-screenshot paths
+// CMS-uploaded images (storage URLs) are used as-is
+function optUrl(path: string): string {
+    if (!path) return '';
+    if (path.startsWith('/images/app-screenshots/')) {
+        return toWebP(path);
+    }
+    return path;
+}
+
+function optUrlSmall(path: string): string {
+    if (!path) return '';
+    if (path.startsWith('/images/app-screenshots/')) {
+        return toWebPSmall(path);
+    }
+    return path;
+}
+
+// Icon map to resolve icon names from CMS config to lucide components
+const iconMap: Record<string, any> = {
+    'credit-card': CreditCard,
+    'file-text': FileText,
+    'trending-down': TrendingDown,
+    'bar-chart': BarChart3,
+    'brain': Brain,
+    'list-ordered': ListOrdered,
+    'smartphone': Smartphone,
+    'shield': ShieldCheck,
+    'zap': Zap,
+};
+
+const sectionBadge = computed(() => app_features.value?.badge ?? 'Mobile App');
+const sectionTitle = computed(() => app_features.value?.title ?? 'Koperasi di Saku Anggota');
+const sectionSubtitle = computed(() => app_features.value?.subtitle ?? '');
+const ctaLabel = computed(() => app_features.value?.cta_label ?? 'Coba Demo Sekarang');
+
+interface AppFeatureItem {
+    title: string;
+    description: string;
+    screenshot: string;
+    icon: string;
+}
+
+const features = computed(() => {
+    const items = app_features.value?.features;
+    if (items && Array.isArray(items) && items.length > 0) {
+        return items.map((f: AppFeatureItem, i: number) => ({
+            icon: iconMap[f.icon] || (i === 0 ? CreditCard : i === 1 ? Brain : i === 2 ? BarChart3 : i === 3 ? TrendingDown : i === 4 ? ListOrdered : FileText),
+            title: f.title || 'Fitur ' + (i + 1),
+            desc: f.description || '',
+            screenshot: f.screenshot || '/images/app-screenshots/homepage.png',
+        }));
+    }
+    // Fallback defaults
+    return [
+        { icon: CreditCard,    title: 'Cek Tabungan & Pinjaman',            desc: 'Anggota bisa melihat saldo tabungan dari potongan pinjaman, status pinjaman, dan riwayat transaksi kapan saja — tanpa perlu ke kantor.', screenshot: '/images/app-screenshots/homepage.png' },
+        { icon: Brain,         title: 'AI Risk Scoring & Rekomendasi',      desc: 'Sistem AI menganalisis histori pembayaran dan memberikan rekomendasi approve, review, atau reject pinjaman secara objektif.', screenshot: '/images/app-screenshots/AI-recomendation-approve.png' },
+        { icon: BarChart3,     title: 'Dashboard & Laporan',                desc: 'Pantau grafik performa keuangan, profit, dan budget real-time dari HP.', screenshot: '/images/app-screenshots/chart.png' },
+        { icon: TrendingDown,  title: 'Jatuh Tempo & Penagihan',            desc: 'Lihat daftar jatuh tempo, status pembayaran, dan route optimization untuk penagih.', screenshot: '/images/app-screenshots/jatuh-tempo.png' },
+        { icon: ListOrdered,   title: 'List Angsuran & Transaksi',          desc: 'Kelola daftar angsuran, riwayat transaksi, dan pencatatan harian dalam satu layar.', screenshot: '/images/app-screenshots/list-angsuran.png' },
+        { icon: FileText,      title: 'Slip Gaji Digital',                  desc: 'Download slip gaji langsung dari HP. Lihat rincian gaji pokok, tunjangan, potongan kasbon, dan insentif.', screenshot: '/images/app-screenshots/pay-slip-dashboard.png' },
+    ];
+});
+
+const activeFeatureData = computed(() => features.value[activeFeature.value] || features.value[0]);
 
 function setActive(i: number) {
-    activeFeature.value = i;
+    if (i >= 0 && i < features.value.length) {
+        activeFeature.value = i;
+    }
 }
 </script>
 
@@ -69,13 +101,13 @@ function setActive(i: number) {
             <div :ref="(el: any) => reveal.setItemRef(0, el)" class="text-center max-w-3xl mx-auto mb-16">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400 text-xs font-semibold mb-4">
                     <Smartphone class="h-3.5 w-3.5" />
-                    Mobile App
+                    {{ sectionBadge }}
                 </span>
                 <h2 class="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white">
-                    Koperasi di Saku Anggota
+                    {{ sectionTitle }}
                 </h2>
-                <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
-                    Aplikasi mobile untuk anggota koperasi. Cek tabungan, ajukan pinjaman, dan absensi — semua dari HP.
+                <p v-if="sectionSubtitle" class="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
+                    {{ sectionSubtitle }}
                 </p>
             </div>
 
@@ -90,19 +122,18 @@ function setActive(i: number) {
                         <div class="relative w-[260px] h-[540px] bg-neutral-900 dark:bg-neutral-800 rounded-[2.5rem] p-[10px] shadow-2xl border-2 border-neutral-200 dark:border-neutral-700">
                             <div class="w-full h-full rounded-[2rem] overflow-hidden bg-white relative">
                                 <picture>
-                                    <source
-                                        :srcset="`${toWebPSmall(features[activeFeature].screenshot)} 640w, ${toWebP(features[activeFeature].screenshot)} 1280w`"
-                                        sizes="(max-width: 768px) 220px, 260px"
-                                        type="image/webp"
-                                    />
-                                    <img
-                                        :src="toWebP(features[activeFeature].screenshot)"
-                                        :alt="features[activeFeature].title"
-                                        class="w-full h-full object-cover object-top transition-opacity duration-300"
-                                        loading="lazy"
-                                        width="260"
-                                        height="540"
-                                    />
+                                    <source                        :srcset="`${optUrlSmall(activeFeatureData.screenshot)} 640w, ${optUrl(activeFeatureData.screenshot)} 1280w`"
+                        sizes="(max-width: 768px) 220px, 260px"
+                        type="image/webp"
+                    />
+                    <img
+                        :src="optUrl(activeFeatureData.screenshot)"
+                        :alt="activeFeatureData.title"
+                        class="w-full h-full object-cover object-top transition-opacity duration-300"
+                        loading="lazy"
+                        width="260"
+                        height="540"
+                    />
                                 </picture>
                             </div>
                         </div>
@@ -121,7 +152,8 @@ function setActive(i: number) {
 
                 <!-- Feature List -->
                 <div :ref="(el: any) => reveal.setItemRef(2, el)" class="order-2 lg:order-2">
-                    <div class="space-y-3">
+                    <!-- Scrollable feature list: 2 items visible on mobile, ~4 on desktop -->
+                    <div class="space-y-3 max-h-[17rem] sm:max-h-[31rem] overflow-y-auto overflow-x-hidden overscroll-contain pr-1.5 scrollbar-feature">
                         <div
                             v-for="(feature, i) in features"
                             :key="feature.title"
@@ -176,3 +208,26 @@ function setActive(i: number) {
         </div>
     </section>
 </template>
+
+<!-- Custom thin scrollbar for feature list -->
+<style scoped>
+.scrollbar-feature::-webkit-scrollbar {
+    width: 4px;
+}
+.scrollbar-feature::-webkit-scrollbar-track {
+    background: transparent;
+}
+.scrollbar-feature::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 999px;
+}
+.dark .scrollbar-feature::-webkit-scrollbar-thumb {
+    background: #404040;
+}
+.scrollbar-feature::-webkit-scrollbar-thumb:hover {
+    background: #a3a3a3;
+}
+.dark .scrollbar-feature::-webkit-scrollbar-thumb:hover {
+    background: #525252;
+}
+</style>

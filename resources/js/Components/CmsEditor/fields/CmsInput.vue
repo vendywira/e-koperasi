@@ -1,6 +1,6 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
-    modelValue: string;
+    modelValue: string | number;
     label: string;
     placeholder?: string;
     helpText?: string;

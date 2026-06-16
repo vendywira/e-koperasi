@@ -221,12 +221,50 @@ const previewData = computed(() => {
 
 // Icon helper map for icon-select values to emoji previews
 const iconEmoji: Record<string, string> = {
-    shield: '🛡️', zap: '⚡', clock: '⏰', sparkles: '✨',
-    gift: '🎁', wallet: '👛', 'piggy-bank': '🐷', 'calendar-days': '📅',
-    'calendar-clock': '📆', 'trending-down': '📉', 'trending-up': '📈',
-    briefcase: '💼', users: '👥', smartphone: '📱', cog: '⚙️',
-    'file-text': '📄', 'bar-chart': '📊', building: '🏢', camera: '📷',
-    'map-pin': '📍', route: '🗺️', 'badge-dollar-sign': '💵',
+    // Finance
+    shield: '🛡️', zap: '⚡', sparkles: '✨', gift: '🎁',
+    wallet: '👛', 'piggy-bank': '🐷', 'badge-dollar-sign': '💵',
+    'money-bag': '💰', 'credit-card': '💳', bank: '🏦',
+    receipt: '🧾', handshake: '🤝', percentage: '💹', gem: '💎',
+    scale: '⚖️',
+    // Business & Documents
+    briefcase: '💼', building: '🏢', 'file-text': '📄',
+    document: '📃', 'clipboard-list': '📋', folder: '📁',
+    'folder-open': '📂', bookmark: '🔖', pushpin: '📌',
+    memo: '📝', newspaper: '📰', 'bar-chart': '📊',
+    'trending-up': '📈', 'trending-down': '📉',
+    // Communication
+    mail: '✉️', phone: '📞', smartphone: '📱',
+    message: '💬', chat: '💭', notification: '🔔',
+    send: '📤', inbox: '📥',
+    // People
+    users: '👥', person: '👤', crown: '👑', support: '🧑‍💻',
+    // Actions
+    search: '🔍', edit: '✏️', trash: '🗑️', plus: '➕',
+    'check-circle': '✅', close: '❌', upload: '⬆️',
+    download: '⬇️', refresh: '🔄', save: '💾',
+    // Navigation
+    home: '🏠', link: '🔗', 'arrow-right': '➡️', 'arrow-left': '⬅️',
+    'arrow-up': '⬆️', 'arrow-down': '⬇️',
+    // Time
+    clock: '⏰', 'calendar-days': '📅', 'calendar-clock': '📆',
+    hourglass: '⌛', timer: '⏱️', watch: '⌚',
+    // Security
+    lock: '🔒', unlock: '🔓', key: '🔑', verified: '✔️',
+    // Media
+    camera: '📷', image: '🖼️', video: '🎬',
+    play: '▶️', headphone: '🎧',
+    // Stars & Awards
+    star: '⭐', heart: '❤️', award: '🏆', medal: '🥇',
+    fire: '🔥', rocket: '🚀', target: '🎯', flag: '🚩',
+    // Location
+    'map-pin': '📍', route: '🗺️', globe: '🌐',
+    // Technology
+    database: '🗄️', cloud: '☁️', server: '🖥️',
+    code: '💻', cog: '⚙️',
+    // Misc
+    lightbulb: '💡', cart: '🛒', truck: '🚚',
+    airplane: '✈️', ship: '🚢', umbrella: '☂️',
 };
 
 function getIconEmoji(icon: string): string {

@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import MediaUploader from '@/Components/MediaUploader.vue';
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
     modelValue: string;
     label: string;
     helpText?: string;
+    accept?: string;
+    mediaType?: 'image' | 'video' | 'all';
 }>(), {
     helpText: '',
+    accept: 'image/*,.pdf,.svg',
+    mediaType: 'image',
 });
 
 const emit = defineEmits<{
@@ -15,6 +19,23 @@ const emit = defineEmits<{
 }>();
 
 const showPicker = ref(false);
+
+const isVideoUrl = computed(() => {
+    if (!props.modelValue) return false;
+    return /\.(mp4|webm|ogg|mov|avi|wmv)(\?.*)?$/i.test(props.modelValue);
+});
+
+const pickerTitle = computed(() => {
+    if (props.mediaType === 'video') return 'Pilih Video';
+    if (props.mediaType === 'all') return 'Pilih Media';
+    return 'Pilih Gambar';
+});
+
+const placeholderText = computed(() => {
+    if (props.mediaType === 'video') return 'URL video...';
+    if (props.mediaType === 'all') return 'URL media...';
+    return 'URL gambar...';
+});
 </script>
 
 <template>
@@ -28,13 +49,31 @@ const showPicker = ref(false);
             <div
                 class="w-20 h-20 rounded-lg border border-neutral-300 dark:border-neutral-700 overflow-hidden flex-shrink-0 bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center"
             >
+                <!-- Image preview -->
                 <img
-                    v-if="modelValue"
+                    v-if="modelValue && !isVideoUrl"
                     :src="modelValue"
                     alt="Preview"
                     class="w-full h-full object-cover"
                     @error="($event.target as HTMLImageElement).style.display = 'none'"
                 />
+                <!-- Video preview -->
+                <div v-else-if="modelValue && isVideoUrl" class="relative w-full h-full flex items-center justify-center bg-neutral-900">
+                    <video
+                        :src="modelValue"
+                        class="w-full h-full object-cover"
+                        preload="metadata"
+                        muted
+                    />
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-8 h-8 rounded-full bg-black/50 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <!-- Empty state -->
                 <svg v-else class="w-8 h-8 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
                 </svg>
@@ -46,7 +85,7 @@ const showPicker = ref(false);
                         :value="modelValue"
                         @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
                         type="text"
-                        placeholder="URL gambar..."
+                        :placeholder="placeholderText"
                         class="flex-1 px-3.5 py-2 text-sm bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500 transition-all"
                     />
                     <button
@@ -83,9 +122,9 @@ const showPicker = ref(false);
                     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
                     @click.self="showPicker = false"
                 >
-                    <div class="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col border border-neutral-200 dark:border-neutral-800">
+                    <div class="bg-white dark:bg-neutral-900 rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col border border-neutral-200 dark:border-neutral-800">
                         <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-neutral-800">
-                            <h3 class="text-base font-semibold text-neutral-900 dark:text-white">Pilih Gambar</h3>
+                            <h3 class="text-base font-semibold text-neutral-900 dark:text-white">{{ pickerTitle }}</h3>
                             <button
                                 @click="showPicker = false"
                                 class="p-1.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
@@ -99,6 +138,7 @@ const showPicker = ref(false);
                             <MediaUploader
                                 directory="cms"
                                 :select-mode="true"
+                                :accept="accept"
                                 @select="(url: string) => { emit('update:modelValue', url); showPicker = false; }"
                             />
                         </div>

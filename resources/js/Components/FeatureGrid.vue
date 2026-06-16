@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useSiteConfig } from '@/composables/useSiteConfig';
 import {
     Banknote,
     CreditCard,
@@ -9,55 +11,61 @@ import {
     BarChart3,
     Building2,
     Camera,
+    Wallet,
+    BarChart,
+    Clock,
+    MapPin,
+    Route,
 } from 'lucide-vue-next';
 
-const features = [
-    {
-        icon: Banknote,
-        title: 'Manajemen Tunai Harian',
-        desc: 'Catat kas masuk/keluar, rekonsiliasi real-time, laporan harian otomatis.',
-    },
-    {
-        icon: CreditCard,
-        title: 'Manajemen Kasbon (BON)',
-        desc: 'Ajukan, approval, tracking saldo BON, potong otomatis dari gaji.',
-    },
-    {
-        icon: BadgeDollarSign,
-        title: 'Titipan & Simpanan',
-        desc: 'Simpanan pokok, wajib, sukarela. Titipan penagih. Approval flow.',
-    },
-    {
-        icon: TrendingUp,
-        title: 'Kontrol Pinjaman + AI',
-        desc: 'Pinjaman gadai/agunan (foto+video), AI risk scoring, GPS tracking, route optimization.',
-    },
-    {
-        icon: Cog,
-        title: 'Rule Engine Dinamis',
-        desc: 'Atur logika bisnis tanpa coding. Insentif, pinjaman, approval bertingkat.',
-    },
-    {
-        icon: FileText,
-        title: 'Slip Gaji Digital',
-        desc: 'Cetak PDF, tunjangan & insentif otomatis, integrasi simpanan & kasbon.',
-    },
-    {
-        icon: BarChart3,
-        title: 'Real-time Dashboard',
-        desc: 'Performance, saldo lapangan, NPL, target harian, nasabah aktif — semua real-time.',
-    },
-    {
-        icon: Building2,
-        title: 'Multi-Resort & Multi-Unit',
-        desc: '6 role bertingkat, budgeting per unit, laporan lintas resort.',
-    },
-    {
-        icon: Camera,
-        title: 'Absensi Foto + Kalender',
-        desc: 'Upload foto absen anggota di meja kerja. Set hari libur untuk loan schedule.',
-    },
-];
+const { features: featuresConfig } = useSiteConfig();
+
+// Icon map to resolve CMS icon names to lucide components
+const iconMap: Record<string, any> = {
+    'wallet': Wallet,
+    'trending-up': TrendingUp,
+    'badge-dollar-sign': BadgeDollarSign,
+    'cog': Cog,
+    'file-text': FileText,
+    'bar-chart': BarChart,
+    'building': Building2,
+    'camera': Camera,
+    'banknote': Banknote,
+    'credit-card': CreditCard,
+    'map-pin': MapPin,
+    'route': Route,
+    'clock': Clock,
+};
+
+const features = computed(() => {
+    // Handle both data formats: flat array (config default) and { items: [...] } (CMS saved)
+    const raw = featuresConfig.value;
+    const items = Array.isArray(raw) ? raw : (raw?.items ?? []);
+
+    if (items.length > 0) {
+        return items.map((f: any, i: number) => ({
+            icon: iconMap[f.icon] || ([
+                Banknote, CreditCard, BadgeDollarSign, TrendingUp, Cog,
+                FileText, BarChart3, Building2, Camera,
+            ][i] || FileText),
+            title: f.title || `Fitur ${i + 1}`,
+            desc: f.description || '',
+        }));
+    }
+
+    // Fallback defaults
+    return [
+        { icon: Banknote,    title: 'Manajemen Tunai Harian',       desc: 'Catat kas masuk/keluar, rekonsiliasi real-time, laporan harian otomatis.' },
+        { icon: CreditCard,  title: 'Manajemen Kasbon (BON)',       desc: 'Ajukan, approval, tracking saldo BON, potong otomatis dari gaji.' },
+        { icon: BadgeDollarSign, title: 'Titipan & Simpanan',       desc: 'Simpanan pokok, wajib, sukarela. Titipan penagih. Approval flow.' },
+        { icon: TrendingUp,  title: 'Kontrol Pinjaman + AI',        desc: 'Pinjaman gadai/agunan (foto+video), AI risk scoring, GPS tracking, route optimization.' },
+        { icon: Cog,         title: 'Rule Engine Dinamis',          desc: 'Atur logika bisnis tanpa coding. Insentif, pinjaman, approval bertingkat.' },
+        { icon: FileText,    title: 'Slip Gaji Digital',            desc: 'Cetak PDF, tunjangan & insentif otomatis, integrasi simpanan & kasbon.' },
+        { icon: BarChart3,   title: 'Real-time Dashboard',          desc: 'Performance, saldo lapangan, NPL, target harian, nasabah aktif — semua real-time.' },
+        { icon: Building2,   title: 'Multi-Resort & Multi-Unit',    desc: '6 role bertingkat, budgeting per unit, laporan lintas resort.' },
+        { icon: Camera,      title: 'Absensi Foto + Kalender',      desc: 'Upload foto absen anggota di meja kerja. Set hari libur untuk loan schedule.' },
+    ];
+});
 </script>
 
 <template>

@@ -91,6 +91,17 @@ function updateField(key: string, val: any) {
                     v-bind="field.props || {}"
                 />
 
+                <!-- Video -->
+                <CmsImagePicker
+                    v-else-if="field.type === 'video'"
+                    :model-value="getFieldValue(field)"
+                    @update:model-value="(val: string) => updateField(field.key, val)"
+                    :label="field.label"
+                    media-type="video"
+                    accept="video/*"
+                    v-bind="field.props || {}"
+                />
+
                 <!-- Icon Select -->
                 <CmsIconSelect
                     v-else-if="field.type === 'icon-select'"

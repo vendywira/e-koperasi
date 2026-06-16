@@ -52,6 +52,7 @@ class MakeAdmin extends Command
             'email' => $email,
             'password' => Hash::make($password),
             'email_verified_at' => now(),
+            'role' => 'admin',
         ]);
 
         $this->newLine();
@@ -62,6 +63,7 @@ class MakeAdmin extends Command
                 ['ID', $user->id],
                 ['Name', $user->name],
                 ['Email', $user->email],
+                ['Role', $user->role],
                 ['Login URL', route('login')],
             ]
         );

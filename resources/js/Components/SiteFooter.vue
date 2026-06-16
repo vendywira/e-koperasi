@@ -20,7 +20,7 @@ const year = new Date().getFullYear();
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div class="col-span-2 md:col-span-1">
                     <Link href="/" class="flex items-center gap-2">
-                        <img src="/images/logo-white.svg" :alt="brandName" class="h-8 w-8" />
+                        <img src="/images/logo-only-white.png" :alt="brandName" class="h-8 w-8" />
                         <span class="font-bold text-lg">{{ brandName }}</span>
                     </Link>
                     <p class="mt-3 text-sm text-primary-100">
