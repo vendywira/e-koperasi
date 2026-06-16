@@ -3,12 +3,14 @@ import SiteLayout from '@/Layouts/SiteLayout.vue';
 import { useForm, usePage, Link } from '@inertiajs/vue3';
 import { ArrowRight, Copy, Check, Eye, EyeOff, AlertCircle, CheckCircle2 } from 'lucide-vue-next';
 import { ref, computed, nextTick, watch } from 'vue';
+import { useSiteConfig } from '@/composables/useSiteConfig';
 
 const props = defineProps<{
     demoAccounts: { role: string; email: string; pin: string }[];
 }>();
 
 const page = usePage();
+const { demo } = useSiteConfig();
 const flashSuccess = computed(() => (page.props as any).flash?.success);
 
 const form = useForm({
@@ -65,13 +67,13 @@ function copy(text: string, idx: number) {
         <section class="bg-gradient-to-b from-primary-50 to-white dark:from-primary-900/20 dark:to-neutral-950">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
                 <span class="inline-block px-3 py-1 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400 text-xs font-semibold mb-4">
-                    GRATIS · TANPA KARTU KREDIT
+                    {{ demo.value?.badge || 'GRATIS · TANPA KARTU KREDIT' }}
                 </span>
                 <h1 class="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-white">
-                    Coba e-Koperasi Sekarang
+                    {{ demo.value?.title || 'Coba e-Koperasi Sekarang' }}
                 </h1>
                 <p class="mt-6 text-lg text-neutral-600 dark:text-neutral-300">
-                    Eksplorasi sandbox demo dengan 6 akun role berbeda. Atau request demo 1-on-1 dengan tim kami.
+                    {{ demo.value?.subtitle || 'Eksplorasi sandbox demo dengan 6 akun role berbeda. Atau request demo 1-on-1 dengan tim kami.' }}
                 </p>
             </div>
         </section>
@@ -81,10 +83,10 @@ function copy(text: string, idx: number) {
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-neutral-800 rounded-2xl shadow-xl border border-neutral-100 dark:border-neutral-700 p-8 lg:p-12">
                     <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
-                        <div>
-                            <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">Sandbox Demo</h2>
-                            <p class="mt-1 text-sm text-neutral-600 dark:text-neutral-300">Login dengan salah satu akun di bawah untuk explore.</p>
-                        </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">Sandbox Demo</h2>
+                        <p class="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{{ demo.value?.accounts_intro || 'Login dengan salah satu akun di bawah untuk explore.' }}</p>
+                    </div>
                     </div>
 
                     <button
@@ -94,6 +96,11 @@ function copy(text: string, idx: number) {
                         <component :is="showCredentials ? EyeOff : Eye" class="h-4 w-4" />
                         {{ showCredentials ? 'Sembunyikan' : 'Tampilkan' }} kredensial
                     </button>
+
+                    <p v-if="demo.value?.reset_notice" class="mb-3 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-lg px-3 py-2 flex items-center gap-2">
+                        <AlertCircle class="h-3.5 w-3.5 flex-shrink-0" />
+                        {{ demo.value.reset_notice }}
+                    </p>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div

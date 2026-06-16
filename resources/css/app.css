@@ -68,6 +68,83 @@ main:focus {
     }
 }
 
+/* ========================================
+   THEME TRANSITIONS
+   ======================================== */
+
+/* Smooth theme transition — only on the admin/CMS pages via a body class or global.
+   Uses !important only on color-related properties so scroll-reveal animations are unaffected. */
+.cms-page * {
+    transition: background-color 0.2s ease,
+                border-color 0.2s ease,
+                color 0.15s ease,
+                fill 0.2s ease,
+                stroke 0.2s ease,
+                box-shadow 0.2s ease,
+                opacity 0.2s ease;
+}
+
+/* Exclude animated elements from the CMS transition to avoid conflicts */
+.cms-page .animate-spin,
+.cms-page .animate-pulse,
+.cms-page .animate-bounce {
+    transition: none;
+}
+
+/* Theme-aware scrollbar */
+@media (prefers-reduced-motion: no-preference) {
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94A3B8;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        background: #334155;
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background: #475569;
+    }
+
+    /* Firefox scrollbar */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #CBD5E1 transparent;
+    }
+
+    .dark * {
+        scrollbar-color: #334155 transparent;
+    }
+}
+
+/* Selection color */
+::selection {
+    background: rgba(5, 150, 105, 0.2);
+}
+
+.dark ::selection {
+    background: rgba(16, 185, 129, 0.3);
+}
+
+/* Textarea/code focus glow */
+.dark textarea:focus,
+.dark input:focus {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15), 0 0 12px rgba(16, 185, 129, 0.08);
+}
+
 /* Scroll-reveal animation */
 .scroll-reveal-hidden {
     opacity: 0;

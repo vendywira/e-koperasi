@@ -57,14 +57,23 @@ class SiteConfig
 
     public static function demoAccounts(): array
     {
-        return [
-            ['role' => 'Admin (Ketua)', 'email' => 'admin@demo.e-koperasi.com', 'pin' => '123456'],
-            ['role' => 'Koordinator', 'email' => 'koordinator@demo.e-koperasi.com', 'pin' => '123456'],
-            ['role' => 'Pimpinan', 'email' => 'pimpinan@demo.e-koperasi.com', 'pin' => '123456'],
-            ['role' => 'Co-Lead', 'email' => 'colead@demo.e-koperasi.com', 'pin' => '123456'],
-            ['role' => 'Cashier', 'email' => 'cashier@demo.e-koperasi.com', 'pin' => '123456'],
-            ['role' => 'PDL (Penagih)', 'email' => 'pdl@demo.e-koperasi.com', 'pin' => '123456'],
+        $demoConfig = self::get('demo', []);
+        $roleLabels = $demoConfig['roles_intro'] ?? [];
+
+        $accounts = [
+            ['key' => 'admin', 'email' => 'admin@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'koordinator', 'email' => 'koordinator@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'pimpinan', 'email' => 'pimpinan@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'colead', 'email' => 'colead@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'cashier', 'email' => 'cashier@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'pdl', 'email' => 'pdl@demo.e-koperasi.com', 'pin' => '123456'],
         ];
+
+        return array_map(function ($account) use ($roleLabels) {
+            $account['role'] = $roleLabels[$account['key']] ?? $account['key'];
+            unset($account['key']);
+            return $account;
+        }, $accounts);
     }
 
     public static function stats(): array

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SiteContent;
 use App\Services\SiteConfig;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -43,25 +42,22 @@ class SiteContentController extends Controller
     /**
      * Store or update a section's data.
      */
-    public function update(Request $request, string $section): JsonResponse
+    public function update(Request $request, string $section)
     {
         $request->validate([
             'value' => 'required',
         ]);
 
-        $siteContent = SiteContent::saveSection($section, $request->value);
+        SiteContent::saveSection($section, $request->value);
         SiteConfig::clearCache();
 
-        return response()->json([
-            'success' => true,
-            'data' => $siteContent,
-        ]);
+        return redirect()->back()->with('success', "Section {$section} berhasil disimpan.");
     }
 
     /**
      * Initialize all sections from the config file (seed).
      */
-    public function seed(): JsonResponse
+    public function seed()
     {
         $config = config('site', []);
 
@@ -73,29 +69,23 @@ class SiteContentController extends Controller
 
         SiteConfig::clearCache();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'All sections seeded from config.',
-        ]);
+        return redirect()->back()->with('success', 'Semua section berhasil di-seed dari config default.');
     }
 
     /**
      * Reset a section back to config default.
      */
-    public function reset(string $section): JsonResponse
+    public function reset(string $section)
     {
         $configValue = config("site.{$section}");
 
         if (!$configValue || !is_array($configValue)) {
-            return response()->json(['error' => 'Section not found in config'], 404);
+            return redirect()->back()->with('error', 'Section not found in config');
         }
 
-        $siteContent = SiteContent::saveSection($section, $configValue);
+        SiteContent::saveSection($section, $configValue);
         SiteConfig::clearCache();
 
-        return response()->json([
-            'success' => true,
-            'data' => $siteContent,
-        ]);
+        return redirect()->back()->with('success', "Section {$section} berhasil di-reset ke default.");
     }
 }

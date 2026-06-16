@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { index as cmsIndex } from '@/routes/admin/cms';
+import { useTheme } from '@/composables/useTheme';
 
 defineProps<{
     title?: string;
@@ -9,12 +10,155 @@ defineProps<{
 
 const page = usePage();
 const user = computed(() => (page.props as any).auth?.user);
+const { theme, toggleTheme } = useTheme();
+const sidebarOpen = ref(false);
+
+function toggleSidebar() {
+    sidebarOpen.value = !sidebarOpen.value;
+}
+
+function closeSidebar() {
+    sidebarOpen.value = false;
+}
+
+// Close sidebar on escape key
+function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && sidebarOpen.value) {
+        closeSidebar();
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
-    <div class="min-h-screen flex bg-neutral-50 dark:bg-neutral-950">
+    <div class="min-h-screen flex bg-neutral-50 dark:bg-neutral-950 cms-page">
+        <!-- Mobile overlay backdrop -->
+        <Transition
+            enter-active-class="transition-opacity duration-300 ease-out"
+            enter-from-class="opacity-0"
+            enter-to-class="opacity-100"
+            leave-active-class="transition-opacity duration-200 ease-in"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+                v-if="sidebarOpen"
+                class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+                @click="closeSidebar"
+            />
+        </Transition>
+
         <!-- Sidebar -->
-        <aside class="w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col">
+        <Transition
+            enter-active-class="transition-transform duration-300 ease-out"
+            enter-from-class="-translate-x-full"
+            enter-to-class="translate-x-0"
+            leave-active-class="transition-transform duration-200 ease-in"
+            leave-from-class="translate-x-0"
+            leave-to-class="-translate-x-full"
+        >
+            <aside
+                v-if="sidebarOpen"
+                class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col lg:static lg:z-auto lg:translate-x-0"
+            >
+                <div class="px-6 py-5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+                    <Link href="/" class="flex items-center gap-2.5 group" @click="closeSidebar">
+                        <div class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-sm group-hover:bg-primary-700 transition-colors">
+                            eK
+                        </div>
+                        <div>
+                            <span class="font-bold text-sm text-neutral-900 dark:text-white">e-Koperasi</span>
+                            <span class="block text-[10px] text-neutral-400 dark:text-neutral-500 -mt-0.5">CMS Admin</span>
+                        </div>
+                    </Link>
+                    <!-- Close button on mobile -->
+                    <button
+                        @click="closeSidebar"
+                        class="lg:hidden p-1.5 rounded-lg text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <nav class="flex-1 px-3 py-4 space-y-1">
+                    <Link
+                        :href="cmsIndex().url"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                        :class="$page.url === '/admin/cms'
+                            ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400'
+                            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'"
+                        @click="closeSidebar"
+                    >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                        </svg>
+                        Semua Section
+                    </Link>
+
+                    <a
+                        href="/"
+                        target="_blank"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                        @click="closeSidebar"
+                    >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg>
+                        Lihat Website
+                    </a>
+                </nav>
+
+                <!-- Theme Toggle -->
+                <div class="px-3 py-3 border-t border-neutral-200 dark:border-neutral-800">
+                    <button
+                        @click="toggleTheme"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group"
+                        :class="theme === 'dark'
+                            ? 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+                            : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'"
+                    >
+                        <svg v-if="theme === 'dark'" class="w-5 h-5 text-amber-400 group-hover:rotate-45 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                        </svg>
+                        <svg v-else class="w-5 h-5 text-indigo-500 group-hover:-rotate-12 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                        </svg>
+                        <span class="flex-1 text-left">{{ theme === 'dark' ? 'Mode Terang' : 'Mode Gelap' }}</span>
+                        <kbd class="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono rounded border opacity-60 group-hover:opacity-100 transition-opacity"
+                            :class="theme === 'dark'
+                                ? 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                                : 'bg-neutral-100 text-neutral-500 border-neutral-200'">
+                            <span>⌘</span>⇧D
+                        </kbd>
+                    </button>
+                </div>
+
+                <!-- User -->
+                <div class="px-3 py-3 border-t border-neutral-200 dark:border-neutral-800">
+                    <div class="flex items-center gap-3 px-3 py-2">
+                        <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 text-sm font-semibold">
+                            {{ user?.name?.charAt(0) || 'A' }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ user?.name || 'Admin' }}</p>
+                            <p class="text-xs text-neutral-500 dark:text-neutral-400 truncate">{{ user?.email || '' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </Transition>
+
+        <!-- Desktop sidebar (always visible, hidden on mobile) -->
+        <aside class="hidden lg:flex lg:flex-col w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex-shrink-0">
             <div class="px-6 py-5 border-b border-neutral-200 dark:border-neutral-800">
                 <Link href="/" class="flex items-center gap-2.5 group">
                     <div class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-sm group-hover:bg-primary-700 transition-colors">
@@ -53,8 +197,33 @@ const user = computed(() => (page.props as any).auth?.user);
                 </a>
             </nav>
 
+            <!-- Theme Toggle -->
+            <div class="px-3 py-3 border-t border-neutral-200 dark:border-neutral-800">
+                <button
+                    @click="toggleTheme"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group"
+                    :class="theme === 'dark'
+                        ? 'text-neutral-400 hover:text-white hover:bg-neutral-800'
+                        : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100'"
+                >
+                    <svg v-if="theme === 'dark'" class="w-5 h-5 text-amber-400 group-hover:rotate-45 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                    </svg>
+                    <svg v-else class="w-5 h-5 text-indigo-500 group-hover:-rotate-12 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                    </svg>
+                    <span class="flex-1 text-left">{{ theme === 'dark' ? 'Mode Terang' : 'Mode Gelap' }}</span>
+                    <kbd class="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono rounded border opacity-60 group-hover:opacity-100 transition-opacity"
+                        :class="theme === 'dark'
+                            ? 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                            : 'bg-neutral-100 text-neutral-500 border-neutral-200'">
+                        <span>⌘</span>⇧D
+                    </kbd>
+                </button>
+            </div>
+
             <!-- User -->
-            <div class="px-3 py-4 border-t border-neutral-200 dark:border-neutral-800">
+            <div class="px-3 py-3 border-t border-neutral-200 dark:border-neutral-800">
                 <div class="flex items-center gap-3 px-3 py-2">
                     <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-700 dark:text-primary-400 text-sm font-semibold">
                         {{ user?.name?.charAt(0) || 'A' }}
@@ -69,10 +238,27 @@ const user = computed(() => (page.props as any).auth?.user);
 
         <!-- Main -->
         <div class="flex-1 flex flex-col min-w-0">
-            <header class="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-6 py-4">
-                <h1 class="text-lg font-bold text-neutral-900 dark:text-white">{{ title || 'CMS Editor' }}</h1>
+            <!-- Mobile header with hamburger and title -->
+            <header class="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-30">
+                <!-- Mobile top bar -->
+                <div class="flex items-center gap-3 px-4 py-3 lg:hidden">
+                    <button
+                        @click="toggleSidebar"
+                        class="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                        aria-label="Toggle sidebar"
+                    >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
+                    <h1 class="text-base font-bold text-neutral-900 dark:text-white truncate">{{ title || 'CMS Editor' }}</h1>
+                </div>
+                <!-- Desktop header -->
+                <div class="hidden lg:block px-6 py-4">
+                    <h1 class="text-lg font-bold text-neutral-900 dark:text-white">{{ title || 'CMS Editor' }}</h1>
+                </div>
             </header>
-            <main class="flex-1 overflow-auto p-6">
+            <main class="flex-1 overflow-auto">
                 <slot />
             </main>
         </div>

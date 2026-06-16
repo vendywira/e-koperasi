@@ -7,9 +7,10 @@ const { brand, footer } = useSiteConfig();
 
 const brandName = computed(() => brand.value.name ?? 'e-Koperasi');
 const tagline = computed(() => brand.value.tagline ?? 'Platform digital untuk koperasi Indonesia.');
-const sections = computed(() => footer.value?.sections ?? []);
+const sections = computed(() => footer.value?.columns ?? []);
 const copyright = computed(() => footer.value?.copyright ?? `&copy; ${new Date().getFullYear()} e-Koperasi. Dibuat di Tabanan, Bali.`);
 const taglineSecondary = computed(() => footer.value?.tagline ?? 'Untuk Koperasi Indonesia');
+const footerDescription = computed(() => footer.value?.description ?? '');
 const year = new Date().getFullYear();
 </script>
 
@@ -23,7 +24,7 @@ const year = new Date().getFullYear();
                         <span class="font-bold text-lg">{{ brandName }}</span>
                     </Link>
                     <p class="mt-3 text-sm text-primary-100">
-                        {{ tagline }}
+                        {{ footerDescription || tagline }}
                     </p>
                 </div>
 

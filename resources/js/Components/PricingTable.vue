@@ -23,10 +23,10 @@ const tierIcons: Record<string, any> = {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div :ref="(el: any) => reveal.setItemRef(0, el)" class="text-center max-w-2xl mx-auto">
                 <h2 class="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white">
-                    Harga Sederhana & Transparan
+                    {{ pricing.value?.title || 'Harga Sederhana & Transparan' }}
                 </h2>
                 <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-300">
-                    Bayar bulanan. Tanpa biaya setup tersembunyi. Batalkan kapan saja.
+                    {{ pricing.value?.subtitle || 'Bayar bulanan. Tanpa biaya setup tersembunyi. Batalkan kapan saja.' }}
                 </p>
             </div>
 
@@ -93,7 +93,7 @@ const tierIcons: Record<string, any> = {
             </div>
 
             <p class="mt-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                Semua paket include: dashboard real-time, mobile app iOS/Android, backup otomatis, dan kepatuhan UU PDP.
+                {{ pricing.value?.footer_note || 'Semua paket include: dashboard real-time, mobile app iOS/Android, backup otomatis, dan kepatuhan UU PDP.' }}
             </p>
         </div>
     </section>
