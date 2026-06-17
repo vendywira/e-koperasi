@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +16,7 @@ use Inertia\Response;
 
 class AuthController extends Controller
 {
-    public function showLogin(): Response
+    public function showLogin(): Response|RedirectResponse
     {
         if (Auth::check()) {
             $user = Auth::user();
