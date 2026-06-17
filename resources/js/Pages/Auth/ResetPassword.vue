@@ -42,9 +42,7 @@ function submit() {
             <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-800 p-8">
                 <!-- Logo -->
                 <div class="flex items-center justify-center gap-3 mb-8">
-                    <div class="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-600/25">
-                        eK
-                    </div>
+                    <img src="/images/logo-only-white.png" alt="e-Koperasi" class="h-11 w-11" />
                     <div>
                         <h1 class="text-lg font-bold text-neutral-900 dark:text-white">e-Koperasi</h1>
                         <p class="text-[11px] text-neutral-400 dark:text-neutral-500 -mt-0.5">CMS Admin Panel</p>

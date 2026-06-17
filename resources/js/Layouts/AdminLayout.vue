@@ -77,10 +77,7 @@ onUnmounted(() => {
                 <div
                     class="px-6 py-5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
                     <Link href="/" class="flex items-center gap-2.5 group" @click="closeSidebar">
-                        <div
-                            class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-sm group-hover:bg-primary-700 transition-colors">
-                            eK
-                        </div>
+                        <img src="/images/logo-only-white.png" alt="e-Koperasi" class="h-11 w-11" />
                         <div>
                             <span class="font-bold text-sm text-neutral-900 dark:text-white">e-Koperasi</span>
                             <span
@@ -260,10 +257,7 @@ onUnmounted(() => {
             class="hidden lg:flex lg:flex-col w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex-shrink-0">
             <div class="px-6 py-5 border-b border-neutral-200 dark:border-neutral-800">
                 <Link href="/" class="flex items-center gap-2.5 group">
-                    <div
-                        class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold text-sm group-hover:bg-primary-700 transition-colors">
-                        eK
-                    </div>
+                    <img src="/images/logo-only-white.png" alt="e-Koperasi" class="h-11 w-11" />
                     <div>
                         <span class="font-bold text-sm text-neutral-900 dark:text-white">e-Koperasi</span>
                         <span class="block text-[10px] text-neutral-400 dark:text-neutral-500 -mt-0.5">CMS Admin</span>

@@ -336,7 +336,7 @@ function getIconEmoji(icon: string): string {
         <div v-if="previewData.type === 'footer'" class="space-y-3">
             <div class="bg-primary-900 dark:bg-primary-950 text-white rounded-xl p-5 border border-primary-800">
                 <div class="flex items-center gap-2 mb-3">
-                    <div class="w-6 h-6 rounded bg-primary-700 flex items-center justify-center text-[10px] font-bold">eK</div>
+                    <img src="/images/logo-only-white.png" alt="e-Koperasi" class="h-11 w-11" />
                     <span class="text-sm font-bold">{{ previewData.data.name || 'Brand' }}</span>
                 </div>
                 <p v-if="previewData.data.description" class="text-[10px] text-primary-200 leading-relaxed mb-3">{{ previewData.data.description }}</p>
