@@ -21,6 +21,8 @@ const { app_features } = useSiteConfig();
 const activeFeature = ref(0);
 const featureListRef = ref<HTMLElement | null>(null);
 const showScrollIndicator = ref(true);
+const prevFeatureIndex = ref(0);
+const isTransitioning = ref(false);
 const { toWebP, toWebPSmall } = useImageOptimization();
 const reveal = useScrollReveal({ staggerMs: 80, threshold: 0.05 });
 
@@ -90,12 +92,18 @@ const features = computed(() => {
 
 const activeFeatureData = computed(() => features.value[activeFeature.value] || features.value[0]);
 
+const glowColors = ['#059669', '#7c3aed', '#2563eb', '#d97706', '#dc2626', '#0891b2'];
+const activeGlow = computed(() => glowColors[activeFeature.value % glowColors.length]);
+
 function setActive(i: number) {
-    if (i >= 0 && i < features.value.length) {
+    if (i >= 0 && i < features.value.length && i !== activeFeature.value) {
+        prevFeatureIndex.value = activeFeature.value;
+        isTransitioning.value = true;
         activeFeature.value = i;
+        setTimeout(() => { isTransitioning.value = false; }, 550);
         nextTick(() => {
             const container = featureListRef.value;
-            if (!container) { return; }
+            if (!container) return;
             const cards = container.querySelectorAll('.feature-card');
             const card = cards[i] as HTMLElement | undefined;
             if (card) {
@@ -136,14 +144,15 @@ function handleScroll(e: Event) {
                 <div :ref="(el: any) => reveal.setItemRef(1, el)" class="flex justify-center order-1 lg:order-1">
                     <div class="relative">
                         <!-- Glow behind phone -->
-                        <div class="absolute inset-0 bg-primary-500/15 blur-3xl rounded-full"></div>
+                        <div class="absolute inset-0 blur-3xl rounded-full transition-all duration-700 ease-out" :style="{ background: activeGlow + '25' }"></div>
 
                         <!-- Phone frame -->
                         <div class="relative w-[260px] h-[540px] bg-neutral-900 dark:bg-neutral-800 rounded-[2.5rem] p-[10px] shadow-2xl border-2 border-neutral-200 dark:border-neutral-700">
-                            <div class="w-full h-full rounded-[2rem] overflow-hidden bg-white relative">
+                            <div class="w-full h-full rounded-[2rem] overflow-hidden bg-white relative" style="perspective: 900px;">
                                 <picture>
                                     <source :srcset="`${optUrlSmall(activeFeatureData.screenshot)} 640w, ${optUrl(activeFeatureData.screenshot)} 1280w`" sizes="(max-width: 768px) 220px, 260px" type="image/webp" />
-                                    <Transition name="screenshot" mode="out-in">
+                                    <!-- Stack-like transition: old card shrinks back, new card rises -->
+                                    <Transition name="stack" mode="out-in">
                                         <img :key="activeFeatureData.screenshot" :src="optUrl(activeFeatureData.screenshot)" :alt="activeFeatureData.title" class="w-full h-full object-cover object-top" loading="lazy" width="260" height="540" />
                                     </Transition>
                                 </picture>
@@ -226,19 +235,33 @@ function handleScroll(e: Event) {
     background: #525252;
 }
 
-/* Screenshot transition */
-.screenshot-enter-active {
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+/* Stack cards transition */
+.stack-enter-active {
+    transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10;
 }
-.screenshot-leave-active {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+.stack-leave-active {
+    transition: all 0.35s cubic-bezier(0.5, 0, 0.75, 0);
+    z-index: 5;
 }
-.screenshot-enter-from {
+.stack-enter-from {
     opacity: 0;
-    transform: scale(0.85) rotateY(-8deg) translateX(12px);
+    transform: scale(0.7) translateY(40px) rotateX(12deg);
+    filter: blur(4px);
 }
-.screenshot-leave-to {
+.stack-leave-to {
     opacity: 0;
-    transform: scale(0.9) rotateY(6deg) translateX(-8px);
+    transform: scale(0.85) translateY(-20px) rotateX(-8deg);
+    filter: blur(2px);
+}
+.stack-enter-to {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateX(0);
+    filter: blur(0);
+}
+.stack-leave-from {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateX(0);
+    filter: blur(0);
 }
 </style>
