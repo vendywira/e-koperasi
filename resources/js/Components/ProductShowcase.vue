@@ -182,7 +182,7 @@ const highlightReveal = useScrollReveal({ staggerMs: 60 });
             <div v-if="youtubeEmbedId" class="mt-12 max-w-4xl mx-auto">
                 <div class="relative overflow-hidden rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-900" style="aspect-ratio: 16 / 9;">
                     <iframe
-                        :src="`https://www.youtube.com/embed/${youtubeEmbedId}?autoplay=0&rel=0`"
+                        :src="`https://www.youtube-nocookie.com/embed/${youtubeEmbedId}?autoplay=0&rel=0`"
                         title="Video Trailer e-Koperasi"
                         class="absolute inset-0 w-full h-full"
                         frameborder="0"
