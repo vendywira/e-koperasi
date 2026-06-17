@@ -4,6 +4,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\DemoController;
+use App\Http\Controllers\Client\DashboardController;
+use App\Http\Controllers\Client\SubscriptionController;
+use App\Http\Controllers\Client\PaymentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -26,6 +29,19 @@ Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->n
 Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->middleware('throttle:3,1')->name('password.email');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
+
+// Client Portal
+Route::prefix('client')->name('client.')->group(function () {
+    Route::get('/login', [AuthController::class, 'showClientLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'clientLogin'])->middleware('throttle:5,1')->name('login.submit');
+
+    Route::middleware(['auth', 'role:client'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
+        Route::get('/payments/{id}', [PaymentController::class, 'show'])->name('payments.show');
+    });
+});
 
 // CMS Admin Routes
 require __DIR__ . '/cms.php';
