@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import SiteLayout from '@/Layouts/SiteLayout.vue';
 
-defineProps<{ type: 'privacy' | 'terms' }>();
+defineProps<{ type: 'privacy' | 'terms' | 'pdp' }>();
 
 const content = {
     privacy: {
@@ -20,6 +20,15 @@ const content = {
             { heading: 'Layanan', body: 'e-Koperasi menyediakan platform SaaS untuk manajemen koperasi. Fitur dan harga dapat berubah sewaktu-waktu.' },
             { heading: 'Tanggung Jawab Pengguna', body: 'Pengguna bertanggung jawab atas keakuratan data yang dimasukkan dan menjaga kerahasiaan kredensial.' },
             { heading: 'Pembatalan', body: 'Layanan dapat dibatalkan kapan saja melalui dashboard admin atau menghubungi tim support.' },
+        ],
+    },
+    pdp: {
+        title: 'Kepatuhan UU PDP',
+        sections: [
+            { heading: 'Dasar Hukum', body: 'e-Koperasi berkomitmen penuh terhadap kepatuhan terhadap Undang-Undang No. 27 Tahun 2022 tentang Perlindungan Data Pribadi (UU PDP).' },
+            { heading: 'Prinsip Pemrosesan Data', body: 'Data pribadi diproses secara sah, transparan, dan terbatas pada tujuan yang telah disampaikan kepada pengguna.' },
+            { heading: 'Hak Subjek Data', body: 'Setiap pemilik data berhak mengakses, memperbaiki, menghapus, dan menarik persetujuan pemrosesan data kapan saja.' },
+            { heading: 'Keamanan Data', body: 'Kami menerapkan enkripsi AES-256, backup harian, dan audit trail untuk melindungi data pribadi sesuai standar UU PDP.' },
         ],
     },
 };

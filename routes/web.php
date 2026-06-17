@@ -16,8 +16,9 @@ Route::get('/demo', [DemoController::class, 'index'])->name('demo');
 Route::post('/demo', [DemoController::class, 'store'])->name('demo.store');
 
 // Static legal pages
-Route::get('/privacy', fn () => Inertia::render('Legal', ['type' => 'privacy']))->name('privacy');
-Route::get('/terms', fn () => Inertia::render('Legal', ['type' => 'terms']))->name('terms');
+Route::get('/legal/privasi', fn () => Inertia::render('Legal', ['type' => 'privacy']))->name('privacy');
+Route::get('/legal/syarat', fn () => Inertia::render('Legal', ['type' => 'terms']))->name('terms');
+Route::get('/legal/pdp', fn () => Inertia::render('Legal', ['type' => 'pdp']))->name('pdp');
 
 // Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
