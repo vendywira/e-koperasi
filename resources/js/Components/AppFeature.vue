@@ -161,14 +161,18 @@ function handleScroll(e: Event) {
                         </Transition>
 
                         <!-- Floating badges -->
-                        <div class="absolute -top-3 -right-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2">
-                            <ShieldCheck class="h-4 w-4 text-emerald-500" />
-                            <span class="text-xs font-semibold text-neutral-900 dark:text-white">Enkripsi E2E</span>
-                        </div>
-                        <div class="absolute -bottom-3 -left-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2">
-                            <Zap class="h-4 w-4 text-amber-500" />
-                            <span class="text-xs font-semibold text-neutral-900 dark:text-white">Real-time</span>
-                        </div>
+                        <Transition name="door-right" mode="out-in">
+                            <div :key="activeFeature" class="absolute -top-3 -right-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2">
+                                <ShieldCheck class="h-4 w-4 text-emerald-500" />
+                                <span class="text-xs font-semibold text-neutral-900 dark:text-white">Enkripsi E2E</span>
+                            </div>
+                        </Transition>
+                        <Transition name="door-left" mode="out-in">
+                            <div :key="activeFeature" class="absolute -bottom-3 -left-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2">
+                                <Zap class="h-4 w-4 text-amber-500" />
+                                <span class="text-xs font-semibold text-neutral-900 dark:text-white">Real-time</span>
+                            </div>
+                        </Transition>
                     </div>
                 </div>
 
@@ -234,6 +238,45 @@ function handleScroll(e: Event) {
 }
 .dark .scrollbar-feature::-webkit-scrollbar-thumb:hover {
     background: #525252;
+}
+
+/* Door swing transitions for floating badges */
+.door-right-enter-active {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 20;
+}
+.door-right-leave-active {
+    transition: all 0.3s cubic-bezier(0.5, 0, 0.75, 0);
+    z-index: 5;
+}
+.door-right-enter-from {
+    opacity: 0;
+    transform: rotateY(-90deg) translateX(20px) scale(0.7);
+    transform-origin: right center;
+}
+.door-right-leave-to {
+    opacity: 0;
+    transform: rotateY(90deg) translateX(-10px) scale(0.8);
+    transform-origin: right center;
+}
+
+.door-left-enter-active {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 20;
+}
+.door-left-leave-active {
+    transition: all 0.3s cubic-bezier(0.5, 0, 0.75, 0);
+    z-index: 5;
+}
+.door-left-enter-from {
+    opacity: 0;
+    transform: rotateY(90deg) translateX(-20px) scale(0.7);
+    transform-origin: left center;
+}
+.door-left-leave-to {
+    opacity: 0;
+    transform: rotateY(-90deg) translateX(10px) scale(0.8);
+    transform-origin: left center;
 }
 
 /* 3D Phone Flip transition — rotates the entire phone frame */
