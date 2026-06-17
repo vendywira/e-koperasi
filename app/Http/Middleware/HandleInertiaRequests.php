@@ -42,6 +42,17 @@ class HandleInertiaRequests extends Middleware
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
                     'role' => $request->user()->role ?? 'editor',
+                    'subscription' => $request->user()->role === 'client' && $request->user()->subscription
+                        ? [
+                            'id' => $request->user()->subscription->id,
+                            'plan' => $request->user()->subscription->plan,
+                            'status' => $request->user()->subscription->status,
+                            'is_active' => $request->user()->subscription->isActive(),
+                            'days_remaining' => $request->user()->subscription->daysRemaining(),
+                            'usage_percent' => $request->user()->subscription->usagePercent(),
+                            'ends_at' => $request->user()->subscription->ends_at?->format('d M Y'),
+                        ]
+                        : null,
                 ] : null,
             ],
         ]);
