@@ -30,6 +30,20 @@ function saveSubscription() {
     });
 }
 
+const passwordForm = useForm({
+    password: '',
+    password_confirmation: '',
+});
+
+function resetPassword() {
+    passwordForm.post('/admin/clients/' + props.client.id + '/reset-password', {
+        onSuccess: () => {
+            passwordForm.reset();
+            router.reload({ only: ['client'] });
+        },
+    });
+}
+
 function addPayment() {
     if (!props.client.subscription) {
         alert('Client belum memiliki subscription. Buat subscription dulu.');
@@ -128,6 +142,41 @@ const formatDate = (dt: string | null) => {
                     </form>
                 </div>
             </div>
+
+                <!-- Reset Password Card -->
+                <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-5 sm:p-6">
+                    <h3 class="font-semibold text-neutral-900 dark:text-white mb-4">Reset Password Client</h3>
+                    <form @submit.prevent="resetPassword" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Password Baru</label>
+                            <input
+                                v-model="passwordForm.password"
+                                type="password"
+                                required
+                                minlength="8"
+                                class="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm"
+                                placeholder="Min. 8 karakter"
+                            />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Konfirmasi Password</label>
+                            <input
+                                v-model="passwordForm.password_confirmation"
+                                type="password"
+                                required
+                                class="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm"
+                                placeholder="Ulangi password"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            :disabled="passwordForm.processing || passwordForm.password !== passwordForm.password_confirmation"
+                            class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:bg-neutral-300 dark:disabled:bg-neutral-700 transition-colors"
+                        >
+                            {{ passwordForm.processing ? 'Menyimpan...' : 'Reset Password' }}
+                        </button>
+                    </form>
+                </div>
 
             <!-- Payment History -->
             <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">

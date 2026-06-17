@@ -39,6 +39,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/', [ClientController::class, 'index'])->name('index');
         Route::get('/{id}', [ClientController::class, 'show'])->name('show');
         Route::put('/{id}/subscription', [ClientController::class, 'updateSubscription'])->name('subscription.update');
+        Route::post('/{id}/reset-password', [ClientController::class, 'resetPassword'])->name('reset-password');
         Route::post('/{subscriptionId}/payments', [ClientPaymentController::class, 'store'])->name('payments.store');
     });
 

@@ -9,6 +9,7 @@ use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -108,6 +109,21 @@ class ClientController extends Controller
             'client' => $client,
             'planLabels' => $planLabels,
         ]);
+    }
+
+    public function resetPassword(Request $request, int $id): RedirectResponse
+    {
+        $client = User::where('role', 'client')->findOrFail($id);
+
+        $validated = $request->validate([
+            'password' => 'required|string|min:8',
+        ]);
+
+        $client->update([
+            'password' => Hash::make($validated['password']),
+        ]);
+
+        return redirect()->back()->with('success', 'Password client berhasil direset.');
     }
 
     public function updateSubscription(Request $request, int $id): RedirectResponse
