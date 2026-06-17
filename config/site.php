@@ -559,6 +559,14 @@ return [
         'subtitle' => 'Gunakan akun demo di bawah untuk masuk ke aplikasi. Tidak perlu daftar — semua perubahan akan di-reset harian.',
         'reset_notice' => 'Akun demo di-reset setiap hari pukul 00:00 WIB.',
         'accounts_intro' => 'Akun Demo Tersedia',
+        'accounts' => [
+            ['key' => 'admin', 'label' => 'Ketua Koperasi', 'email' => 'admin@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'koordinator', 'label' => 'Koordinator Unit', 'email' => 'koordinator@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'pimpinan', 'label' => 'Pimpinan', 'email' => 'pimpinan@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'colead', 'label' => 'Co-Lead', 'email' => 'colead@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'cashier', 'label' => 'Cashier', 'email' => 'cashier@demo.e-koperasi.com', 'pin' => '123456'],
+            ['key' => 'pdl', 'label' => 'Penagih (PDL)', 'email' => 'pdl@demo.e-koperasi.com', 'pin' => '123456'],
+        ],
         'roles_intro' => [
             'admin'      => 'Ketua Koperasi',
             'koordinator'=> 'Koordinator Unit',

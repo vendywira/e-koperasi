@@ -59,6 +59,18 @@ class SiteConfig
     {
         $demoConfig = self::get('demo', []);
         $roleLabels = $demoConfig['roles_intro'] ?? [];
+        $cmsAccounts = $demoConfig['accounts'] ?? [];
+
+        // Use CMS accounts if available, otherwise fallback to defaults
+        if (!empty($cmsAccounts) && is_array($cmsAccounts)) {
+            return array_map(function ($account) {
+                return [
+                    'email' => $account['email'] ?? '',
+                    'pin' => $account['pin'] ?? '',
+                    'role' => $account['label'] ?? $account['key'] ?? '',
+                ];
+            }, $cmsAccounts);
+        }
 
         $accounts = [
             ['key' => 'admin', 'email' => 'admin@demo.e-koperasi.com', 'pin' => '123456'],

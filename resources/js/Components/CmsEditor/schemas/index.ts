@@ -502,6 +502,18 @@ export const sectionSchemas: SectionSchema[] = [
             { key: 'reset_notice', type: 'text', label: 'Notifikasi Reset', props: { placeholder: 'Akun demo di-reset setiap hari pukul 00:00 WIB.' } },
             { key: 'accounts_intro', type: 'text', label: 'Intro Akun', props: { placeholder: 'Akun Demo Tersedia' } },
             {
+                key: 'accounts',
+                type: 'repeater',
+                label: 'Akun Demo',
+                props: { addLabel: 'Tambah Akun', titleKey: 'label' },
+                fields: [
+                    { key: 'key', type: 'text', label: 'Key Role', props: { placeholder: 'admin', helpText: 'admin, koordinator, pimpinan, colead, cashier, pdl' } },
+                    { key: 'label', type: 'text', label: 'Label', props: { placeholder: 'Ketua Koperasi' } },
+                    { key: 'email', type: 'text', label: 'Email', props: { placeholder: 'admin@demo.e-koperasi.com' } },
+                    { key: 'pin', type: 'text', label: 'PIN / Password', props: { placeholder: '123456' } },
+                ],
+            },
+            {
                 key: 'roles_intro',
                 type: 'group',
                 label: 'Role Akun',
