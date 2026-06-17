@@ -143,7 +143,9 @@ function handleScroll(e: Event) {
                             <div class="w-full h-full rounded-[2rem] overflow-hidden bg-white relative">
                                 <picture>
                                     <source :srcset="`${optUrlSmall(activeFeatureData.screenshot)} 640w, ${optUrl(activeFeatureData.screenshot)} 1280w`" sizes="(max-width: 768px) 220px, 260px" type="image/webp" />
-                                    <img :src="optUrl(activeFeatureData.screenshot)" :alt="activeFeatureData.title" class="w-full h-full object-cover object-top transition-opacity duration-300" loading="lazy" width="260" height="540" />
+                                    <Transition name="screenshot" mode="out-in">
+                                        <img :key="activeFeatureData.screenshot" :src="optUrl(activeFeatureData.screenshot)" :alt="activeFeatureData.title" class="w-full h-full object-cover object-top" loading="lazy" width="260" height="540" />
+                                    </Transition>
                                 </picture>
                             </div>
                         </div>
@@ -222,5 +224,21 @@ function handleScroll(e: Event) {
 }
 .dark .scrollbar-feature::-webkit-scrollbar-thumb:hover {
     background: #525252;
+}
+
+/* Screenshot transition */
+.screenshot-enter-active {
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.screenshot-leave-active {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.screenshot-enter-from {
+    opacity: 0;
+    transform: scale(0.85) rotateY(-8deg) translateX(12px);
+}
+.screenshot-leave-to {
+    opacity: 0;
+    transform: scale(0.9) rotateY(6deg) translateX(-8px);
 }
 </style>
