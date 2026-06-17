@@ -23,7 +23,7 @@ const featureListRef = ref<HTMLElement | null>(null);
 const showScrollIndicator = ref(true);
 const prevFeatureIndex = ref(0);
 const isTransitioning = ref(false);
-const badgePhase = ref<'idle' | 'exiting' | 'entering'>('idle');
+const badgeSlide = ref(false);
 const { toWebP, toWebPSmall } = useImageOptimization();
 const reveal = useScrollReveal({ staggerMs: 80, threshold: 0.05 });
 
@@ -100,16 +100,15 @@ function setActive(i: number) {
     if (i >= 0 && i < features.value.length && i !== activeFeature.value) {
         prevFeatureIndex.value = activeFeature.value;
         isTransitioning.value = true;
-        badgePhase.value = 'exiting';
+        badgeSlide.value = true;
         // Badges slide out → phone flips → badges slide in
         setTimeout(() => {
             activeFeature.value = i;
         }, 300);
         setTimeout(() => {
             isTransitioning.value = false;
-            badgePhase.value = 'entering';
-            setTimeout(() => { badgePhase.value = 'idle'; }, 400);
-        }, 750);
+            badgeSlide.value = false;
+        }, 800);
         nextTick(() => {
             const container = featureListRef.value;
             if (!container) return;
@@ -169,12 +168,12 @@ function handleScroll(e: Event) {
                             </div>
                         </Transition>
 
-                        <!-- Floating badges (slide-lock choreography) -->
-                        <div class="absolute -top-3 -right-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2 transition-all duration-[350ms] ease-out" :class="badgePhase === 'exiting' ? 'translate-x-20 opacity-0' : badgePhase === 'entering' ? 'translate-x-0 opacity-100' : 'translate-x-0 opacity-100'">
+                        <!-- Floating badges (slide-lock animation) -->
+                        <div class="absolute -top-3 -right-6 z-30 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2 transition-all duration-[400ms] ease-in-out" :class="badgeSlide ? 'translate-x-14' : 'translate-x-0'">
                             <ShieldCheck class="h-4 w-4 text-emerald-500" />
                             <span class="text-xs font-semibold text-neutral-900 dark:text-white">Enkripsi E2E</span>
                         </div>
-                        <div class="absolute -bottom-3 -left-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2 transition-all duration-[350ms] ease-out" :class="badgePhase === 'exiting' ? '-translate-x-20 opacity-0' : badgePhase === 'entering' ? 'translate-x-0 opacity-100' : 'translate-x-0 opacity-100'">
+                        <div class="absolute -bottom-3 -left-6 z-30 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2 transition-all duration-[400ms] ease-in-out" :class="badgeSlide ? '-translate-x-14' : 'translate-x-0'">
                             <Zap class="h-4 w-4 text-amber-500" />
                             <span class="text-xs font-semibold text-neutral-900 dark:text-white">Real-time</span>
                         </div>
