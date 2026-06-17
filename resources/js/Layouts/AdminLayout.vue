@@ -99,10 +99,12 @@ onUnmounted(() => {
                 </div>
 
                 <nav class="flex-1 px-3 py-4 space-y-1">
-                    <p class="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                    <p v-if="user?.role === 'admin'"
+                       class="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                         Dashboard
                     </p>
                     <Link
+                        v-if="user?.role === 'admin'"
                         :href="'/admin'"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                         :class="$page.url === '/admin'

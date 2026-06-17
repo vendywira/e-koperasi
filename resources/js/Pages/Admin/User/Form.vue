@@ -101,7 +101,7 @@ function submit() {
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                                Password {{ editing ? '(biarkan kosong jika tidak diganti)' : '' }}
+                                Password {{ editing ?? '' }}
                             </label>
                             <input
                                 v-model="form.password"
