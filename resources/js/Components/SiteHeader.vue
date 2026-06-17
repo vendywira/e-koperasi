@@ -63,6 +63,12 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll));
                     Coba Demo
                 </Link>
                 <Link
+                    href="/client/login"
+                    class="text-sm font-medium text-neutral-600 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-sm"
+                >
+                    Login Client
+                </Link>
+                <Link
                     href="/demo#konsultasi"
                     class="inline-flex items-center gap-1 px-4 py-2 rounded-md bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
