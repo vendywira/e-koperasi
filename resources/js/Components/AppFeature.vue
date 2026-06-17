@@ -169,11 +169,11 @@ function handleScroll(e: Event) {
                         </Transition>
 
                         <!-- Floating badges (slide-lock animation) -->
-                        <div class="absolute -top-3 -right-6 z-30 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2 transition-all duration-[400ms] ease-in-out" :class="badgeSlide ? 'translate-x-14' : 'translate-x-0'">
+                        <div class="absolute -top-3 -right-6 z-30 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2 transition-all duration-[400ms] ease-in-out" :class="badgeSlide ? 'translate-x-24' : 'translate-x-0'">
                             <ShieldCheck class="h-4 w-4 text-emerald-500" />
                             <span class="text-xs font-semibold text-neutral-900 dark:text-white">Enkripsi E2E</span>
                         </div>
-                        <div class="absolute -bottom-3 -left-6 z-30 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2 transition-all duration-[400ms] ease-in-out" :class="badgeSlide ? '-translate-x-14' : 'translate-x-0'">
+                        <div class="absolute -bottom-3 -left-6 z-30 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2 transition-all duration-[400ms] ease-in-out" :class="badgeSlide ? '-translate-x-20' : 'translate-x-0'">
                             <Zap class="h-4 w-4 text-amber-500" />
                             <span class="text-xs font-semibold text-neutral-900 dark:text-white">Real-time</span>
                         </div>
