@@ -15,7 +15,7 @@ const sidebarOpen = ref(false);
 
 function logout() {
     router.post('/logout', {}, {
-        onFinish: () => window.location.href = '/client/login',
+        onFinish: () => window.location.href = '/login',
     });
 }
 

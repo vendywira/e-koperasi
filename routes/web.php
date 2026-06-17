@@ -30,11 +30,8 @@ Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->middl
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
 
-// Client Portal
+// Client Portal (authenticated routes only)
 Route::prefix('client')->name('client.')->group(function () {
-    Route::get('/login', [AuthController::class, 'showClientLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'clientLogin'])->middleware('throttle:5,1')->name('login.submit');
-
     Route::middleware(['auth', 'role:client'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');

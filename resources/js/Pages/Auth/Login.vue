@@ -21,9 +21,9 @@ function submit() {
 </script>
 
 <template>
-    <Head title="Login — CMS Admin" />
+    <Head title="Login - e-Koperasi" />
 
-    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-white to-primary-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 px-4">
+    <div class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary-50 via-white to-emerald-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-primary-950 px-4">
         <!-- Background decoration -->
         <div class="absolute inset-0 overflow-hidden pointer-events-none">
             <div class="absolute -top-40 -right-40 w-80 h-80 bg-primary-100 dark:bg-primary-900/20 rounded-full blur-3xl opacity-50" />
@@ -31,18 +31,30 @@ function submit() {
         </div>
 
         <div class="relative w-full max-w-md">
+            <!-- Logo -->
+            <Link href="/" class="flex items-center justify-center gap-3 mb-8 group">
+                <div class="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-600/25">
+                    eK
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">e-Koperasi</h1>
+                    <p class="text-[11px] text-neutral-400 dark:text-neutral-500 -mt-0.5">Portal Masuk</p>
+                </div>
+            </Link>
+
             <!-- Card -->
-            <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-800 p-8">
-                <!-- Logo -->
-                <div class="flex items-center justify-center gap-3 mb-8">
-                    <div class="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-600/25">
-                        eK
+            <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl dark:shadow-neutral-950/80 border border-neutral-200 dark:border-neutral-800 p-8">
+                <!-- Role tabs -->
+                <div class="flex mb-6 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1 text-sm">
+                    <div class="flex-1 text-center py-2 px-4 rounded-md font-medium bg-white dark:bg-neutral-900 text-primary-600 dark:text-primary-400 shadow-sm">
+                        Admin & Staff
                     </div>
-                    <div>
-                        <h1 class="text-lg font-bold text-neutral-900 dark:text-white">e-Koperasi</h1>
-                        <p class="text-[11px] text-neutral-400 dark:text-neutral-500 -mt-0.5">CMS Admin Panel</p>
+                    <div class="flex-1 text-center py-2 px-4 rounded-md font-medium text-neutral-500 dark:text-neutral-400">
+                        Koperasi Client
                     </div>
                 </div>
+
+                <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-6 text-center">Masuk dengan akun Anda.</p>
 
                 <!-- Error -->
                 <div
@@ -56,9 +68,7 @@ function submit() {
                 <form @submit.prevent="submit" class="space-y-5">
                     <!-- Email -->
                     <div>
-                        <label for="email" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                            Email
-                        </label>
+                        <label for="email" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Email</label>
                         <input
                             id="email"
                             v-model="form.email"
@@ -74,9 +84,7 @@ function submit() {
 
                     <!-- Password -->
                     <div>
-                        <label for="password" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-                            Password
-                        </label>
+                        <label for="password" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Password</label>
                         <div class="relative">
                             <input
                                 id="password"
@@ -112,9 +120,7 @@ function submit() {
                                 type="checkbox"
                                 class="w-4 h-4 text-primary-600 bg-neutral-100 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600 rounded focus:ring-primary-500"
                             />
-                            <label for="remember" class="ml-2 text-sm text-neutral-600 dark:text-neutral-400">
-                                Ingat saya
-                            </label>
+                            <label for="remember" class="ml-2 text-sm text-neutral-600 dark:text-neutral-400">Ingat saya</label>
                         </div>
                         <Link href="/forgot-password" class="text-sm text-primary-600 dark:text-primary-400 hover:underline font-medium">
                             Lupa password?

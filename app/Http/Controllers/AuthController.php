@@ -18,7 +18,11 @@ class AuthController extends Controller
     public function showLogin(): Response
     {
         if (Auth::check()) {
-            return redirect()->route('admin.cms.index');
+            $user = Auth::user();
+            if ($user->role === 'client') {
+                return redirect()->route('client.dashboard');
+            }
+            return redirect()->route('admin.dashboard');
         }
 
         return Inertia::render('Auth/Login');
@@ -34,46 +38,13 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            return redirect()->intended(route('admin.cms.index'));
-        }
-
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->onlyInput('email');
-    }
-
-    public function showClientLogin(): Response
-    {
-        if (Auth::check() && Auth::user()->role === 'client') {
-            return redirect()->route('client.dashboard');
-        }
-
-        return Inertia::render('Auth/ClientLogin');
-    }
-
-    public function clientLogin(Request $request): \Illuminate\Http\RedirectResponse
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
 
-            if ($user->role !== 'client') {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                return back()->withErrors([
-                    'email' => 'Akun ini tidak memiliki akses ke portal client.',
-                ])->onlyInput('email');
+            if ($user->role === 'client') {
+                return redirect()->intended(route('client.dashboard'));
             }
 
-            $request->session()->regenerate();
-
-            return redirect()->intended(route('client.dashboard'));
+            return redirect()->intended(route('admin.dashboard'));
         }
 
         return back()->withErrors([
