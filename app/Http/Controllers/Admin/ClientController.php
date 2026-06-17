@@ -67,15 +67,26 @@ class ClientController extends Controller
         ]);
     }
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $clients = User::where('role', 'client')
-            ->with('subscription')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = User::where('role', 'client')
+            ->with('subscription');
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        $clients = $query->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('Admin/Client/Index', [
             'clients' => $clients,
+            'filters' => ['search' => $search],
         ]);
     }
 

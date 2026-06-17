@@ -12,14 +12,25 @@ use Inertia\Response;
 
 class UserController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $users = User::whereIn('role', ['admin', 'editor'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $query = User::whereIn('role', ['admin', 'editor']);
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('Admin/User/Index', [
             'users' => $users,
+            'filters' => ['search' => $request->get('search')],
         ]);
     }
 
