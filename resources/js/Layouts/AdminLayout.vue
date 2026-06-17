@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {Link, usePage} from '@inertiajs/vue3';
+import {Link, usePage, router} from '@inertiajs/vue3';
 import {computed, ref, onMounted, onUnmounted} from 'vue';
 import {index as cmsIndex} from '@/routes/admin/cms';
 import {useTheme} from '@/composables/useTheme';
@@ -19,6 +19,12 @@ function toggleSidebar() {
 
 function closeSidebar() {
     sidebarOpen.value = false;
+}
+
+function logout() {
+    router.post('/logout', {}, {
+        onFinish: () => window.location.href = '/login',
+    });
 }
 
 // Close sidebar on escape key
@@ -403,6 +409,15 @@ onUnmounted(() => {
                             {{ user?.name || 'Admin' }}</p>
                         <p class="text-xs text-neutral-500 dark:text-neutral-400 truncate">{{ user?.email || '' }}</p>
                     </div>
+                    <button
+                        @click="logout"
+                        class="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title="Logout"
+                    >
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </aside>
