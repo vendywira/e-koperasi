@@ -205,6 +205,7 @@ export const sectionSchemas: SectionSchema[] = [
         icon: '📦',
         description: 'Showcase produk — highlights, tabungan, dan pinjaman',
         fields: [
+            { key: 'youtube_url', type: 'text', label: 'URL Trailer Video', props: { placeholder: 'https://www.youtube.com/watch?v=...', helpText: 'Tautan video trailer produk YouTube' } },
             {
                 key: 'highlights',
                 type: 'repeater',

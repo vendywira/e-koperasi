@@ -144,6 +144,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'products' => [
+        'youtube_url' => 'https://www.youtube.com/watch?v=your-video-id',
         'highlights' => [
             ['value' => 'Enkripsi AES-256', 'label' => 'Keamanan Data', 'icon' => 'shield'],
             ['value' => 'Real-time', 'label' => 'Update Otomatis', 'icon' => 'zap'],

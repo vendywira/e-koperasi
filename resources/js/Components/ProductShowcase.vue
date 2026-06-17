@@ -22,6 +22,7 @@ const { products: productsConfig } = useSiteConfig();
 const { toWebP, toWebPSmall } = useImageOptimization();
 const loanProducts = computed(() => productsConfig.value?.loan ?? []);
 const productHighlights = computed(() => productsConfig.value?.highlights ?? []);
+const youtubeUrl = computed(() => productsConfig.value?.youtube_url ?? '');
 
 // Scroll-reveal setup for loan product cards
 const loanReveal = useScrollReveal({ staggerMs: 100 });
@@ -171,8 +172,21 @@ const highlightReveal = useScrollReveal({ staggerMs: 60 });
             </div>
 -->
 
+            <!-- YouTube Trailer -->
+            <div v-if="youtubeUrl" class="mt-12 text-center">
+                <a :href="youtubeUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] group">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 4-8 4z" />
+                    </svg>
+                    <span>Tonton Video Trailer</span>
+                    <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                    </svg>
+                </a>
+            </div>
+
             <!-- Bottom CTA -->
-            <div class="mt-12 text-center">
+            <div class="mt-8 text-center">
                 <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary-50 dark:bg-primary-900/30 border border-primary-100 dark:border-primary-800">
                     <Smartphone class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                     <span class="text-sm font-medium text-primary-700 dark:text-primary-300">Semua produk tersedia langsung dari mobile app anggota</span>

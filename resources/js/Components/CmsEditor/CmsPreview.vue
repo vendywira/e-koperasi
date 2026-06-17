@@ -72,6 +72,7 @@ function renderPersonas(d: any): any[] {
 // Products Preview
 function renderProducts(d: any) {
     return {
+        youtube_url: d?.youtube_url || '',
         highlights: Array.isArray(d?.highlights) ? d.highlights : [],
         saving: Array.isArray(d?.saving) ? d.saving : [],
         loan: Array.isArray(d?.loan) ? d.loan : [],
