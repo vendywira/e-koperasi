@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\SiteContentController;
+use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\ClientPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -24,5 +26,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             Route::put('/media/rename', [MediaController::class, 'rename'])->name('media.rename');
             Route::delete('/media', [MediaController::class, 'destroy'])->name('media.destroy');
         });
+    });
+
+    // Client Management
+    Route::prefix('clients')->name('client.')->group(function () {
+        Route::get('/', [ClientController::class, 'index'])->name('index');
+        Route::get('/{id}', [ClientController::class, 'show'])->name('show');
+        Route::put('/{id}/subscription', [ClientController::class, 'updateSubscription'])->name('subscription.update');
+        Route::post('/{subscriptionId}/payments', [ClientPaymentController::class, 'store'])->name('payments.store');
     });
 });
