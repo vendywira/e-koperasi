@@ -5,13 +5,68 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Subscription;
+use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ClientController extends Controller
 {
+    public function dashboard(): Response
+    {
+        $totalClients = User::where('role', 'client')->count();
+
+        $activeSubscriptions = Subscription::where('status', 'active')
+            ->where(function ($q) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>=', now());
+            })
+            ->count();
+
+        $expiredSubscriptions = Subscription::where(function ($q) {
+            $q->where('status', 'expired')
+                ->orWhere(function ($q2) {
+                    $q2->where('status', 'active')->where('ends_at', '<', now());
+                });
+        })->count();
+
+        $totalRevenue = Payment::where('status', 'paid')->sum('amount');
+
+        $totalRevenueFormatted = 'Rp' . number_format($totalRevenue, 0, ',', '.');
+
+        $recentPayments = Payment::with('subscription.user')
+            ->where('status', 'paid')
+            ->orderBy('paid_at', 'desc')
+            ->take(10)
+            ->get();
+
+        $planDistribution = Subscription::select('plan', DB::raw('count(*) as total'))
+            ->groupBy('plan')
+            ->pluck('total', 'plan')
+            ->toArray();
+
+        $monthlyRevenue = Payment::where('status', 'paid')
+            ->where('paid_at', '>=', now()->subMonths(6))
+            ->select(DB::raw("strftime('%Y-%m', paid_at) as month"), DB::raw('sum(amount) as total'))
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->get();
+
+        return Inertia::render('Admin/Dashboard', [
+            'stats' => [
+                'total_clients' => $totalClients,
+                'active_subscriptions' => $activeSubscriptions,
+                'expired_subscriptions' => $expiredSubscriptions,
+                'total_revenue' => $totalRevenueFormatted,
+                'total_revenue_raw' => $totalRevenue,
+            ],
+            'recentPayments' => $recentPayments,
+            'planDistribution' => $planDistribution,
+            'monthlyRevenue' => $monthlyRevenue,
+        ]);
+    }
+
     public function index(): Response
     {
         $clients = User::where('role', 'client')

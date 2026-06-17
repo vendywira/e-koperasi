@@ -7,6 +7,9 @@ use App\Http\Controllers\Admin\ClientPaymentController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // Admin Dashboard — redirect root admin path to client dashboard for now
+    Route::get('/', [ClientController::class, 'dashboard'])->name('dashboard');
+
     // Media Management page — accessible by admin & editor
     Route::get('/media', [MediaController::class, 'page'])->name('media.page');
 
