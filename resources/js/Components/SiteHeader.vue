@@ -31,7 +31,7 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll));
     >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <Link href="/" class="flex items-center gap-2">
-                <img src="/images/logo-only-gold.png" alt="e-Koperasi" class="h-8 w-8" />
+                <img :src="theme === 'dark' ? '/images/logo-only-gold.png' : '/images/logo-only-emerald.png'" alt="e-Koperasi" class="h-8 w-8" />
                 <span class="font-bold text-lg text-neutral-900 dark:text-white">{{ brandName }}</span>
             </Link>
 
