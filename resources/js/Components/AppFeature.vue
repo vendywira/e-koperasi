@@ -143,21 +143,22 @@ function handleScroll(e: Event) {
                 <!-- Phone Mockup with real screenshot -->
                 <div :ref="(el: any) => reveal.setItemRef(1, el)" class="flex justify-center order-1 lg:order-1">
                     <div class="relative">
-                        <!-- Glow behind phone -->
-                        <div class="absolute inset-0 blur-3xl rounded-full transition-all duration-700 ease-out" :style="{ background: activeGlow + '25' }"></div>
-
-                        <!-- Phone frame -->
-                        <div class="relative w-[260px] h-[540px] bg-neutral-900 dark:bg-neutral-800 rounded-[2.5rem] p-[10px] shadow-2xl border-2 border-neutral-200 dark:border-neutral-700">
-                            <div class="w-full h-full rounded-[2rem] overflow-hidden bg-white relative" style="perspective: 900px;">
-                                <picture>
-                                    <source :srcset="`${optUrlSmall(activeFeatureData.screenshot)} 640w, ${optUrl(activeFeatureData.screenshot)} 1280w`" sizes="(max-width: 768px) 220px, 260px" type="image/webp" />
-                                    <!-- Stack-like transition: old card shrinks back, new card rises -->
-                                    <Transition name="stack" mode="out-in">
-                                        <img :key="activeFeatureData.screenshot" :src="optUrl(activeFeatureData.screenshot)" :alt="activeFeatureData.title" class="w-full h-full object-cover object-top" loading="lazy" width="260" height="540" />
-                                    </Transition>
-                                </picture>
+                        <!-- Phone frame with 3D card transition -->
+                        <Transition name="phone-flip" mode="out-in">
+                            <div :key="activeFeatureData.screenshot" class="relative w-[260px] h-[540px]" style="perspective: 1000px;">
+                                <!-- Dynamic glow behind phone -->
+                                <div class="absolute -inset-4 blur-3xl rounded-full transition-all duration-700 ease-out" :style="{ background: activeGlow + '30' }"></div>
+                                <!-- Phone frame -->
+                                <div class="relative w-full h-full bg-neutral-900 dark:bg-neutral-800 rounded-[2.5rem] p-[10px] shadow-2xl border-[3px] border-neutral-200 dark:border-neutral-700">
+                                    <div class="w-full h-full rounded-[2rem] overflow-hidden bg-white">
+                                        <picture>
+                                            <source :srcset="`${optUrlSmall(activeFeatureData.screenshot)} 640w, ${optUrl(activeFeatureData.screenshot)} 1280w`" sizes="(max-width: 768px) 220px, 260px" type="image/webp" />
+                                            <img :src="optUrl(activeFeatureData.screenshot)" :alt="activeFeatureData.title" class="w-full h-full object-cover object-top" loading="lazy" width="260" height="540" />
+                                        </picture>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </Transition>
 
                         <!-- Floating badges -->
                         <div class="absolute -top-3 -right-6 bg-white dark:bg-neutral-800 rounded-xl shadow-lg px-3 py-2 border border-neutral-100 dark:border-neutral-700 flex items-center gap-2">
@@ -235,33 +236,33 @@ function handleScroll(e: Event) {
     background: #525252;
 }
 
-/* Stack cards transition */
-.stack-enter-active {
-    transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* 3D Phone Flip transition — rotates the entire phone frame */
+.phone-flip-enter-active {
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     z-index: 10;
 }
-.stack-leave-active {
+.phone-flip-leave-active {
     transition: all 0.35s cubic-bezier(0.5, 0, 0.75, 0);
     z-index: 5;
 }
-.stack-enter-from {
+.phone-flip-enter-from {
     opacity: 0;
-    transform: scale(0.7) translateY(40px) rotateX(12deg);
-    filter: blur(4px);
+    transform: scale(0.8) rotateY(-35deg) rotateX(8deg) translateX(40px) translateY(-10px);
+    filter: blur(6px);
 }
-.stack-leave-to {
+.phone-flip-leave-to {
     opacity: 0;
-    transform: scale(0.85) translateY(-20px) rotateX(-8deg);
-    filter: blur(2px);
+    transform: scale(0.85) rotateY(25deg) rotateX(-5deg) translateX(-30px) translateY(8px);
+    filter: blur(3px);
 }
-.stack-enter-to {
+.phone-flip-enter-to {
     opacity: 1;
-    transform: scale(1) translateY(0) rotateX(0);
+    transform: scale(1) rotateY(0) rotateX(0) translateX(0) translateY(0);
     filter: blur(0);
 }
-.stack-leave-from {
+.phone-flip-leave-from {
     opacity: 1;
-    transform: scale(1) translateY(0) rotateX(0);
+    transform: scale(1) rotateY(0) rotateX(0) translateX(0) translateY(0);
     filter: blur(0);
 }
 </style>
