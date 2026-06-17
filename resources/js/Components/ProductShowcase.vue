@@ -23,6 +23,12 @@ const { toWebP, toWebPSmall } = useImageOptimization();
 const loanProducts = computed(() => productsConfig.value?.loan ?? []);
 const productHighlights = computed(() => productsConfig.value?.highlights ?? []);
 const youtubeUrl = computed(() => productsConfig.value?.youtube_url ?? '');
+const youtubeEmbedId = computed(() => {
+    const url = youtubeUrl.value;
+    if (!url) return '';
+    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : '';
+});
 
 // Scroll-reveal setup for loan product cards
 const loanReveal = useScrollReveal({ staggerMs: 100 });
@@ -172,18 +178,23 @@ const highlightReveal = useScrollReveal({ staggerMs: 60 });
             </div>
 -->
 
-            <!-- YouTube Trailer -->
-            <div v-if="youtubeUrl" class="mt-12 text-center">
-                <a :href="youtubeUrl" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] group">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 4-8 4z" />
-                    </svg>
-                    <span>Tonton Video Trailer</span>
-                    <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                    </svg>
-                </a>
+            <!-- YouTube Trailer Embed -->
+            <div v-if="youtubeEmbedId" class="mt-12 max-w-4xl mx-auto">
+                <div class="relative overflow-hidden rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-900" style="aspect-ratio: 16 / 9;">
+                    <iframe
+                        :src="`https://www.youtube.com/embed/${youtubeEmbedId}?autoplay=0&rel=0`"
+                        title="Video Trailer e-Koperasi"
+                        class="absolute inset-0 w-full h-full"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        loading="lazy"
+                    ></iframe>
+                </div>
+                <p class="text-center text-xs text-neutral-500 dark:text-neutral-400 mt-2">Tonton video trailer e-Koperasi</p>
             </div>
+
+            <!-- Bottom CTA -->
 
             <!-- Bottom CTA -->
             <div class="mt-8 text-center">
