@@ -33,28 +33,15 @@ function submit() {
         <div class="relative w-full max-w-md">
             <!-- Logo -->
             <Link href="/" class="flex items-center justify-center gap-3 mb-8 group">
-                <div class="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-primary-600/25">
-                    eK
-                </div>
+                <img src="/images/logo-only-white.png" alt="e-Koperasi" class="h-11 w-11" />
                 <div>
-                    <h1 class="text-xl font-bold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">e-Koperasi</h1>
+                    <h1 class="text-xl font-bold text-neutral-900 dark:text-white">e-Koperasi</h1>
                     <p class="text-[11px] text-neutral-400 dark:text-neutral-500 -mt-0.5">Portal Masuk</p>
                 </div>
             </Link>
 
             <!-- Card -->
             <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl dark:shadow-neutral-950/80 border border-neutral-200 dark:border-neutral-800 p-8">
-                <!-- Role tabs -->
-                <div class="flex mb-6 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-1 text-sm">
-                    <div class="flex-1 text-center py-2 px-4 rounded-md font-medium bg-white dark:bg-neutral-900 text-primary-600 dark:text-primary-400 shadow-sm">
-                        Admin & Staff
-                    </div>
-                    <div class="flex-1 text-center py-2 px-4 rounded-md font-medium text-neutral-500 dark:text-neutral-400">
-                        Koperasi Client
-                    </div>
-                </div>
-
-                <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-6 text-center">Masuk dengan akun Anda.</p>
 
                 <!-- Error -->
                 <div
