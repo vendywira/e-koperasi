@@ -240,43 +240,47 @@ function handleScroll(e: Event) {
     background: #525252;
 }
 
-/* Door swing transitions for floating badges */
+/* Slide-lock transitions for floating badges */
 .door-right-enter-active {
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 20;
 }
 .door-right-leave-active {
-    transition: all 0.3s cubic-bezier(0.5, 0, 0.75, 0);
+    transition: all 0.25s cubic-bezier(0.5, 0, 0.75, 0);
     z-index: 5;
 }
 .door-right-enter-from {
     opacity: 0;
-    transform: rotateY(-90deg) translateX(20px) scale(0.7);
-    transform-origin: right center;
+    transform: translateX(60px);
+}
+.door-right-enter-to {
+    opacity: 1;
+    transform: translateX(0);
 }
 .door-right-leave-to {
     opacity: 0;
-    transform: rotateY(90deg) translateX(-10px) scale(0.8);
-    transform-origin: right center;
+    transform: translateX(-40px);
 }
 
 .door-left-enter-active {
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 20;
 }
 .door-left-leave-active {
-    transition: all 0.3s cubic-bezier(0.5, 0, 0.75, 0);
+    transition: all 0.25s cubic-bezier(0.5, 0, 0.75, 0);
     z-index: 5;
 }
 .door-left-enter-from {
     opacity: 0;
-    transform: rotateY(90deg) translateX(-20px) scale(0.7);
-    transform-origin: left center;
+    transform: translateX(-60px);
+}
+.door-left-enter-to {
+    opacity: 1;
+    transform: translateX(0);
 }
 .door-left-leave-to {
     opacity: 0;
-    transform: rotateY(-90deg) translateX(10px) scale(0.8);
-    transform-origin: left center;
+    transform: translateX(40px);
 }
 
 /* 3D Phone Flip transition — rotates the entire phone frame */
