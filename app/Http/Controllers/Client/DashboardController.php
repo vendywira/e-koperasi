@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,6 +22,15 @@ class DashboardController extends Controller
                 ->get()
             : [];
 
+        // Ticket statistics
+        $ticketStats = [
+            'total' => Ticket::where('user_id', $user->id)->count(),
+            'pending' => Ticket::where('user_id', $user->id)->where('status', 'pending')->count(),
+            'in_progress' => Ticket::where('user_id', $user->id)->where('status', 'in_progress')->count(),
+            'solved' => Ticket::where('user_id', $user->id)->where('status', 'solved')->count(),
+            'close' => Ticket::where('user_id', $user->id)->where('status', 'close')->count(),
+        ];
+
         return Inertia::render('Client/Dashboard', [
             'subscription' => $subscription ? [
                 'id' => $subscription->id,
@@ -33,6 +43,7 @@ class DashboardController extends Controller
                 'usage_percent' => $subscription->usagePercent(),
             ] : null,
             'recentPayments' => $recentPayments,
+            'ticketStats' => $ticketStats,
         ]);
     }
 }

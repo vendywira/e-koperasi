@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Models\Ticket;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,6 +56,15 @@ class ClientController extends Controller
             ->orderBy('month', 'asc')
             ->get();
 
+        // Ticket statistics
+        $ticketStats = [
+            'total' => Ticket::count(),
+            'pending' => Ticket::where('status', 'pending')->count(),
+            'in_progress' => Ticket::where('status', 'in_progress')->count(),
+            'solved' => Ticket::where('status', 'solved')->count(),
+            'close' => Ticket::where('status', 'close')->count(),
+        ];
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'total_clients' => $totalClients,
@@ -65,6 +76,7 @@ class ClientController extends Controller
             'recentPayments' => $recentPayments,
             'planDistribution' => $planDistribution,
             'monthlyRevenue' => $monthlyRevenue,
+            'ticketStats' => $ticketStats,
         ]);
     }
 
@@ -145,6 +157,28 @@ class ClientController extends Controller
         } else {
             $subscription = Subscription::create(array_merge($validated, ['user_id' => $client->id]));
         }
+
+        // Notify staff and the client
+        $notifService = app(NotificationService::class);
+        $planName = ucfirst($validated['plan']);
+        $statusText = $validated['status'] === 'active' ? 'diaktifkan' : $validated['status'];
+
+        $notifService->sendToStaff(
+            'subscription',
+            "Langganan Baru: {$planName}",
+            "{$client->name} berlangganan paket {$planName} — status: {$statusText}",
+            "/admin/clients/{$client->id}",
+            $subscription
+        );
+
+        $notifService->send(
+            $client,
+            'subscription',
+            "Langganan {$planName} {$statusText}",
+            "Paket {$planName} Anda telah {$statusText}. Silakan cek detail langganan.",
+            '/client/subscription',
+            $subscription
+        );
 
         return redirect()->back()->with('success', 'Subscription berhasil diperbarui.');
     }

@@ -3,6 +3,7 @@ import {Link, usePage, router} from '@inertiajs/vue3';
 import {computed, ref, onMounted, onUnmounted} from 'vue';
 import {index as cmsIndex} from '@/routes/admin/cms';
 import {useTheme} from '@/composables/useTheme';
+import NotificationBell from '@/Components/NotificationBell.vue';
 
 defineProps<{
     title?: string;
@@ -116,10 +117,25 @@ onUnmounted(() => {
                         Overview
                     </Link>
 
-                    <p v-if="user?.role === 'admin'"
+                    <p v-if="user?.role === 'admin' || user?.role === 'it-ops'"
                        class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                         Management
                     </p>
+                    <Link
+                        v-if="user?.role === 'admin' || user?.role === 'it-ops'"
+                        href="/admin/tickets"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                        :class="$page.url.startsWith('/admin/tickets')
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'"
+                        @click="closeSidebar"
+                    >
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                        </svg>
+                        Tickets
+                    </Link>
+
                     <Link
                         v-if="user?.role === 'admin'"
                         href="/admin/clients"
@@ -151,10 +167,12 @@ onUnmounted(() => {
                         User Management
                     </Link>
 
-                    <p class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                    <p v-if="user?.role === 'admin'|| user?.role === 'editor'"
+                        class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                         Konten
                     </p>
                     <Link
+                        v-if="user?.role === 'admin'|| user?.role === 'editor'"
                         :href="cmsIndex().url"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                         :class="$page.url === '/admin/cms'
@@ -170,6 +188,7 @@ onUnmounted(() => {
                     </Link>
 
                     <Link
+                        v-if="user?.role === 'admin'|| user?.role === 'editor'"
                         href="/admin/media"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                         :class="$page.url === '/admin/media'
@@ -285,10 +304,23 @@ onUnmounted(() => {
                     Overview
                 </Link>
 
-                <p v-if="user?.role === 'admin'"
+                <p v-if="user?.role === 'admin' || user?.role === 'it-ops'"
                    class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                     Management
                 </p>
+                <Link
+                    v-if="user?.role === 'admin' || user?.role === 'it-ops'"
+                    href="/admin/tickets"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    :class="$page.url.startsWith('/admin/tickets')
+                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'"
+                >
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                    </svg>
+                    Tickets
+                </Link>
                 <Link
                     v-if="user?.role === 'admin'"
                     href="/admin/clients"
@@ -317,10 +349,12 @@ onUnmounted(() => {
                     </svg>
                     User Management
                 </Link>
-                <p class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                <p  v-if="user?.role === 'admin'|| user?.role === 'editor'"
+                    class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                     Konten
                 </p>
                 <Link
+                    v-if="user?.role === 'admin'|| user?.role === 'editor'"
                     :href="cmsIndex().url"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     :class="$page.url === '/admin/cms'
@@ -335,6 +369,7 @@ onUnmounted(() => {
                 </Link>
 
                 <Link
+                    v-if="user?.role === 'admin'|| user?.role === 'editor'"
                     href="/admin/media"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     :class="$page.url === '/admin/media'
@@ -426,24 +461,41 @@ onUnmounted(() => {
             <header
                 class="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-30">
                 <!-- Mobile top bar -->
-                <div class="flex items-center gap-3 px-4 py-3 lg:hidden">
-                    <button
-                        @click="toggleSidebar"
-                        class="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                        aria-label="Toggle sidebar"
-                    >
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
-                        </svg>
-                    </button>
-                    <h1 class="text-base font-bold text-neutral-900 dark:text-white truncate">{{
-                            title || 'CMS Editor'
-                        }}</h1>
+                <div class="flex items-center justify-between px-4 py-3 lg:hidden">
+                    <div class="flex items-center gap-3">
+                        <button
+                            @click="toggleSidebar"
+                            class="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                            aria-label="Toggle sidebar"
+                        >
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+                            </svg>
+                        </button>
+                        <h1 class="text-base font-bold text-neutral-900 dark:text-white truncate">{{
+                                title || 'CMS Editor'
+                            }}</h1>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <NotificationBell />
+                        <button
+                            @click="logout"
+                            class="p-1.5 rounded-lg text-neutral-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            title="Logout"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <!-- Desktop header -->
-                <div class="hidden lg:block px-6 py-4">
+                <div class="hidden lg:flex items-center justify-between px-6 py-4">
                     <h1 class="text-lg font-bold text-neutral-900 dark:text-white">{{ title || 'CMS Editor' }}</h1>
+                    <div class="flex items-center gap-2">
+                        <NotificationBell />
+                    </div>
                 </div>
             </header>
             <main class="flex-1 overflow-auto">

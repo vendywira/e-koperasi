@@ -4,17 +4,20 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Database\Factories\UserFactory;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, CanResetPassword;
+    use HasFactory, Notifiable, CanResetPassword, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -52,6 +55,28 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Generate UUID on create for the `id` column.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (!$user->id) {
+                $user->id = (string) Str::uuid();
+            }
+        });
+    }
+
+    public function getIncrementing(): bool
+    {
+        return false;
+    }
+
+    public function getKeyType(): string
+    {
+        return 'string';
+    }
+
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ResetPasswordNotification($token));
@@ -60,5 +85,20 @@ class User extends Authenticatable
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class);
+    }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'user_id');
+    }
+
+    public function assignedTickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class, 'assigned_to');
+    }
+
+    public function ticketReplies(): HasMany
+    {
+        return $this->hasMany(TicketReply::class, 'user_id');
     }
 }

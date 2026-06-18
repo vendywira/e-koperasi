@@ -23,7 +23,7 @@ class AuthController extends Controller
             if ($user->role === 'client') {
                 return redirect()->route('client.dashboard');
             }
-            return redirect()->route('admin.cms.index');
+            return redirect()->route('admin.dashboard');
         }
 
         return Inertia::render('Auth/Login');
@@ -45,7 +45,7 @@ class AuthController extends Controller
                 return redirect()->intended(route('client.dashboard'));
             }
 
-            return redirect()->intended(route('admin.cms.index'));
+            return redirect()->intended(route('admin.dashboard'));
         }
 
         return back()->withErrors([

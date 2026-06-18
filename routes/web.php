@@ -7,6 +7,7 @@ use App\Http\Controllers\DemoController;
 use App\Http\Controllers\Client\DashboardController;
 use App\Http\Controllers\Client\SubscriptionController;
 use App\Http\Controllers\Client\PaymentController;
+use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -39,6 +40,23 @@ Route::prefix('client')->name('client.')->group(function () {
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
         Route::get('/payments/{id}', [PaymentController::class, 'show'])->name('payments.show');
     });
+});
+
+// Client Ticket Routes (authenticated clients only)
+Route::middleware(['auth'])->prefix('tickets')->name('tickets.')->group(function () {
+    Route::get('/', [TicketController::class, 'index'])->name('index');
+    Route::get('/create', [TicketController::class, 'create'])->name('create');
+    Route::post('/', [TicketController::class, 'store'])->name('store');
+    Route::get('/{ticket}', [TicketController::class, 'show'])->name('show');
+    Route::post('/{ticket}/reply', [TicketController::class, 'reply'])->name('reply');
+    Route::put('/{ticket}/close', [TicketController::class, 'close'])->name('close');
+});
+
+// Notification API routes
+Route::middleware(['auth'])->prefix('api/notifications')->name('api.notifications.')->group(function () {
+    Route::get('/unread', [\App\Http\Controllers\NotificationController::class, 'getUnread'])->name('unread');
+    Route::post('/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
+    Route::post('/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read-all');
 });
 
 // CMS Admin Routes
