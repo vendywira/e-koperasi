@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Database\Factories\UserFactory;
@@ -15,7 +16,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, CanResetPassword;
+    use HasFactory, Notifiable, CanResetPassword, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -51,6 +52,28 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Generate UUID on create for the `id` column.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (!$user->id) {
+                $user->id = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
+
+    public function getIncrementing(): bool
+    {
+        return false;
+    }
+
+    public function getKeyType(): string
+    {
+        return 'string';
     }
 
     public function sendPasswordResetNotification($token): void
