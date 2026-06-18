@@ -14,21 +14,22 @@ const attachmentErrors = ref<string[]>([]);
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'video/mp4', 'video/quicktime', 'video/x-msvideo'];
 
-const statusColors: Record<string, string> = {
-    pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-    acknowledge: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-    in_progress: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
-    solved: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-    close: 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400',
-};
-
-const statusLabels: Record<string, string> = {
-    pending: 'Pending', acknowledge: 'Acknowledge', in_progress: 'In Progress', solved: 'Solved', close: 'Closed',
+const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
+    pending: { label: 'Pending', color: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30' },
+    acknowledge: { label: 'Acknowledge', color: 'text-blue-700 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+    in_progress: { label: 'In Progress', color: 'text-indigo-700 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
+    solved: { label: 'Solved', color: 'text-emerald-700 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    close: { label: 'Closed', color: 'text-neutral-600 dark:text-neutral-400', bg: 'bg-neutral-100 dark:bg-neutral-800' },
 };
 
 const formatDate = (dt: string) => {
     if (!dt) return '-';
     return new Date(dt).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
+
+const formatTime = (dt: string) => {
+    if (!dt) return '';
+    return new Date(dt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 };
 
 function onFileSelect(e: Event) {
@@ -77,155 +78,196 @@ function getFileUrl(path: string) {
     return '/storage/' + path;
 }
 
-function isImage(mime: string) {
-    return mime?.startsWith('image/');
-}
+function isImage(mime: string) { return mime?.startsWith('image/'); }
+function isVideo(mime: string) { return mime?.startsWith('video/'); }
 
-function isVideo(mime: string) {
-    return mime?.startsWith('video/');
-}
-
-function getFileIcon(name: string) {
+const fileIcon = (name: string) => {
     if (name?.endsWith('.pdf')) return '📄';
     if (name?.match(/\.(mp4|mov|avi)$/i)) return '🎬';
     return '📎';
-}
+};
 </script>
 
 <template>
     <ClientLayout :title="'Ticket #' + ticket.ticket_number">
         <Head :title="ticket.ticket_number + ' - e-Koperasi'" />
 
-        <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl">
-            <Link href="/tickets" class="text-sm text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-                Kembali ke Daftar Ticket
-            </Link>
-
-            <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-6">
-                <div class="flex items-start justify-between gap-4">
+        <div class="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+            <!-- Sticky Top Bar -->
+            <div class="sticky top-0 z-20 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800">
+                <div class="flex items-center gap-2 px-3 sm:px-6 h-12 sm:h-14">
+                    <Link href="/tickets" class="shrink-0 p-1.5 -ml-1.5 rounded-lg text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                        </svg>
+                    </Link>
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-3 mb-2">
-                            <span class="font-mono text-xs font-semibold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded">{{ ticket.ticket_number }}</span>
-                            <span class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold" :class="statusColors[ticket.status] || ''">{{ statusLabels[ticket.status] || ticket.status }}</span>
-                            <span class="inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 capitalize">{{ ticket.priority }} priority</span>
-                        </div>
-                        <h2 class="text-lg sm:text-xl font-bold text-neutral-900 dark:text-white">{{ ticket.subject }}</h2>
-                        <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Dibuat {{ formatDate(ticket.created_at) }}</p>
+                        <p class="text-xs text-neutral-500 dark:text-neutral-400 truncate">Ticket</p>
+                        <h1 class="text-sm font-semibold text-neutral-900 dark:text-white truncate">{{ ticket.subject }}</h1>
                     </div>
-
                     <button v-if="ticket.status === 'solved'" @click="closeTicket"
-                        class="shrink-0 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-sm font-medium rounded-lg transition-colors">
-                        Tutup Ticket
+                        class="shrink-0 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-medium rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors">
+                        Tutup
                     </button>
                 </div>
-
-                <p v-if="ticket.assigned_to" class="mt-3 text-xs text-neutral-500 dark:text-neutral-400">
-                    Ditangani oleh: <span class="font-medium text-neutral-700 dark:text-neutral-300">{{ ticket.assigned_to?.name || '-' }}</span>
-                </p>
-
-                <div class="mt-4 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
-                    <p class="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap">{{ ticket.description }}</p>
-                </div>
-
-                <div v-if="ticket.attachments?.length" class="mt-4 flex flex-wrap gap-2">
-                    <template v-for="att in ticket.attachments" :key="att.id">
-                        <a v-if="isImage(att.mime_type)" :href="getFileUrl(att.file_path)" target="_blank"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
-                            🖼️ {{ att.file_name }}
-                        </a>
-                        <a v-else :href="getFileUrl(att.file_path)" target="_blank"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
-                            {{ getFileIcon(att.file_name) }} {{ att.file_name }}
-                        </a>
-                    </template>
-                </div>
             </div>
 
-            <div class="space-y-4">
-                <h3 class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">Percakapan ({{ ticket.replies?.length || 0 }})</h3>
+            <div class="px-3 sm:px-6 lg:px-8 py-4 space-y-3 max-w-4xl mx-auto">
+                <!-- Status Bar -->
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    <span class="font-mono text-[11px] font-semibold text-neutral-400 bg-neutral-200 dark:bg-neutral-800 px-2 py-1 rounded shrink-0">{{ ticket.ticket_number }}</span>
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold shrink-0"
+                        :class="[statusConfig[ticket.status]?.bg, statusConfig[ticket.status]?.color]">
+                        <span class="w-1.5 h-1.5 rounded-full" :class="{
+                            'bg-amber-500': ticket.status === 'pending',
+                            'bg-blue-500': ticket.status === 'acknowledge',
+                            'bg-indigo-500': ticket.status === 'in_progress',
+                            'bg-emerald-500': ticket.status === 'solved',
+                            'bg-neutral-500': ticket.status === 'close',
+                        }"></span>
+                        {{ statusConfig[ticket.status]?.label || ticket.status }}
+                    </span>
+                    <span class="inline-flex px-2 py-1 rounded-full text-[11px] font-medium bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 capitalize shrink-0">{{ ticket.priority }}</span>
+                    <span v-if="ticket.assigned_to" class="text-[11px] text-neutral-500 dark:text-neutral-400 shrink-0">
+                        👤 {{ ticket.assigned_to?.name }}
+                    </span>
+                </div>
 
-                <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-5">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-sm font-bold">
+                <!-- Description Card -->
+                <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                    <div class="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-[11px] font-bold shrink-0">
                             {{ (ticket.user?.name || '?').charAt(0).toUpperCase() }}
                         </div>
-                        <div>
-                            <p class="text-sm font-medium text-neutral-900 dark:text-white">{{ ticket.user?.name }}</p>
-                            <p class="text-xs text-neutral-400">{{ formatDate(ticket.created_at) }}</p>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ ticket.user?.name }}</p>
+                            <p class="text-[11px] text-neutral-400">{{ formatDate(ticket.created_at) }}</p>
                         </div>
-                        <span class="ml-auto text-[10px] font-medium text-neutral-400 uppercase bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded">{{ ticket.user?.role }}</span>
+                        <span class="text-[10px] font-medium text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded uppercase shrink-0">{{ ticket.user?.role }}</span>
                     </div>
-                    <p class="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap">{{ ticket.description }}</p>
-                </div>
-
-                <div v-for="reply in ticket.replies" :key="reply.id"
-                    class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-5"
-                    :class="reply.user_id !== ticket.user_id ? 'border-l-4 border-l-emerald-500' : ''">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-400 text-sm font-bold">
-                            {{ (reply.user?.name || '?').charAt(0).toUpperCase() }}
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-neutral-900 dark:text-white">{{ reply.user?.name }}</p>
-                            <p class="text-xs text-neutral-400">{{ formatDate(reply.created_at) }}</p>
-                        </div>
-                        <span class="ml-auto text-[10px] font-medium text-neutral-400 uppercase bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded">{{ reply.user?.role }}</span>
+                    <div class="px-4 py-3">
+                        <p class="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap leading-relaxed">{{ ticket.description }}</p>
                     </div>
-                    <p class="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap">{{ reply.message }}</p>
-
-                    <div v-if="reply.attachments?.length" class="mt-3 flex flex-wrap gap-2">
-                        <a v-for="att in reply.attachments" :key="att.id"
+                    <!-- Attachments -->
+                    <div v-if="ticket.attachments?.length" class="px-4 pb-3 flex flex-wrap gap-1.5">
+                        <a v-for="att in ticket.attachments" :key="att.id"
                             :href="getFileUrl(att.file_path)" target="_blank"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
-                            {{ isImage(att.mime_type) ? '🖼️' : isVideo(att.mime_type) ? '🎬' : '📎' }} {{ att.file_name }}
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-xs text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors max-w-full">
+                            <span class="truncate">{{ fileIcon(att.file_name) }} {{ att.file_name }}</span>
                         </a>
                     </div>
                 </div>
-            </div>
 
-            <div v-if="ticket.status !== 'close'" class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-6">
-                <h3 class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-4">Tambah Balasan</h3>
-
-                <form @submit.prevent="submitReply">
-                    <textarea
-                        v-model="replyMessage"
-                        rows="4"
-                        placeholder="Tulis balasan Anda..."
-                        class="w-full px-4 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all resize-y"
-                    ></textarea>
-
-                    <div class="mt-3">
-                        <label class="inline-flex items-center gap-2 px-4 py-2 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-sm text-neutral-500 dark:text-neutral-400">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75v-2.25m-13.5-9l3-3m0 0l3 3m-3-3v12" />
-                            </svg>
-                            Lampirkan File
-                            <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.mp4,.mov,.avi" @change="onFileSelect" class="hidden" />
-                        </label>
+                <!-- Replies Thread (chat style) -->
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 px-1">
+                        <h3 class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">Percakapan</h3>
+                        <span class="text-xs text-neutral-400">({{ ticket.replies?.length || 0 }})</span>
                     </div>
 
-                    <ul v-if="replyAttachments.length" class="mt-2 space-y-1">
-                        <li v-for="(file, i) in replyAttachments" :key="i" class="flex items-center gap-2 text-sm text-neutral-500">
-                            <span>{{ file.name }}</span>
-                            <button type="button" @click="removeAttachment(i)" class="text-red-500 hover:text-red-700 text-xs">hapus</button>
-                        </li>
-                    </ul>
-                    <p v-for="(err, i) in attachmentErrors" :key="'err-' + i" class="mt-1 text-xs text-red-500">{{ err }}</p>
+                    <template v-for="reply in ticket.replies" :key="reply.id">
+                        <!-- Staff reply (right side) -->
+                        <div v-if="reply.user_id !== ticket.user_id" class="flex items-start gap-2 justify-end">
+                            <div class="flex-1 max-w-[88%] sm:max-w-[75%]">
+                                <div class="bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-900 rounded-2xl rounded-br-md px-4 py-3">
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400">{{ reply.user?.name }}</span>
+                                        <span class="text-[10px] text-neutral-400">{{ formatTime(reply.created_at) }}</span>
+                                    </div>
+                                    <p class="text-sm text-neutral-800 dark:text-neutral-200 whitespace-pre-wrap leading-relaxed">{{ reply.message }}</p>
+                                    <div v-if="reply.attachments?.length" class="mt-2 flex flex-wrap gap-1.5">
+                                        <a v-for="att in reply.attachments" :key="att.id"
+                                            :href="getFileUrl(att.file_path)" target="_blank"
+                                            class="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-neutral-800 rounded-lg text-[11px] text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors max-w-full">
+                                            <span class="truncate">{{ fileIcon(att.file_name) }} {{ att.file_name }}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-neutral-400 mt-0.5 text-right mr-1">{{ formatDate(reply.created_at) }}</p>
+                            </div>
+                            <div class="w-6 h-6 rounded-full bg-emerald-200 dark:bg-emerald-800 flex items-center justify-center text-emerald-700 dark:text-emerald-300 text-[10px] font-bold shrink-0 mt-1">
+                                {{ (reply.user?.name || '?').charAt(0).toUpperCase() }}
+                            </div>
+                        </div>
 
-                    <div class="mt-4 flex items-center gap-3">
-                        <button type="submit" :disabled="!replyMessage.trim() && !replyAttachments.length"
-                            class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-2">
-                            Kirim Balasan
-                        </button>
+                        <!-- Client reply (left side) -->
+                        <div v-else class="flex items-start gap-2">
+                            <div class="w-6 h-6 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-neutral-600 dark:text-neutral-400 text-[10px] font-bold shrink-0 mt-1">
+                                {{ (reply.user?.name || '?').charAt(0).toUpperCase() }}
+                            </div>
+                            <div class="flex-1 max-w-[88%] sm:max-w-[75%]">
+                                <div class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl rounded-tl-md px-4 py-3">
+                                    <div class="flex items-center gap-2 mb-1.5">
+                                        <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300">{{ reply.user?.name }}</span>
+                                        <span class="text-[10px] text-neutral-400">{{ formatTime(reply.created_at) }}</span>
+                                    </div>
+                                    <p class="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap leading-relaxed">{{ reply.message }}</p>
+                                    <div v-if="reply.attachments?.length" class="mt-2 flex flex-wrap gap-1.5">
+                                        <a v-for="att in reply.attachments" :key="att.id"
+                                            :href="getFileUrl(att.file_path)" target="_blank"
+                                            class="inline-flex items-center gap-1 px-2 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-[11px] text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors max-w-full">
+                                            <span class="truncate">{{ fileIcon(att.file_name) }} {{ att.file_name }}</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-neutral-400 mt-0.5 ml-1">{{ formatDate(reply.created_at) }}</p>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div v-if="!ticket.replies?.length" class="text-center py-8">
+                        <p class="text-sm text-neutral-400 dark:text-neutral-500">Belum ada balasan.</p>
                     </div>
-                </form>
-            </div>
+                </div>
 
-            <div v-else class="bg-neutral-50 dark:bg-neutral-800/50 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6 text-center">
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">Ticket ini sudah ditutup. Tidak dapat menambah balasan.</p>
+                <!-- Reply Form -->
+                <div v-if="ticket.status !== 'close'" class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                    <div class="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
+                        <h3 class="text-sm font-semibold text-neutral-900 dark:text-white">Balas</h3>
+                    </div>
+                    <form @submit.prevent="submitReply" class="p-4 space-y-3">
+                        <textarea
+                            v-model="replyMessage"
+                            rows="3"
+                            placeholder="Tulis balasan Anda..."
+                            class="w-full px-3.5 py-2.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all resize-none"
+                        ></textarea>
+
+                        <div class="flex items-center gap-2">
+                            <label class="inline-flex items-center gap-1.5 px-3 py-2 border border-dashed border-neutral-300 dark:border-neutral-700 rounded-lg cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors text-xs text-neutral-500 dark:text-neutral-400">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75v-2.25m-13.5-9l3-3m0 0l3 3m-3-3v12" />
+                                </svg>
+                                Lampirkan
+                                <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.mp4,.mov,.avi" @change="onFileSelect" class="hidden" />
+                            </label>
+                            <span class="text-[10px] text-neutral-400">PDF, JPG, MP4 (max 10MB)</span>
+                        </div>
+
+                        <ul v-if="replyAttachments.length" class="space-y-1">
+                            <li v-for="(file, i) in replyAttachments" :key="i" class="flex items-center gap-2 text-xs text-neutral-500 bg-neutral-50 dark:bg-neutral-800/50 px-3 py-1.5 rounded-lg">
+                                <span class="flex-1 truncate">{{ file.name }}</span>
+                                <span class="text-neutral-400">({{ (file.size / 1024 / 1024).toFixed(1) }} MB)</span>
+                                <button type="button" @click="removeAttachment(i)" class="text-red-500 hover:text-red-700 font-medium">✕</button>
+                            </li>
+                        </ul>
+                        <p v-for="(err, i) in attachmentErrors" :key="'err-' + i" class="text-xs text-red-500">{{ err }}</p>
+
+                        <div class="flex items-center gap-2 pt-1">
+                            <button type="submit" :disabled="!replyMessage.trim() && !replyAttachments.length"
+                                class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-sm font-medium rounded-lg transition-colors inline-flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                                </svg>
+                                Kirim Balasan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div v-else class="bg-neutral-100 dark:bg-neutral-800/50 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6 text-center">
+                    <p class="text-sm text-neutral-500 dark:text-neutral-400">✅ Ticket ini sudah ditutup.</p>
+                </div>
             </div>
         </div>
     </ClientLayout>
