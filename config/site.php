@@ -10,7 +10,7 @@ return [
     'brand' => [
         'name' => 'e-Koperasi',
         'tagline' => 'Platform Digital Koperasi Indonesia',
-        'description' => 'Platform monitoring & operasional koperasi — pinjaman, kasbon, absensi, dan slip gaji dalam satu aplikasi internal.',
+        'description' => 'Platform monitoring dan operasional koperasi untuk pinjaman, kasbon, absensi, dan slip gaji dalam satu aplikasi internal.',
     ],
 
     /*
@@ -30,7 +30,7 @@ return [
     ],
 
     'footer' => [
-        'description' => 'Platform monitoring & operasional koperasi — pinjaman, kasbon, absensi, slip gaji, dan evaluasi kinerja.',
+        'description' => 'Platform monitoring dan operasional koperasi untuk pinjaman, kasbon, absensi, slip gaji, dan evaluasi kinerja.',
         'tagline' => 'Untuk Koperasi Indonesia',
         'columns' => [
             [
@@ -72,7 +72,7 @@ return [
     'hero' => [
         'badge' => 'Dipercaya 50+ Koperasi · 10K+ Anggota',
         'headline' => 'Operasional Koperasi Lebih Cerdas, Lebih Transparan',
-        'subheadline' => 'Platform all-in-one untuk internal koperasi — pinjaman harian/mingguan/tempo, kasbon, absensi foto, slip gaji, dan evaluasi kinerja. Didukung AI risk scoring, rule engine dinamis, dan dashboard real-time.',
+        'subheadline' => 'Platform all-in-one untuk internal koperasi. Kelola pinjaman harian, mingguan, dan tempoan, kasbon, absensi foto, slip gaji, dan evaluasi kinerja. Didukung AI risk scoring, rule engine dinamis, dan dashboard real-time.',
         'primary_cta' => [
             'label' => 'Coba Demo Gratis',
             'href' => '/demo',
@@ -119,8 +119,8 @@ return [
     */
     'personas' => [
         [
-            'title' => 'Untuk Ketua & Admin',
-            'subtitle' => 'Pemimpin koperasi',
+            'title' => 'Untuk Admin',
+            'subtitle' => 'Ketua koperasi',
             'description' => 'Pantau seluruh operasional dari dashboard terpusat. Lihat saldo, pinjaman, dan NPL dalam hitungan detik.',
             'icon' => 'briefcase',
         ],
@@ -131,9 +131,9 @@ return [
             'icon' => 'users',
         ],
         [
-            'title' => 'Untuk PDL & Penagih',
+            'title' => 'Untuk Penagih',
             'subtitle' => 'Tim di lapangan',
-            'description' => 'Absensi foto, GPS tracking, catat titipan harian, dan lihat jadwal tagihan — semua dari HP.',
+            'description' => 'Absensi foto, GPS tracking, catat titipan harian, dan lihat jadwal tagihan. Semua dari HP.',
             'icon' => 'smartphone',
         ],
     ],
@@ -200,8 +200,8 @@ return [
                 'accent' => 'primary',
                 'screenshot' => '/images/app-screenshots/webp/jatuh-tempo.webp',
                 'rate' => '20%',
-                'tenor' => '14–60 hari',
-                'approval' => '1×24 jam',
+                'tenor' => 'flexible sesuai keperluan',
+                'approval' => '1x24 jam',
                 'benefits' => [
                     'Proses approval cepat',
                     'AI risk scoring via analisis nomor HP',
@@ -217,8 +217,8 @@ return [
                 'accent' => 'amber',
                 'screenshot' => '/images/app-screenshots/webp/list-angsuran.webp',
                 'rate' => '20%',
-                'tenor' => '4–24 minggu',
-                'approval' => '1×24 jam',
+                'tenor' => 'flexible sesuai keperluan',
+                'approval' => '1x24 jam',
                 'benefits' => [
                     'Cicilan per minggu',
                     'Jadwal pembayaran fleksibel',
@@ -234,8 +234,8 @@ return [
                 'accent' => 'violet',
                 'screenshot' => '/images/app-screenshots/webp/AI-recomendation-approve.webp',
                 'rate' => '20%',
-                'tenor' => '3–12 bulan',
-                'approval' => '2×24 jam',
+                'tenor' => '3 hingga 12 bulan',
+                'approval' => '2x24 jam',
                 'benefits' => [
                     'Tenor panjang',
                     'Auto-debet deposit saat jatuh tempo',
@@ -253,74 +253,49 @@ return [
     */
     'features' => [
         [
-            'title' => 'Manajemen Tunai Harian',
-            'description' => 'Catat kas masuk/keluar, rekonsiliasi real-time, laporan harian otomatis.',
-            'icon' => 'wallet',
+            'title' => 'Manajemen Transaksi Harian',
+            'description' => 'Catat pemasukan dan pengeluaran unit atau resort secara digital. Rekonsiliasi real-time dan laporan harian otomatis. Dilengkapi workflow approval untuk setiap transaksi.',
+            'icon' => 'banknote',
         ],
         [
-            'title' => 'Manajemen Kasbon (BON)',
-            'description' => 'Ajukan, approval, tracking saldo BON, potong otomatis dari gaji.',
-            'icon' => 'trending-up',
+            'title' => 'Pinjaman 4 Jenis + Agunan Digital',
+            'description' => 'Harian, mingguan, bulanan, dan tempo. Masing-masing dilengkapi simulasi dana bersih instan dan approval workflow. Unggah foto dan video agunan langsung dari HP. Ada fitur early termination untuk pelunasan dipercepat.',
+            'icon' => 'credit-card',
         ],
         [
-            'title' => 'Titipan & Tabungan Gaji',
-            'description' => 'Catat titipan harian PDL, tabungan gaji dengan auto potong dari slip.',
+            'title' => 'Tabungan, Deposito & Simpanan',
+            'description' => 'Setoran dan penarikan tunai dengan mutasi detail. Fitur pending debit yang perlu approval admin. Auto-apply deposito ke angsuran. Pantau total tabungan per periode.',
             'icon' => 'badge-dollar-sign',
         ],
         [
-            'title' => 'Kontrol Pinjaman + AI',
-            'description' => 'Pinjaman harian/mingguan/tempo, AI risk scoring via nomor HP, GPS tracking.',
+            'title' => 'AI Risk Scoring & Analisis Kredit',
+            'description' => 'Sistem AI menganalisis histori pembayaran nasabah, memberi skor risiko objektif, dan rekomendasi approve, review, atau reject. Deteksi dini NPL dan evaluasi kinerja real-time.',
             'icon' => 'trending-up',
         ],
         [
-            'title' => 'Rule Engine Dinamis',
-            'description' => 'Atur logika bisnis tanpa coding. Insentif, pinjaman, approval bertingkat.',
+            'title' => 'Rule Engine & Insentif No-Code',
+            'description' => 'Buat aturan bisnis dan insentif tanpa coding. Multi fact type, prioritas dan kondisi logika. Toggle aktif atau nonaktif kapan saja. Evaluasi aturan berjalan otomatis dan real-time.',
             'icon' => 'cog',
         ],
         [
-            'title' => 'Slip Gaji Digital',
-            'description' => 'Cetak PDF, tunjangan & insentif otomatis, potong kasbon & tabungan.',
+            'title' => 'Slip Gaji & Kasbon Digital',
+            'description' => 'Generate, publish, dan bagikan slip gaji dalam format PDF. Kelola kasbon sementara dan titipan gaji. Tambah insentif atau potongan manual per slip. Download langsung dari HP.',
             'icon' => 'file-text',
         ],
         [
-            'title' => 'Real-time Dashboard',
-            'description' => 'Performance, saldo lapangan, NPL, target harian, nasabah aktif — semua real-time.',
+            'title' => 'Dashboard & Laporan Investor',
+            'description' => 'Ringkasan outstanding, target PDL, laba rugi per produk, arus kas, analisis NPL, dan budget versus realisasi. Semua real-time. Laporan investor eksklusif untuk pimpinan.',
             'icon' => 'bar-chart',
         ],
         [
-            'title' => 'Multi-Resort & Multi-Unit',
-            'description' => '6 role bertingkat (Admin sampai PDL), budgeting per unit, laporan lintas resort.',
+            'title' => 'Multi Perusahaan & Struktur Hirarkis',
+            'description' => 'Kelola beberapa koperasi dalam satu platform. Struktur organisasi terdiri dari Perusahaan, Unit, Resort, dan Koordinator. Enam role berbeda dengan akses dan tampilan yang disesuaikan.',
             'icon' => 'building',
         ],
         [
-            'title' => 'Absensi Foto + GPS',
-            'description' => 'Upload foto absen, GPS tracking posisi PDL di lapangan, nearest customer.',
+            'title' => 'Absensi, Tracking & Portal Nasabah',
+            'description' => 'Absensi dengan foto dan deskripsi. Tracking lokasi petugas secara real-time. Portal publik untuk nasabah cek pinjaman dan tabungan sendiri via NIK. Transparan tanpa login internal.',
             'icon' => 'camera',
-        ],
-        [
-            'title' => 'GPS Lokasi Nasabah',
-            'description' => 'Simpan koordinat GPS rumah & tempat usaha nasabah. Lihat lokasi di peta saat penagihan.',
-            'icon' => 'map-pin',
-        ],
-        [
-            'title' => 'Rute Tercepat Penagihan',
-            'description' => 'Optimasi rute kunjungan PDL berdasarkan jarak & jadwal jatuh tempo. Hemat waktu & BBM.',
-            'icon' => 'route',
-        ],
-        [
-            'title' => 'Evaluasi Kinerja PDL',
-            'description' => 'Penilaian otomatis berdasarkan pencapaian target, tren performa, dan perbandingan antar PDL.',
-            'icon' => 'bar-chart',
-        ],
-        [
-            'title' => 'Laporan Investor',
-            'description' => 'Laporan keuangan lengkap: kas, profit, kondisi pinjaman, dan budget untuk investor.',
-            'icon' => 'file-text',
-        ],
-        [
-            'title' => 'Closing Harian Otomatis',
-            'description' => 'Operational close otomatis setiap akhir hari. Rekap transaksi harian tanpa effort.',
-            'icon' => 'clock',
         ],
     ],
 
@@ -421,7 +396,7 @@ return [
     */
     'testimonials' => [
         'title' => 'Cerita dari Koperasi yang Sudah Bertransformasi',
-        'subtitle' => 'Bukan testimonial berbayar — ini pengalaman nyata dari pengguna kami.',
+        'subtitle' => 'Bukan testimonial berbayar, ini pengalaman nyata dari pengguna kami.',
         'items' => [
             [
                 'quote' => 'Sebelum pakai e-Koperasi, kami rekap pinjaman & kasbon di Excel. Sekarang semua real-time dan NPL turun 40%.',
@@ -450,32 +425,56 @@ return [
         'title' => 'Pertanyaan yang Sering Diajukan',
         'items' => [
             [
-                'q' => 'Berapa lama proses setup & migrasi data?',
-                'a' => 'Untuk koperasi dengan data di Excel/ledger, kami biasanya selesaikan migrasi dalam 7–14 hari. Termasuk training admin dan anggota.',
+                'q' => 'Fitur apa saja yang tersedia di aplikasi ini?',
+                'a' => 'Ada 15 fitur unggulan. Mulai dari dashboard multi-role yang menyesuaikan level pengguna, manajemen nasabah dengan OCR KTP, pinjaman 4 jenis (harian, mingguan, bulanan, tempo) dengan agunan digital berupa foto dan video, AI risk scoring untuk analisis kredit, tabungan dan deposito digital, laporan keuangan dan investor real-time, slip gaji dan kasbon digital, rule engine no-code, tracking lokasi dan absensi lapangan, manajemen organisasi multi-perusahaan, push notifikasi, budget dan expense management, hingga portal publik untuk nasabah.',
             ],
             [
-                'q' => 'Apakah data koperasi aman?',
-                'a' => 'Ya. Kami menggunakan enkripsi AES-256, backup harian, dan audit trail sesuai UU PDP. Data disimpan di cloud region Singapore dengan SLA 99.9%.',
+                'q' => 'Jenis pinjaman apa saja yang didukung?',
+                'a' => 'Ada 4 jenis. Pinjaman Harian dengan tenor 14 hingga 60 hari dan angsuran harian. Pinjaman Mingguan dengan angsuran per minggu. Pinjaman Bulanan untuk jangka menengah. Pinjaman Tempo untuk jangka panjang dengan pembayaran sekaligus saat jatuh tempo. Semuanya dilengkapi simulasi dana bersih instan dan fitur pelunasan dipercepat.',
+            ],
+            [
+                'q' => 'Apakah ada fitur agunan untuk pinjaman?',
+                'a' => 'Ada. Setiap pengajuan pinjaman bisa disertai agunan digital berupa foto dan video. Tipe agunan yang didukung meliputi kendaraan, tanah atau bangunan, elektronik, dan lainnya. Petugas lapangan bisa langsung memotret agunan dari HP saat survei. Sistem otomatis menyimpan nilai agunan dan menghitung rasio pinjaman terhadap nilai agunan.',
             ],
             [
                 'q' => 'Bagaimana sistem AI risk scoring bekerja?',
-                'a' => 'Sistem kami menganalisis data berdasarkan nomor HP pengaju — mencakap riwayat pinjaman, pola pembayaran, dan risiko kredit. Hasilnya berupa skor risk yang membantu approval lebih objektif.',
+                'a' => 'Sistem AI menganalisis histori pembayaran nasabah, mencakup riwayat pinjaman sebelumnya, pola pembayaran apakah tepat waktu atau telat, jumlah tunggakan, dan status NPL. Hasilnya berupa skor risiko dengan 3 rekomendasi yaitu approve untuk yang layak, review untuk yang perlu verifikasi manual, atau reject untuk yang berisiko tinggi. Sistem ini membantu mengurangi kredit macet dan menjaga objektivitas keputusan.',
             ],
             [
-                'q' => 'Apakah ada biaya setup atau tersembunyi?',
-                'a' => 'Tidak ada biaya setup. Harga di paket sudah termasuk onboarding, training, dan support. Batalkan kapan saja tanpa penalty.',
+                'q' => 'Siapa saja yang bisa menggunakan aplikasi ini?',
+                'a' => 'Aplikasi ini untuk tim internal koperasi dengan 6 level pengguna. Admin atau Ketua dengan akses penuh ke seluruh fitur dan laporan investor. Koordinator untuk memantau beberapa unit binaan. Lead dan Co-Lead sebagai pimpinan unit. Kasir yang fokus pada transaksi harian dan budget. Serta PDL atau Penagih yang prioritasnya pada tagihan, target, dan rute penagihan. Setiap level melihat dashboard yang berbeda sesuai tugasnya.',
             ],
             [
-                'q' => 'Apakah anggota perlu install app?',
-                'a' => 'Aplikasi ini untuk internal koperasi (Admin, Koordinator, Lead, Cashier, PDL). Anggota bisa cek info via WhatsApp bot.',
+                'q' => 'Apakah anggota bisa cek data mereka sendiri?',
+                'a' => 'Bisa. Kami menyediakan Portal Publik Nasabah. Anggota cukup memasukkan ID nasabah dan NIK, mereka bisa melihat status pinjaman berjalan, riwayat tabungan, dan informasi akun langsung dari HP tanpa perlu login ke aplikasi internal koperasi.',
             ],
             [
-                'q' => 'Bagaimana cara request demo?',
-                'a' => 'Klik tombol "Request Demo" di atas, isi form singkat, dan tim kami akan menghubungi via WhatsApp dalam 1x24 jam untuk jadwalkan sesi 30 menit.',
+                'q' => 'Apakah bisa mengelola lebih dari satu koperasi?',
+                'a' => 'Bisa. Satu platform mendukung multi-perusahaan. Struktur organisasinya terdiri dari Perusahaan, Koordinator, Unit, dan Resort. Masing-masing entitas bisa memiliki pengaturan bunga, biaya admin, dan parameter bisnis yang berbeda, semuanya dari satu akun admin.',
             ],
             [
-                'q' => 'Bagaimana fitur GPS lokasi nasabah & rute penagihan bekerja?',
-                'a' => 'Saat PDL mengajukan pinjaman untuk nasabah, GPS rumah & tempat usaha nasabah otomatis tersimpan. Admin bisa lihat semua lokasi nasabah di peta. Fitur rute tercepat mengoptimalkan kunjungan PDL berdasarkan jarak dan jadwal jatuh tempo — hemat waktu & BBM hingga 30%.',
+                'q' => 'Bagaimana cara mengelola slip gaji karyawan?',
+                'a' => 'Slip gaji dikelola langsung dari aplikasi. Generate slip dengan rincian gaji pokok, tunjangan, insentif, dan potongan seperti kasbon, titipan gaji, atau tabungan. Bisa tambah insentif atau potongan manual per slip. Setelah publish, karyawan bisa download PDF langsung dari HP atau bagikan via WhatsApp. Semua terintegrasi tanpa aplikasi terpisah.',
+            ],
+            [
+                'q' => 'Apa itu Rule Engine?',
+                'a' => 'Rule Engine adalah fitur untuk membuat aturan bisnis tanpa coding. Anda bisa membuat aturan insentif, logika approval, dan keputusan bisnis lainnya dengan menentukan jenis keputusan, prioritas evaluasi, kondisi logika, dan hasil yang diinginkan. Aturan bisa diaktifkan atau dinonaktifkan kapan saja. Sistem mengevaluasi aturan secara real-time, cocok untuk perhitungan insentif PDL, bonus, dan kebijakan dinamis lainnya.',
+            ],
+            [
+                'q' => 'Bagaimana fitur tracking lokasi dan absensi untuk tim lapangan?',
+                'a' => 'Petugas lapangan atau PDL melakukan absensi dengan foto bukti kehadiran dan deskripsi kegiatan. Admin bisa mengirim permintaan lokasi ke petugas, dan saat direspon posisi real-time tercatat di peta. Riwayat pergerakan tim lapangan tersimpan lengkap dan bisa difilter per tanggal. Ada juga fitur Nearest Customer yang menampilkan nasabah terdekat berdasarkan GPS untuk efisiensi kunjungan.',
+            ],
+            [
+                'q' => 'Berapa lama proses setup dan migrasi data?',
+                'a' => 'Untuk koperasi dengan data di Excel atau ledger, migrasi biasanya selesai dalam 7 hingga 14 hari. Termasuk import data nasabah, pinjaman berjalan, tabungan, dan saldo, plus training untuk admin dan tim operasional. Tidak ada biaya setup.',
+            ],
+            [
+                'q' => 'Apakah data koperasi aman?',
+                'a' => 'Aman. Setiap akun pengguna diautentikasi dengan token. Data sensitif dienkripsi menggunakan standar AES-256. Ada backup harian otomatis, audit trail untuk setiap transaksi, dan log aktivitas pengguna yang lengkap. Sistem dirancang sesuai prinsip keamanan UU PDP Indonesia.',
+            ],
+            [
+                'q' => 'Bagaimana cara memulai atau request demo?',
+                'a' => 'Bisa langsung mencoba demo interaktif di halaman Demo dengan akun yang sudah tersedia tanpa perlu daftar. Atau klik tombol Request Demo, isi form singkat, dan tim kami akan menghubungi via WhatsApp dalam 1x24 jam untuk sesi konsultasi 30 menit sesuai kebutuhan koperasi Anda.',
             ],
         ],
     ],
@@ -506,41 +505,41 @@ return [
     'app_features' => [
         'badge' => 'Mobile App',
         'title' => 'Koperasi di Saku Anggota',
-        'subtitle' => 'Aplikasi mobile untuk anggota koperasi. Cek tabungan, ajukan pinjaman, dan absensi — semua dari HP.',
+        'subtitle' => 'Aplikasi mobile all-in-one untuk tim koperasi. Kelola simpan pinjam, lacak tim lapangan, atur insentif tanpa coding, dan akses laporan keuangan secara real-time dari genggaman.',
         'features' => [
             [
-                'title' => 'Cek Tabungan & Pinjaman',
-                'description' => 'Anggota bisa melihat saldo tabungan dan potongan pinjaman, status pinjaman, dan riwayat transaksi kapan saja — tanpa perlu ke kantor.',
+                'title' => 'Multi-Role Dashboard & Simpan Pinjam',
+                'description' => 'Dashboard yang menyesuaikan peran pengguna, baik Admin, Kasir, PDL, maupun Koordinator. Masing-masing melihat data yang relevan. Cek saldo tabungan, status pinjaman, dan riwayat transaksi dalam satu layar. Tersedia dark mode.',
                 'screenshot' => '/images/app-screenshots/homepage.png',
                 'icon' => 'credit-card',
             ],
             [
-                'title' => 'AI Risk Scoring & Rekomendasi',
-                'description' => 'Sistem AI menganalisis histori pembayaran dan memberikan rekomendasi approve, review, atau reject pinjaman secara objektif.',
+                'title' => 'AI Risk Scoring & Rekomendasi Kredit',
+                'description' => 'Sistem AI menganalisis histori pembayaran nasabah, memberikan skor risiko objektif, dan rekomendasi approve, review, atau reject. Membantu mengurangi risiko kredit macet dengan keputusan berbasis data.',
                 'screenshot' => '/images/app-screenshots/AI-recomendation-approve.png',
                 'icon' => 'brain',
             ],
             [
-                'title' => 'Dashboard & Laporan',
-                'description' => 'Pantau grafik performa keuangan, profit, dan budget real-time dari HP.',
+                'title' => 'Laporan Keuangan & Analitik Real-Time',
+                'description' => 'Pantau grafik performa keuangan, laba rugi per produk, analisis NPL, arus kas, dan budget versus realisasi secara real-time. Dilengkapi laporan investor eksklusif untuk pimpinan.',
                 'screenshot' => '/images/app-screenshots/chart.png',
                 'icon' => 'bar-chart',
             ],
             [
-                'title' => 'Jatuh Tempo & Penagihan',
-                'description' => 'Lihat daftar jatuh tempo, status pembayaran, dan route optimization untuk penagih.',
+                'title' => 'Manajemen Tagihan & Optimasi Rute Penagihan',
+                'description' => 'Daftar jatuh tempo terurut berdasarkan urgensi dengan status pembayaran real-time. Route optimization untuk penagih lapangan untuk menghemat waktu dan biaya operasional.',
                 'screenshot' => '/images/app-screenshots/jatuh-tempo.png',
                 'icon' => 'trending-down',
             ],
             [
-                'title' => 'List Angsuran & Transaksi',
-                'description' => 'Kelola daftar angsuran, riwayat transaksi, dan pencatatan harian dalam satu layar.',
+                'title' => 'Rule Engine & Insentif No-Code',
+                'description' => 'Buat aturan bisnis dan insentif tanpa coding. Tentukan kondisi logika, prioritas, dan hasil secara mandiri. Toggle aktif atau nonaktif kapan saja. Sistem mengevaluasi aturan secara real-time.',
                 'screenshot' => '/images/app-screenshots/list-angsuran.png',
                 'icon' => 'list-ordered',
             ],
             [
-                'title' => 'Slip Gaji Digital',
-                'description' => 'Download slip gaji langsung dari HP. Lihat rincian gaji pokok, tunjangan, potongan kasbon, dan insentif.',
+                'title' => 'Absensi, Tracking & Portal Nasabah',
+                'description' => 'Absensi dengan foto kehadiran. Tracking lokasi petugas secara real-time via GPS. Portal Publik Nasabah untuk cek pinjaman dan tabungan sendiri via NIK. Tanpa perlu login ke aplikasi internal.',
                 'screenshot' => '/images/app-screenshots/pay-slip-dashboard.png',
                 'icon' => 'file-text',
             ],
@@ -556,7 +555,7 @@ return [
     'demo' => [
         'badge' => 'Demo Interaktif',
         'title' => 'Coba e-Koperasi Sekarang',
-        'subtitle' => 'Gunakan akun demo di bawah untuk masuk ke aplikasi. Tidak perlu daftar — semua perubahan akan di-reset harian.',
+        'subtitle' => 'Gunakan akun demo di bawah untuk masuk ke aplikasi. Tidak perlu daftar, semua perubahan akan di-reset harian.',
         'reset_notice' => 'Akun demo di-reset setiap hari pukul 00:00 WIB.',
         'accounts_intro' => 'Akun Demo Tersedia',
         'accounts' => [
@@ -602,7 +601,7 @@ return [
             'origin'     => 'Tabanan, Bali',
             'mission'    => 'Mendigitalisasi koperasi Indonesia agar lebih efisien, transparan, dan modern.',
             'vision'     => 'Menjadi platform standar operasional koperasi Indonesia pada 2030.',
-            'story'      => 'e-Koperasi lahir dari kebutuhan nyata KSU Tabanan Jaya — koperasi serba usaha yang melayani 3000+ anggota di Bali. Sistem manual Excel dan WhatsApp tidak lagi memadai. Kami membangun platform all-in-one: dari pencatatan kasbon, pinjaman, slip gaji, GPS lokasi nasabah, rute tercepat penagihan, sampai evaluasi kinerja PDL. Setelah terbukti menurunkan NPL 40% di internal, kami membuka platform ini untuk koperasi lain di Indonesia.',
+            'story'      => 'e-Koperasi lahir dari kebutuhan nyata KSU Tabanan Jaya, koperasi serba usaha yang melayani lebih dari 3000 anggota di Bali. Sistem manual Excel dan WhatsApp tidak lagi memadai. Kami membangun platform all-in-one mulai dari pencatatan kasbon, pinjaman, slip gaji, GPS lokasi nasabah, rute tercepat penagihan, sampai evaluasi kinerja PDL. Setelah terbukti menurunkan NPL hingga 40% di internal, kami membuka platform ini untuk koperasi lain di Indonesia.',
             'values'     => [
                 ['title' => 'Trasparan',   'desc' => 'Setiap transaksi tercatat real-time, audit-ready.'],
                 ['title' => 'Indonesia-First', 'desc' => 'Dibangun oleh orang Indonesia, untuk koperasi Indonesia.'],
@@ -631,7 +630,7 @@ return [
     */
     'seo' => [
         'default_title' => 'e-Koperasi - Platform Digital Koperasi Indonesia',
-        'description'   => 'Platform monitoring & operasional koperasi — pinjaman, kasbon, absensi, slip gaji, evaluasi kinerja. AI risk scoring, rule engine, dashboard real-time.',
+        'description'   => 'Platform monitoring dan operasional koperasi untuk pinjaman, kasbon, absensi, slip gaji, dan evaluasi kinerja. Dilengkapi AI risk scoring, rule engine, dan dashboard real-time.',
         'keywords'      => 'koperasi, aplikasi koperasi, pinjaman, kasbon, absensi digital, slip gaji, evaluasi kinerja, Indonesia',
     ],
 
