@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,6 +55,15 @@ class ClientController extends Controller
             ->orderBy('month', 'asc')
             ->get();
 
+        // Ticket statistics
+        $ticketStats = [
+            'total' => Ticket::count(),
+            'pending' => Ticket::where('status', 'pending')->count(),
+            'in_progress' => Ticket::where('status', 'in_progress')->count(),
+            'solved' => Ticket::where('status', 'solved')->count(),
+            'close' => Ticket::where('status', 'close')->count(),
+        ];
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'total_clients' => $totalClients,
@@ -65,6 +75,7 @@ class ClientController extends Controller
             'recentPayments' => $recentPayments,
             'planDistribution' => $planDistribution,
             'monthlyRevenue' => $monthlyRevenue,
+            'ticketStats' => $ticketStats,
         ]);
     }
 

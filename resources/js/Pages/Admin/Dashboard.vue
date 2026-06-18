@@ -14,6 +14,13 @@ const props = defineProps<{
     recentPayments: any[];
     planDistribution: Record<string, number>;
     monthlyRevenue: any[];
+    ticketStats?: {
+        total: number;
+        pending: number;
+        in_progress: number;
+        solved: number;
+        close: number;
+    };
 }>();
 
 const planLabels: Record<string, string> = {
@@ -146,6 +153,36 @@ const formatDate = (dt: string | null) => {
                     </div>
                     <div v-else class="px-5 sm:px-6 py-6 text-center text-sm text-neutral-400 dark:text-neutral-500">
                         Belum ada pembayaran.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ticket Stats -->
+            <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">Ticket Support</h3>
+                    <Link href="/admin/tickets" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">Kelola Ticket</Link>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div class="text-center p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+                        <p class="text-xl font-bold text-neutral-900 dark:text-white">{{ ticketStats?.total || 0 }}</p>
+                        <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Total</p>
+                    </div>
+                    <div class="text-center p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                        <p class="text-xl font-bold text-amber-600 dark:text-amber-400">{{ ticketStats?.pending || 0 }}</p>
+                        <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Pending</p>
+                    </div>
+                    <div class="text-center p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                        <p class="text-xl font-bold text-indigo-600 dark:text-indigo-400">{{ ticketStats?.in_progress || 0 }}</p>
+                        <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Diproses</p>
+                    </div>
+                    <div class="text-center p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                        <p class="text-xl font-bold text-emerald-600 dark:text-emerald-400">{{ ticketStats?.solved || 0 }}</p>
+                        <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Selesai</p>
+                    </div>
+                    <div class="text-center p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+                        <p class="text-xl font-bold text-neutral-600 dark:text-neutral-400">{{ ticketStats?.close || 0 }}</p>
+                        <p class="text-[11px] text-neutral-500 dark:text-neutral-400">Closed</p>
                     </div>
                 </div>
             </div>

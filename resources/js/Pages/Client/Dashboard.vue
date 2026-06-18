@@ -6,6 +6,13 @@ import { computed } from 'vue';
 const props = defineProps<{
     subscription: any;
     recentPayments: any[];
+    ticketStats?: {
+        total: number;
+        pending: number;
+        in_progress: number;
+        solved: number;
+        close: number;
+    };
 }>();
 
 const planLabel = computed(() => {
@@ -107,6 +114,32 @@ const statusLabel = computed(() => {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                         </svg>
                     </Link>
+                </div>
+            </div>
+
+            <!-- Ticket Stats -->
+            <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-semibold text-neutral-900 dark:text-white">Ticket Saya</h3>
+                    <Link href="/tickets" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">Lihat Semua</Link>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="text-center p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg">
+                        <p class="text-2xl font-bold text-neutral-900 dark:text-white">{{ ticketStats?.total || 0 }}</p>
+                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Total</p>
+                    </div>
+                    <div class="text-center p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                        <p class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ ticketStats?.pending || 0 }}</p>
+                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Pending</p>
+                    </div>
+                    <div class="text-center p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                        <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ ticketStats?.in_progress || 0 }}</p>
+                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Diproses</p>
+                    </div>
+                    <div class="text-center p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                        <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ ticketStats?.solved || 0 }}</p>
+                        <p class="text-xs text-neutral-500 dark:text-neutral-400">Selesai</p>
+                    </div>
                 </div>
             </div>
 
