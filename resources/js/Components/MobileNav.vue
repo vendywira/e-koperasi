@@ -26,11 +26,18 @@ defineEmits<{ close: [] }>();
                     {{ item.label }}
                 </a>
                 <Link
+                    href="/login"
+                    class="block px-3 py-3 -mx-3 -my-1 rounded-md text-sm font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer"
+                    @click="$emit('close')"
+                >
+                    Login
+                </Link>
+                <Link
                     href="/demo"
                     class="block w-full text-center px-4 py-3 rounded-md bg-primary-600 text-white text-sm font-semibold cursor-pointer"
                     @click="$emit('close')"
                 >
-                    Request Demo
+                    Coba Demo
                 </Link>
             </div>
         </div>

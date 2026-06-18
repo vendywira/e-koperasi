@@ -129,7 +129,7 @@ const stats = [
                             Setelah terbukti di internal, kami membuka platform ini untuk koperasi lain di Indonesia. Sekarang dipercaya oleh 50+ koperasi di berbagai sektor.
                         </p>
                         <Link
-                            href="/tentang"
+                            href="/about"
                             class="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition"
                         >
                             Baca Cerita Lengkap

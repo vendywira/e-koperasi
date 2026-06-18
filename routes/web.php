@@ -16,8 +16,9 @@ Route::get('/demo', [DemoController::class, 'index'])->name('demo');
 Route::post('/demo', [DemoController::class, 'store'])->name('demo.store');
 
 // Static legal pages
-Route::get('/privacy', fn () => Inertia::render('Legal', ['type' => 'privacy']))->name('privacy');
-Route::get('/terms', fn () => Inertia::render('Legal', ['type' => 'terms']))->name('terms');
+Route::get('/legal/privasi', fn () => Inertia::render('Legal', ['type' => 'privacy']))->name('privacy');
+Route::get('/legal/syarat', fn () => Inertia::render('Legal', ['type' => 'terms']))->name('terms');
+Route::get('/legal/pdp', fn () => Inertia::render('Legal', ['type' => 'pdp']))->name('pdp');
 
 // Auth
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -30,11 +31,8 @@ Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->middl
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.update');
 
-// Client Portal
+// Client Portal (authenticated routes only)
 Route::prefix('client')->name('client.')->group(function () {
-    Route::get('/login', [AuthController::class, 'showClientLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'clientLogin'])->middleware('throttle:5,1')->name('login.submit');
-
     Route::middleware(['auth', 'role:client'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');

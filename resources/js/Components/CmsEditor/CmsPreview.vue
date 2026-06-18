@@ -44,6 +44,7 @@ function renderHero(d: any) {
         primary_cta: d?.primary_cta || { label: '', href: '#' },
         secondary_cta: d?.secondary_cta || { label: '', href: '#' },
         floating_badge: d?.floating_badge || '',
+        carousel_slides: Array.isArray(d?.carousel_slides) ? d.carousel_slides : [],
     };
 }
 
@@ -71,6 +72,7 @@ function renderPersonas(d: any): any[] {
 // Products Preview
 function renderProducts(d: any) {
     return {
+        youtube_url: d?.youtube_url || '',
         highlights: Array.isArray(d?.highlights) ? d.highlights : [],
         saving: Array.isArray(d?.saving) ? d.saving : [],
         loan: Array.isArray(d?.loan) ? d.loan : [],
@@ -290,6 +292,19 @@ function getIconEmoji(icon: string): string {
                     <svg class="w-3 h-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                     {{ previewData.data.floating_badge }}
                 </p>
+                <!-- Carousel preview -->
+                <div v-if="previewData.data.carousel_slides.length" class="mt-3 flex gap-2 overflow-x-auto pb-1">
+                    <div v-for="(slide, idx) in previewData.data.carousel_slides" :key="idx" class="flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800">
+                        <img
+                            v-if="slide.src"
+                            :src="slide.src"
+                            :alt="slide.alt || 'Slide ' + (idx + 1)"
+                            class="w-full h-full object-cover"
+                            @error="($event.target as HTMLImageElement).style.display = 'none'"
+                        />
+                        <div v-else class="w-full h-full flex items-center justify-center text-[18px] text-neutral-300">📱</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -336,7 +351,7 @@ function getIconEmoji(icon: string): string {
         <div v-if="previewData.type === 'footer'" class="space-y-3">
             <div class="bg-primary-900 dark:bg-primary-950 text-white rounded-xl p-5 border border-primary-800">
                 <div class="flex items-center gap-2 mb-3">
-                    <div class="w-6 h-6 rounded bg-primary-700 flex items-center justify-center text-[10px] font-bold">eK</div>
+                    <img src="/images/logo-only-white.png" alt="e-Koperasi" class="h-11 w-11" />
                     <span class="text-sm font-bold">{{ previewData.data.name || 'Brand' }}</span>
                 </div>
                 <p v-if="previewData.data.description" class="text-[10px] text-primary-200 leading-relaxed mb-3">{{ previewData.data.description }}</p>

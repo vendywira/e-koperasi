@@ -31,7 +31,7 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll));
     >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <Link href="/" class="flex items-center gap-2">
-                <img src="/images/logo-only-gold.png" alt="e-Koperasi" class="h-8 w-8" />
+                <img :src="theme === 'dark' ? '/images/logo-only-gold.png' : '/images/logo-only-emerald.png'" alt="e-Koperasi" class="h-8 w-8" />
                 <span class="font-bold text-lg text-neutral-900 dark:text-white">{{ brandName }}</span>
             </Link>
 
@@ -57,16 +57,16 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll));
                     <Sun v-else class="h-4 w-4" />
                 </button>
                 <Link
-                    href="/demo"
-                    class="text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-sm"
+                    href="/login"
+                    class="text-sm font-medium text-neutral-600 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-sm"
                 >
-                    Coba Demo
+                    Login
                 </Link>
                 <Link
-                    href="/demo#konsultasi"
+                    href="/demo"
                     class="inline-flex items-center gap-1 px-4 py-2 rounded-md bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
                 >
-                    Request Demo
+                    Coba Demo
                 </Link>
             </div>
 

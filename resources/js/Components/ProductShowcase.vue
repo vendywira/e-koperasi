@@ -22,6 +22,13 @@ const { products: productsConfig } = useSiteConfig();
 const { toWebP, toWebPSmall } = useImageOptimization();
 const loanProducts = computed(() => productsConfig.value?.loan ?? []);
 const productHighlights = computed(() => productsConfig.value?.highlights ?? []);
+const youtubeUrl = computed(() => productsConfig.value?.youtube_url ?? '');
+const youtubeEmbedId = computed(() => {
+    const url = youtubeUrl.value;
+    if (!url) return '';
+    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : '';
+});
 
 // Scroll-reveal setup for loan product cards
 const loanReveal = useScrollReveal({ staggerMs: 100 });
@@ -171,8 +178,26 @@ const highlightReveal = useScrollReveal({ staggerMs: 60 });
             </div>
 -->
 
+            <!-- YouTube Trailer Embed -->
+            <div v-if="youtubeEmbedId" class="mt-12 max-w-4xl mx-auto">
+                <div class="relative overflow-hidden rounded-2xl shadow-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-900" style="aspect-ratio: 16 / 9;">
+                    <iframe
+                        :src="`https://www.youtube-nocookie.com/embed/${youtubeEmbedId}?autoplay=0&rel=0`"
+                        title="Video Trailer e-Koperasi"
+                        class="absolute inset-0 w-full h-full"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        loading="lazy"
+                    ></iframe>
+                </div>
+                <p class="text-center text-xs text-neutral-500 dark:text-neutral-400 mt-2">Tonton video trailer e-Koperasi</p>
+            </div>
+
             <!-- Bottom CTA -->
-            <div class="mt-12 text-center">
+
+            <!-- Bottom CTA -->
+            <div class="mt-8 text-center">
                 <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary-50 dark:bg-primary-900/30 border border-primary-100 dark:border-primary-800">
                     <Smartphone class="h-4 w-4 text-primary-600 dark:text-primary-400" />
                     <span class="text-sm font-medium text-primary-700 dark:text-primary-300">Semua produk tersedia langsung dari mobile app anggota</span>
