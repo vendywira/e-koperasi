@@ -47,6 +47,7 @@ class TicketSeeder extends Seeder
         // Ticket 1: Pending
         $t1 = Ticket::create([
             'user_id' => $client->id,
+            'ticket_number' => Ticket::generateTicketNumber(),
             'subject' => 'Tidak bisa login ke dashboard client',
             'description' => "Assalamualaikum,\n\nSaya sudah beberapa hari ini tidak bisa login ke dashboard client. Setiap kali memasukkan email dan password yang benar, selalu muncul pesan \"Invalid credentials\".\n\nMohon bantuannya.\n\nTerima kasih.",
             'status' => 'pending',
@@ -56,6 +57,7 @@ class TicketSeeder extends Seeder
         // Ticket 2: In Progress (with replies)
         $t2 = Ticket::create([
             'user_id' => $client->id,
+            'ticket_number' => Ticket::generateTicketNumber(),
             'subject' => 'Data anggota tidak muncul di laporan',
             'description' => "Laporan bulanan yang saya generate tidak menampilkan semua data anggota. Sekitar 10 anggota tidak muncul. Sudah saya coba refresh beberapa kali tapi tetap sama.",
             'status' => 'in_progress',
@@ -69,6 +71,7 @@ class TicketSeeder extends Seeder
         // Ticket 3: Solved
         $t3 = Ticket::create([
             'user_id' => $client->id,
+            'ticket_number' => Ticket::generateTicketNumber(),
             'subject' => 'Cara export data simpanan ke Excel',
             'description' => 'Apakah ada fitur export data simpanan ke format Excel? Saya tidak menemukan tombol export di halaman simpanan.',
             'status' => 'solved',
@@ -83,6 +86,7 @@ class TicketSeeder extends Seeder
         // Ticket 4: Closed
         $t4 = Ticket::create([
             'user_id' => $client->id,
+            'ticket_number' => Ticket::generateTicketNumber(),
             'subject' => 'Notifikasi email tidak masuk',
             'description' => 'Setelah update minggu lalu, saya tidak mendapatkan notifikasi email untuk konfirmasi transaksi dan pengingat pembayaran. Setting notifikasi sudah aktif.',
             'status' => 'close',
@@ -97,6 +101,7 @@ class TicketSeeder extends Seeder
         // Ticket 5: Acknowledge
         $t5 = Ticket::create([
             'user_id' => $client->id,
+            'ticket_number' => Ticket::generateTicketNumber(),
             'subject' => 'Permintaan penambahan menu laporan laba rugi',
             'description' => 'Kami ingin mengajukan penambahan menu laporan laba rugi di dashboard client. Fitur ini sangat kami butuhkan untuk laporan bulanan ke pengurus.',
             'status' => 'acknowledge',

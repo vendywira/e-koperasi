@@ -12,6 +12,7 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -61,7 +62,7 @@ class User extends Authenticatable
     {
         static::creating(function (User $user) {
             if (!$user->id) {
-                $user->id = (string) \Illuminate\Support\Str::uuid();
+                $user->id = (string) Str::uuid();
             }
         });
     }
