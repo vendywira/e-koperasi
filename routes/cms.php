@@ -52,4 +52,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('/{id}', [UserController::class, 'update'])->name('update');
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
     });
+
+    // Ticket Management (admin & it-ops)
+    Route::middleware('role:admin,it-ops')->prefix('tickets')->name('ticket.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\TicketController::class, 'index'])->name('index');
+        Route::get('/{ticket}', [\App\Http\Controllers\Admin\TicketController::class, 'show'])->name('show');
+        Route::put('/{ticket}/status', [\App\Http\Controllers\Admin\TicketController::class, 'updateStatus'])->name('status');
+        Route::post('/{ticket}/reply', [\App\Http\Controllers\Admin\TicketController::class, 'reply'])->name('reply');
+        Route::put('/{ticket}/assign', [\App\Http\Controllers\Admin\TicketController::class, 'assign'])->name('assign');
+        Route::delete('/{ticket}/attachment/{attachment}', [\App\Http\Controllers\Admin\TicketController::class, 'destroyAttachment'])->name('attachment.destroy');
+    });
 });
