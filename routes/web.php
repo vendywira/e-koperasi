@@ -41,5 +41,15 @@ Route::prefix('client')->name('client.')->group(function () {
     });
 });
 
+// Client Ticket Routes (authenticated clients)
+Route::middleware(['auth'])->prefix('tickets')->name('tickets.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\TicketController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\TicketController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\TicketController::class, 'store'])->name('store');
+    Route::get('/{ticket}', [\App\Http\Controllers\TicketController::class, 'show'])->name('show');
+    Route::post('/{ticket}/reply', [\App\Http\Controllers\TicketController::class, 'reply'])->name('reply');
+    Route::put('/{ticket}/close', [\App\Http\Controllers\TicketController::class, 'close'])->name('close');
+});
+
 // CMS Admin Routes
 require __DIR__ . '/cms.php';
