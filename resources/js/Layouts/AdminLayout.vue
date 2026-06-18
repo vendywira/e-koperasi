@@ -96,12 +96,12 @@ onUnmounted(() => {
                 </div>
 
                 <nav class="flex-1 px-3 py-4 space-y-1">
-                    <p v-if="user?.role === 'admin' || user?.role === 'it-ops'"
+                    <p v-if="user?.role === 'admin'"
                        class="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                         Dashboard
                     </p>
                     <Link
-                        v-if="user?.role === 'admin' || user?.role === 'it-ops'"
+                        v-if="user?.role === 'admin'"
                         :href="'/admin'"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                         :class="$page.url === '/admin'
@@ -166,10 +166,12 @@ onUnmounted(() => {
                         User Management
                     </Link>
 
-                    <p class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                    <p v-if="user?.role === 'admin'|| user?.role === 'editor'"
+                        class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                         Konten
                     </p>
                     <Link
+                        v-if="user?.role === 'admin'|| user?.role === 'editor'"
                         :href="cmsIndex().url"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                         :class="$page.url === '/admin/cms'
@@ -185,6 +187,7 @@ onUnmounted(() => {
                     </Link>
 
                     <Link
+                        v-if="user?.role === 'admin'|| user?.role === 'editor'"
                         href="/admin/media"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                         :class="$page.url === '/admin/media'
@@ -280,12 +283,12 @@ onUnmounted(() => {
                 </Link>
             </div>
             <nav class="flex-1 px-3 py-4 space-y-1">
-                <p v-if="user?.role === 'admin' || user?.role === 'it-ops'"
+                <p v-if="user?.role === 'admin'"
                    class="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                     Dashboard
                 </p>
                 <Link
-                    v-if="user?.role === 'admin' || user?.role === 'it-ops'"
+                    v-if="user?.role === 'admin'"
                     :href="'/admin'"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     :class="$page.url === '/admin'
@@ -345,10 +348,12 @@ onUnmounted(() => {
                     </svg>
                     User Management
                 </Link>
-                <p class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+                <p  v-if="user?.role === 'admin'|| user?.role === 'editor'"
+                    class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                     Konten
                 </p>
                 <Link
+                    v-if="user?.role === 'admin'|| user?.role === 'editor'"
                     :href="cmsIndex().url"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     :class="$page.url === '/admin/cms'
@@ -363,6 +368,7 @@ onUnmounted(() => {
                 </Link>
 
                 <Link
+                    v-if="user?.role === 'admin'|| user?.role === 'editor'"
                     href="/admin/media"
                     class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     :class="$page.url === '/admin/media'

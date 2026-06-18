@@ -43,7 +43,7 @@ Route::prefix('client')->name('client.')->group(function () {
 });
 
 // Client Ticket Routes (authenticated clients only)
-Route::middleware(['auth', 'role:client'])->prefix('tickets')->name('tickets.')->group(function () {
+Route::middleware(['auth'])->prefix('tickets')->name('tickets.')->group(function () {
     Route::get('/', [TicketController::class, 'index'])->name('index');
     Route::get('/create', [TicketController::class, 'create'])->name('create');
     Route::post('/', [TicketController::class, 'store'])->name('store');

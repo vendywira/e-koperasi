@@ -89,10 +89,6 @@ class TicketController extends Controller
 
     public function show(Request $request, Ticket $ticket): Response
     {
-        if ($ticket->user_id !== $request->user()->id) {
-            abort(403);
-        }
-
         $ticket->load([
             'replies' => function ($q) {
                 $q->with('user', 'attachments')->orderBy('created_at', 'asc');
@@ -107,9 +103,6 @@ class TicketController extends Controller
 
     public function reply(Request $request, Ticket $ticket): RedirectResponse
     {
-        if ($ticket->user_id !== $request->user()->id) {
-            abort(403);
-        }
 
         if ($ticket->status === 'close') {
             return back()->withErrors(['message' => 'Ticket sudah ditutup. Tidak bisa menambah balasan.']);
@@ -146,10 +139,6 @@ class TicketController extends Controller
 
     public function close(Ticket $ticket): RedirectResponse
     {
-        if ($ticket->user_id !== request()->user()->id) {
-            abort(403);
-        }
-
         if ($ticket->status !== 'solved') {
             return back()->withErrors(['message' => 'Hanya ticket dengan status "solved" yang bisa ditutup.']);
         }
