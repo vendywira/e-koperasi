@@ -35,16 +35,8 @@ class Ticket extends Model
     public static function generateTicketNumber(): string
     {
         $prefix = 'TKT-';
-        $last = static::withTrashed()
-            ->where('ticket_number', 'like', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->value('ticket_number');
-
-        if ($last) {
-            $num = (int) substr($last, 4) + 1;
-        } else {
-            $num = 1;
-        }
+        $count = static::withTrashed()->count();
+        $num = $count + 1;
 
         return $prefix . str_pad((string) $num, 4, '0', STR_PAD_LEFT);
     }
