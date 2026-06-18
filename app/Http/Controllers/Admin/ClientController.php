@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Subscription;
 use App\Models\Payment;
 use App\Models\Ticket;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -156,6 +157,28 @@ class ClientController extends Controller
         } else {
             $subscription = Subscription::create(array_merge($validated, ['user_id' => $client->id]));
         }
+
+        // Notify staff and the client
+        $notifService = app(NotificationService::class);
+        $planName = ucfirst($validated['plan']);
+        $statusText = $validated['status'] === 'active' ? 'diaktifkan' : $validated['status'];
+
+        $notifService->sendToStaff(
+            'subscription',
+            "Langganan Baru: {$planName}",
+            "{$client->name} berlangganan paket {$planName} — status: {$statusText}",
+            "/admin/clients/{$client->id}",
+            $subscription
+        );
+
+        $notifService->send(
+            $client,
+            'subscription',
+            "Langganan {$planName} {$statusText}",
+            "Paket {$planName} Anda telah {$statusText}. Silakan cek detail langganan.",
+            '/client/subscription',
+            $subscription
+        );
 
         return redirect()->back()->with('success', 'Subscription berhasil diperbarui.');
     }

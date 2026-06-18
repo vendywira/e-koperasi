@@ -52,5 +52,12 @@ Route::middleware(['auth'])->prefix('tickets')->name('tickets.')->group(function
     Route::put('/{ticket}/close', [TicketController::class, 'close'])->name('close');
 });
 
+// Notification API routes
+Route::middleware(['auth'])->prefix('api/notifications')->name('api.notifications.')->group(function () {
+    Route::get('/unread', [\App\Http\Controllers\NotificationController::class, 'getUnread'])->name('unread');
+    Route::post('/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
+    Route::post('/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read-all');
+});
+
 // CMS Admin Routes
 require __DIR__ . '/cms.php';

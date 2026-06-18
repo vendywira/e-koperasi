@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Mail\DemoRequestMail;
+use App\Models\DemoRequest;
+use App\Services\NotificationService;
 use App\Services\SiteConfig;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,6 +37,18 @@ class DemoController extends Controller
         try {
             $adminEmail = SiteConfig::get('contact.email');
             Mail::to($adminEmail)->send(new DemoRequestMail($validated));
+
+            // Save to database
+            $demoRequest = DemoRequest::create($validated);
+
+            // Notify admin users
+            app(NotificationService::class)->sendToStaff(
+                'demo',
+                'Request Demo Baru',
+                "{$validated['name']} ({$validated['cooperative_name']}) ingin demo — WA: {$validated['whatsapp']}",
+                '/admin/clients',
+                $demoRequest
+            );
 
             Log::info('Demo request submitted', $validated);
 

@@ -9,6 +9,7 @@ use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketReply;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -114,6 +115,16 @@ class TicketController extends Controller
             }
         }
 
+        // Notify client that their ticket was replied
+        app(NotificationService::class)->send(
+            $ticket->user,
+            'ticket_reply',
+            "Tiket {$ticket->ticket_number} Direspon",
+            "Admin telah membalas tiket Anda: \"{$ticket->subject}\"",
+            "/tickets/{$ticket->id}",
+            $ticket
+        );
+
         // Send email to client when staff replies
         Mail::to($ticket->user->email)->queue(
             new TicketRepliedMail($reply)
@@ -148,7 +159,12 @@ class TicketController extends Controller
         }
 
         $oldStatus = $ticket->status;
-        $ticket->update(['status' => $validated['status']]);
+        $updateData = ['status' => $validated['status']];
+        // Auto-assign IT-Ops when they update status on an unassigned ticket
+        if ($request->user()->role === 'it-ops' && !$ticket->assigned_to) {
+            $updateData['assigned_to'] = $request->user()->id;
+        }
+        $ticket->update($updateData);
 
         // Send email to client
         Mail::to($ticket->user->email)->queue(

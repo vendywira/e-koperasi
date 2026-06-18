@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Services\NotificationService;
 use App\Services\SiteConfig;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,6 +56,16 @@ class ClientPaymentController extends Controller
                     : now()->addMonth(),
                 'started_at' => $subscription->started_at ?? now(),
             ]);
+
+            // Notify client about confirmed payment
+            app(NotificationService::class)->send(
+                $subscription->user,
+                'payment',
+                'Pembayaran Dikonfirmasi',
+                "Pembayaran {$payment->receipt_number} sebesar {$payment->amountFormatted()} telah dikonfirmasi.",
+                "/client/payments/{$payment->id}",
+                $payment
+            );
         }
 
         return redirect()->back()->with('success', "Pembayaran {$receiptNumber} berhasil dicatat.");

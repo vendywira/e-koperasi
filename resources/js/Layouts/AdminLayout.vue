@@ -3,6 +3,7 @@ import {Link, usePage, router} from '@inertiajs/vue3';
 import {computed, ref, onMounted, onUnmounted} from 'vue';
 import {index as cmsIndex} from '@/routes/admin/cms';
 import {useTheme} from '@/composables/useTheme';
+import NotificationBell from '@/Components/NotificationBell.vue';
 
 defineProps<{
     title?: string;
@@ -460,24 +461,41 @@ onUnmounted(() => {
             <header
                 class="bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 sticky top-0 z-30">
                 <!-- Mobile top bar -->
-                <div class="flex items-center gap-3 px-4 py-3 lg:hidden">
-                    <button
-                        @click="toggleSidebar"
-                        class="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                        aria-label="Toggle sidebar"
-                    >
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
-                        </svg>
-                    </button>
-                    <h1 class="text-base font-bold text-neutral-900 dark:text-white truncate">{{
-                            title || 'CMS Editor'
-                        }}</h1>
+                <div class="flex items-center justify-between px-4 py-3 lg:hidden">
+                    <div class="flex items-center gap-3">
+                        <button
+                            @click="toggleSidebar"
+                            class="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                            aria-label="Toggle sidebar"
+                        >
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+                            </svg>
+                        </button>
+                        <h1 class="text-base font-bold text-neutral-900 dark:text-white truncate">{{
+                                title || 'CMS Editor'
+                            }}</h1>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <NotificationBell />
+                        <button
+                            @click="logout"
+                            class="p-1.5 rounded-lg text-neutral-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            title="Logout"
+                        >
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <!-- Desktop header -->
-                <div class="hidden lg:block px-6 py-4">
+                <div class="hidden lg:flex items-center justify-between px-6 py-4">
                     <h1 class="text-lg font-bold text-neutral-900 dark:text-white">{{ title || 'CMS Editor' }}</h1>
+                    <div class="flex items-center gap-2">
+                        <NotificationBell />
+                    </div>
                 </div>
             </header>
             <main class="flex-1 overflow-auto">

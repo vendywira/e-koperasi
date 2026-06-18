@@ -8,10 +8,15 @@ use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    // Admin Dashboard — admin only
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/', [ClientController::class, 'dashboard'])->name('dashboard');
-    });
+    // Root redirect — admin goes to dashboard, editor goes to CMS, it-ops goes to tickets
+    Route::get('/', function () {
+        $user = request()->user();
+        return match ($user->role) {
+            'admin' => app(\App\Http\Controllers\Admin\ClientController::class)->dashboard(),
+            'editor' => redirect()->route('admin.cms.index'),
+            default => redirect()->route('admin.ticket.index'),
+        };
+    })->name('dashboard');
 
     // Media Management page — accessible by admin & editor
     Route::get('/media', [MediaController::class, 'page'])->name('media.page');
@@ -62,4 +67,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::put('/{ticket}/assign', [\App\Http\Controllers\Admin\TicketController::class, 'assign'])->name('assign');
         Route::delete('/{ticket}/attachment/{attachment}', [\App\Http\Controllers\Admin\TicketController::class, 'destroyAttachment'])->name('attachment.destroy');
     });
+
+    // Notifications page
+    Route::middleware('role:admin,it-ops')->get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
 });

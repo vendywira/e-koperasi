@@ -8,6 +8,7 @@ use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketReply;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -69,6 +70,15 @@ class TicketController extends Controller
                 ]);
             }
         }
+
+        // Notify admin & it-ops about new ticket
+        app(NotificationService::class)->sendToStaff(
+            'ticket',
+            "Tiket Baru {$ticket->ticket_number}",
+            "{$ticket->user->name} mengirim tiket: \"{$ticket->subject}\"",
+            "/admin/tickets/{$ticket->id}",
+            $ticket
+        );
 
         // Send email to client
         Mail::to($ticket->user->email)->queue(
@@ -133,6 +143,17 @@ class TicketController extends Controller
                 ]);
             }
         }
+
+        // Notify staff when client replies to ticket
+        $staffUsers = User::whereIn('role', ['admin', 'it-ops'])->get();
+        app(NotificationService::class)->sendToMany(
+            $staffUsers,
+            'ticket_reply',
+            "Balasan Baru: {$ticket->ticket_number}",
+            "{$request->user()->name} membalas tiket \"{$ticket->subject}\"",
+            "/admin/tickets/{$ticket->id}",
+            $ticket
+        );
 
         return back()->with('success', 'Balasan berhasil dikirim.');
     }

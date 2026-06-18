@@ -2,6 +2,7 @@
 import { Link, usePage, router } from '@inertiajs/vue3';
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useTheme } from '@/composables/useTheme';
+import NotificationBell from '@/Components/NotificationBell.vue';
 
 defineProps<{
     title?: string;
@@ -88,15 +89,18 @@ const isActive = (href: string) => page.url === href || page.url.startsWith(href
                         </button>
                         <h1 class="text-base font-bold text-neutral-900 dark:text-white truncate">{{ title || 'Dashboard' }}</h1>
                     </div>
-                    <button
-                        @click="logout"
-                        class="p-1.5 rounded-lg text-neutral-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                        title="Logout"
-                    >
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                        </svg>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <NotificationBell />
+                        <button
+                            @click="logout"
+                            class="p-1.5 rounded-lg text-neutral-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            title="Logout"
+                        >
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </header>
             <!-- Desktop header -->
@@ -104,6 +108,7 @@ const isActive = (href: string) => page.url === href || page.url.startsWith(href
                 <div class="flex items-center justify-between">
                     <h1 class="text-lg font-bold text-neutral-900 dark:text-white">{{ title || 'Dashboard' }}</h1>
                     <div class="flex items-center gap-2">
+                        <NotificationBell />
                         <span class="text-xs text-neutral-400 dark:text-neutral-500">{{ user?.email }}</span>
                         <button
                             @click="logout"
