@@ -7,6 +7,7 @@ use App\Http\Controllers\DemoController;
 use App\Http\Controllers\Client\DashboardController;
 use App\Http\Controllers\Client\SubscriptionController;
 use App\Http\Controllers\Client\PaymentController;
+use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -41,14 +42,14 @@ Route::prefix('client')->name('client.')->group(function () {
     });
 });
 
-// Client Ticket Routes (authenticated clients)
-Route::middleware(['auth'])->prefix('tickets')->name('tickets.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\TicketController::class, 'index'])->name('index');
-    Route::get('/create', [\App\Http\Controllers\TicketController::class, 'create'])->name('create');
-    Route::post('/', [\App\Http\Controllers\TicketController::class, 'store'])->name('store');
-    Route::get('/{ticket}', [\App\Http\Controllers\TicketController::class, 'show'])->name('show');
-    Route::post('/{ticket}/reply', [\App\Http\Controllers\TicketController::class, 'reply'])->name('reply');
-    Route::put('/{ticket}/close', [\App\Http\Controllers\TicketController::class, 'close'])->name('close');
+// Client Ticket Routes (authenticated clients only)
+Route::middleware(['auth', 'role:client'])->prefix('tickets')->name('tickets.')->group(function () {
+    Route::get('/', [TicketController::class, 'index'])->name('index');
+    Route::get('/create', [TicketController::class, 'create'])->name('create');
+    Route::post('/', [TicketController::class, 'store'])->name('store');
+    Route::get('/{ticket}', [TicketController::class, 'show'])->name('show');
+    Route::post('/{ticket}/reply', [TicketController::class, 'reply'])->name('reply');
+    Route::put('/{ticket}/close', [TicketController::class, 'close'])->name('close');
 });
 
 // CMS Admin Routes
