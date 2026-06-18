@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->string('plan'); // starter, premium, enterprise
             $table->string('status')->default('active'); // active, expired, cancelled, trialing
             $table->timestamp('started_at')->nullable();
