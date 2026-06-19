@@ -51,7 +51,7 @@ class ClientController extends Controller
 
         $monthlyRevenue = Payment::where('status', 'paid')
             ->where('paid_at', '>=', now()->subMonths(6))
-            ->select(DB::raw("strftime('%Y-%m', paid_at) as month"), DB::raw('sum(amount) as total'))
+            ->select(DB::raw("DATE_FORMAT(paid_at, '%Y-%m') as month"), DB::raw('SUM(amount) as total'))
             ->groupBy('month')
             ->orderBy('month', 'asc')
             ->get();
