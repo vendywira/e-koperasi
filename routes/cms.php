@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\SiteContentController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ClientPaymentController;
+use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,6 +57,18 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/{id}/edit', [UserController::class, 'edit'])->name('edit');
         Route::put('/{id}', [UserController::class, 'update'])->name('update');
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
+    });
+
+    // KSU Tenant Management (admin only)
+    Route::middleware('role:admin')->prefix('tenants')->name('tenant.')->group(function () {
+        Route::get('/', [TenantController::class, 'index'])->name('index');
+        Route::get('/create', [TenantController::class, 'create'])->name('create');
+        Route::get('/{id}', [TenantController::class, 'show'])->name('show');
+        Route::post('/', [TenantController::class, 'store'])->name('store');
+        Route::put('/{id}', [TenantController::class, 'update'])->name('update');
+        Route::post('/{id}/extend', [TenantController::class, 'extend'])->name('extend');
+        Route::post('/{id}/toggle-suspend', [TenantController::class, 'toggleSuspend'])->name('toggle-suspend');
+        Route::delete('/{id}', [TenantController::class, 'destroy'])->name('destroy');
     });
 
     // Ticket Management (admin & it-ops)

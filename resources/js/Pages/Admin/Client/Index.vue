@@ -58,6 +58,7 @@ const formatDate = (date: string | null) => {
                                 <th class="text-left px-5 py-3 font-medium text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">Email</th>
                                 <th class="text-left px-5 py-3 font-medium text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">Paket</th>
                                 <th class="text-center px-5 py-3 font-medium text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">Status</th>
+                                <th class="text-center px-5 py-3 font-medium text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">KSU</th>
                                 <th class="text-left px-5 py-3 font-medium text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">Bergabung</th>
                                 <th class="text-right px-5 py-3 font-medium text-neutral-500 dark:text-neutral-400 text-xs uppercase tracking-wider">Aksi</th>
                             </tr>
@@ -76,6 +77,15 @@ const formatDate = (date: string | null) => {
                                         {{ client.subscription.is_active ? 'Aktif' : client.subscription.status }}
                                     </span>
                                     <span v-else class="text-xs text-neutral-400 dark:text-neutral-500">Belum ada</span>
+                                </td>
+                                <td class="px-5 py-3 text-center">
+                                    <span v-if="client.ksu_count > 0" class="inline-flex items-center gap-1 text-xs font-medium">
+                                        <svg class="w-3.5 h-3.5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                        </svg>
+                                        {{ client.ksu_active_count }}/{{ client.ksu_count }} aktif
+                                    </span>
+                                    <span v-else class="text-xs text-neutral-400">-</span>
                                 </td>
                                 <td class="px-5 py-3 text-neutral-500 dark:text-neutral-400 text-xs">{{ formatDate(client.created_at) }}</td>
                                 <td class="px-5 py-3 text-right">

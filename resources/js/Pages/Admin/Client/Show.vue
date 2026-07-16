@@ -4,15 +4,17 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
     client: any;
+    clientSubscription: any | null;
+    ksuSubscriptions: any[];
     planLabels: Record<string, { name: string; price: string }>;
 }>();
 
 const form = useForm({
-    plan: props.client.subscription?.plan || 'starter',
-    status: props.client.subscription?.status || 'active',
-    started_at: props.client.subscription?.started_at ? props.client.subscription.started_at.split(' ')[0] : new Date().toISOString().split('T')[0],
-    ends_at: props.client.subscription?.ends_at ? props.client.subscription.ends_at.split(' ')[0] : '',
-    trial_ends_at: props.client.subscription?.trial_ends_at ? props.client.subscription.trial_ends_at.split(' ')[0] : '',
+    plan: props.clientSubscription?.plan || 'starter',
+    status: props.clientSubscription?.status || 'active',
+    started_at: props.clientSubscription?.started_at ? props.clientSubscription.started_at.split(' ')[0] : new Date().toISOString().split('T')[0],
+    ends_at: props.clientSubscription?.ends_at ? props.clientSubscription.ends_at.split(' ')[0] : '',
+    trial_ends_at: props.clientSubscription?.trial_ends_at ? props.clientSubscription.trial_ends_at.split(' ')[0] : '',
 });
 
 const paymentForm = useForm({
@@ -45,11 +47,11 @@ function resetPassword() {
 }
 
 function addPayment() {
-    if (!props.client.subscription) {
+    if (!props.clientSubscription) {
         alert('Client belum memiliki subscription. Buat subscription dulu.');
         return;
     }
-    paymentForm.post('/admin/clients/' + props.client.subscription.id + '/payments', {
+    paymentForm.post('/admin/clients/' + props.clientSubscription.id + '/payments', {
         onSuccess: () => {
             paymentForm.reset();
             router.reload({ only: ['client'] });
@@ -195,7 +197,7 @@ const formatDate = (dt: string | null) => {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
-                            <tr v-for="payment in client.subscription?.payments ?? []" :key="payment.id" class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30">
+                            <tr v-for="payment in clientSubscription?.payments ?? []" :key="payment.id" class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30">
                                 <td class="px-5 py-3 font-mono text-xs text-primary-600 dark:text-primary-400">{{ payment.receipt_number }}</td>
                                 <td class="px-5 py-3 text-neutral-700 dark:text-neutral-300">{{ formatDate(payment.paid_at) }}</td>
                                 <td class="px-5 py-3 text-right font-medium text-neutral-900 dark:text-white">Rp{{ Number(payment.amount).toLocaleString('id-ID') }}</td>
@@ -206,7 +208,7 @@ const formatDate = (dt: string | null) => {
                                 </td>
                                 <td class="px-5 py-3 text-neutral-500 dark:text-neutral-400 text-xs max-w-[150px] truncate">{{ payment.notes || '-' }}</td>
                             </tr>
-                            <tr v-if="!client.subscription?.payments?.length">
+                            <tr v-if="!clientSubscription?.payments?.length">
                                 <td colspan="5" class="px-5 py-6 text-center text-sm text-neutral-400">Belum ada pembayaran.</td>
                             </tr>
                         </tbody>
@@ -248,6 +250,49 @@ const formatDate = (dt: string | null) => {
                         <input v-model="paymentForm.notes" type="text" placeholder="Catatan pembayaran (opsional)" class="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white text-sm" />
                     </div>
                 </form>
+            <!-- KSU Subscriptions -->
+            <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                <div class="px-5 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
+                    <h3 class="font-semibold text-neutral-900 dark:text-white">Langganan KSU (Tenant)</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-neutral-50 dark:bg-neutral-800/50">
+                            <tr>
+                                <th class="text-left px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Tenant</th>
+                                <th class="text-left px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Domain</th>
+                                <th class="text-center px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Paket</th>
+                                <th class="text-center px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Resort</th>
+                                <th class="text-center px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Status</th>
+                                <th class="text-center px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Berakhir</th>
+                                <th class="text-right px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
+                            <tr v-for="sub in ksuSubscriptions" :key="sub.id" class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30">
+                                <td class="px-5 py-3 font-medium text-neutral-900 dark:text-white">{{ sub.tenant_name }}</td>
+                                <td class="px-5 py-3 text-neutral-500 font-mono text-xs">{{ sub.tenant_domain }}.ksu.app</td>
+                                <td class="px-5 py-3 text-center capitalize">{{ sub.plan }}</td>
+                                <td class="px-5 py-3 text-center">{{ sub.max_resorts }}</td>
+                                <td class="px-5 py-3 text-center">
+                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
+                                        :class="sub.status === 'active' ? 'bg-emerald-100 text-emerald-700' : sub.status === 'trialing' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'">
+                                        {{ sub.status }}
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3 text-center text-xs whitespace-nowrap">{{ sub.ends_at || '-' }}</td>
+                                <td class="px-5 py-3 text-right">
+                                    <Link :href="'/admin/tenants/' + sub.tenant_id" class="text-xs text-primary-600 hover:underline">Kelola</Link>
+                                </td>
+                            </tr>
+                            <tr v-if="ksuSubscriptions.length === 0">
+                                <td colspan="7" class="px-5 py-6 text-center text-sm text-neutral-400">Belum ada langganan KSU.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             </div>
         </div>
     </AdminLayout>

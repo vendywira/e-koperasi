@@ -13,31 +13,33 @@ class SubscriptionController extends Controller
     public function show(): Response
     {
         $user = auth()->user();
-        $subscription = $user->subscription;
 
-        $planFeatures = [];
-        if ($subscription) {
+        // Ambil semua KSU subscription milik user (include tenant info)
+        $subscriptions = $user->ksuSubscriptions()->with('tenant')->get()->map(function ($sub) {
             $tiers = SiteConfig::get('pricing.tiers', []);
-            $planFeatures = $tiers[$subscription->plan]['features'] ?? [];
-            // Flatten the features (they come as [{feature: "..."}] from repeater)
-            $planFeatures = array_map(function ($f) {
-                return is_array($f) ? ($f['feature'] ?? $f) : $f;
-            }, $planFeatures);
-        }
+            $features = $tiers[$sub->plan]['features'] ?? [];
+            $features = array_map(fn($f) => is_array($f) ? ($f['feature'] ?? $f) : $f, $features);
+
+            return [
+                'id' => $sub->id,
+                'tenant_name' => $sub->tenant?->name ?? '-',
+                'tenant_domain' => $sub->tenant?->domain ?? '-',
+                'tenant_status' => $sub->tenant?->status ?? '-',
+                'plan' => $sub->plan,
+                'max_resorts' => $sub->max_resorts,
+                'price_per_resort' => $sub->price_per_resort,
+                'status' => $sub->status,
+                'is_active' => $sub->isActive(),
+                'started_at' => $sub->started_at?->format('d M Y'),
+                'ends_at' => $sub->ends_at?->format('d M Y'),
+                'days_remaining' => $sub->daysRemaining(),
+                'usage_percent' => $sub->usagePercent(),
+                'features' => $features,
+            ];
+        });
 
         return Inertia::render('Client/Subscription', [
-            'subscription' => $subscription ? [
-                'id' => $subscription->id,
-                'plan' => $subscription->plan,
-                'status' => $subscription->status,
-                'is_active' => $subscription->isActive(),
-                'started_at' => $subscription->started_at?->format('d M Y'),
-                'ends_at' => $subscription->ends_at?->format('d M Y'),
-                'renewed_at' => $subscription->renewed_at?->format('d M Y'),
-                'days_remaining' => $subscription->daysRemaining(),
-                'usage_percent' => $subscription->usagePercent(),
-            ] : null,
-            'planFeatures' => $planFeatures,
+            'subscriptions' => $subscriptions,
         ]);
     }
 }

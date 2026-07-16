@@ -83,7 +83,7 @@ class ClientController extends Controller
     public function index(Request $request): Response
     {
         $query = User::where('role', 'client')
-            ->with('subscription');
+            ->with(['ksuSubscriptions.tenant']);
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
@@ -97,16 +97,25 @@ class ClientController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        // Add KSU subscription count per client
+        $clients->getCollection()->transform(function ($client) {
+            $client->ksu_count = $client->ksuSubscriptions->count();
+            $client->ksu_active_count = $client->ksuSubscriptions->filter(
+                fn($s) => $s->status === 'active'
+            )->count();
+            return $client;
+        });
+
         return Inertia::render('Admin/Client/Index', [
             'clients' => $clients,
             'filters' => ['search' => $search],
         ]);
     }
 
-    public function show(int $id): Response
+    public function show(string $id): Response
     {
         $client = User::where('role', 'client')
-            ->with(['subscription.payments' => function ($q) {
+            ->with(['subscriptions.payments' => function ($q) {
                 $q->orderBy('created_at', 'desc');
             }])
             ->findOrFail($id);
@@ -117,13 +126,49 @@ class ClientController extends Controller
             'enterprise' => ['name' => 'Enterprise', 'price' => 'Custom'],
         ];
 
+        // Separate client subscription vs KSU tenant subscriptions
+        $clientSubscription = $client->subscriptions()
+            ->where(function ($q) { $q->whereNull('type')->orWhere('type', 'client'); })
+            ->with('payments')
+            ->first();
+
+        $ksuSubscriptions = $client->subscriptions()
+            ->where('type', 'ksu')
+            ->with('tenant')
+            ->get()
+            ->map(function ($sub) {
+                return [
+                    'id' => $sub->id,
+                    'tenant_id' => $sub->tenant_id,
+                    'tenant_name' => $sub->tenant?->name,
+                    'tenant_domain' => $sub->tenant?->domain,
+                    'tenant_status' => $sub->tenant?->status,
+                    'plan' => $sub->plan,
+                    'max_resorts' => $sub->max_resorts,
+                    'price_per_resort' => $sub->price_per_resort,
+                    'status' => $sub->status,
+                    'started_at' => $sub->started_at?->format('d M Y'),
+                    'ends_at' => $sub->ends_at?->format('d M Y'),
+                    'days_remaining' => $sub->daysRemaining(),
+                ];
+            });
+
         return Inertia::render('Admin/Client/Show', [
             'client' => $client,
+            'clientSubscription' => $clientSubscription ? [
+                'id' => $clientSubscription->id,
+                'plan' => $clientSubscription->plan,
+                'status' => $clientSubscription->status,
+                'started_at' => $clientSubscription->started_at?->format('d M Y'),
+                'ends_at' => $clientSubscription->ends_at?->format('d M Y'),
+                'is_active' => $clientSubscription->isActive(),
+            ] : null,
+            'ksuSubscriptions' => $ksuSubscriptions,
             'planLabels' => $planLabels,
         ]);
     }
 
-    public function resetPassword(Request $request, int $id): RedirectResponse
+    public function resetPassword(Request $request, string $id): RedirectResponse
     {
         $client = User::where('role', 'client')->findOrFail($id);
 
@@ -138,7 +183,7 @@ class ClientController extends Controller
         return redirect()->back()->with('success', 'Password client berhasil direset.');
     }
 
-    public function updateSubscription(Request $request, int $id): RedirectResponse
+    public function updateSubscription(Request $request, string $id): RedirectResponse
     {
         $client = User::where('role', 'client')->findOrFail($id);
 

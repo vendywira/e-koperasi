@@ -82,6 +82,16 @@ class User extends Authenticatable
         $this->notify(new ResetPasswordNotification($token));
     }
 
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function ksuSubscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class)->where('type', 'ksu');
+    }
+
     public function subscription(): HasOne
     {
         return $this->hasOne(Subscription::class);

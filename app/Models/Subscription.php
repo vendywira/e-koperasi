@@ -10,7 +10,11 @@ class Subscription extends Model
 {
     protected $fillable = [
         'user_id',
+        'tenant_id',
+        'type',
         'plan',
+        'max_resorts',
+        'price_per_resort',
         'status',
         'started_at',
         'trial_ends_at',
@@ -25,12 +29,18 @@ class Subscription extends Model
             'trial_ends_at' => 'datetime',
             'ends_at' => 'datetime',
             'renewed_at' => 'datetime',
+            'price_per_resort' => 'decimal:2',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
     }
 
     public function payments(): HasMany

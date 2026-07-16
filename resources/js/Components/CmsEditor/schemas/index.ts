@@ -651,6 +651,35 @@ export const sectionSchemas: SectionSchema[] = [
             },
         ],
     },
+    // ---- Billing ----
+    {
+        section: 'billing',
+        label: 'Billing & Harga',
+        icon: '💰',
+        description: 'Konfigurasi harga satuan billing untuk subscription tenant KSU',
+        fields: [
+            {
+                key: 'unit',
+                type: 'text',
+                label: 'Satuan Billing',
+                props: { helpText: 'resort, unit, nasabah, atau user' },
+            },
+            { key: 'unit_label', type: 'text', label: 'Label Satuan', props: { placeholder: 'Resort' } },
+            { key: 'price_per_unit', type: 'text', label: 'Harga Per Satuan (Rp)', props: { placeholder: '100000' } },
+            { key: 'currency', type: 'text', label: 'Mata Uang', props: { placeholder: 'IDR' } },
+            {
+                key: 'available_units',
+                type: 'repeater',
+                label: 'Pilihan Satuan',
+                props: { addLabel: 'Tambah Satuan', titleKey: 'label' },
+                fields: [
+                    { key: 'key', type: 'text', label: 'Key', props: { placeholder: 'resort' } },
+                    { key: 'label', type: 'text', label: 'Label', props: { placeholder: 'Resort' } },
+                ],
+            },
+            { key: 'notes', type: 'textarea', label: 'Catatan', props: { rows: 2 } },
+        ],
+    },
 ];
 
 // Helper to get a schema by section key
