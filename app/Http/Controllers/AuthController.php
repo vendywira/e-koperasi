@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -25,7 +26,6 @@ class AuthController extends Controller
             }
             return redirect()->route('admin.dashboard');
         }
-
         return Inertia::render('Auth/Login');
     }
 
@@ -38,32 +38,91 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-
             $user = Auth::user();
-
-            if ($user->role === 'client') {
-                return redirect()->intended(route('client.dashboard'));
-            }
-
-            return redirect()->intended(route('admin.dashboard'));
+            return $user->role === 'client'
+                ? redirect()->intended(route('client.dashboard'))
+                : redirect()->intended(route('admin.dashboard'));
         }
 
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->onlyInput('email');
+        return back()->withErrors(['email' => 'Email atau password salah.'])->onlyInput('email');
     }
 
     public function logout(Request $request): \Illuminate\Http\RedirectResponse
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
         return redirect()->route('login');
     }
 
-    // ── Forgot / Reset Password ──────────────────────────────────────
+    // ── Register ──────────────────────────────────────────────
+
+    public function showRegister(): Response|RedirectResponse
+    {
+        if (Auth::check()) {
+            return redirect()->route('client.dashboard');
+        }
+        return Inertia::render('Auth/Register');
+    }
+
+    public function register(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'client',
+        ]);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('client.dashboard');
+    }
+
+    // ── Google OAuth ──────────────────────────────────────────
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')->redirect();
+    }
+
+    public function handleGoogleCallback(Request $request)
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Exception $e) {
+            return redirect()->route('login')->withErrors(['email' => 'Gagal login dengan Google.']);
+        }
+
+        // Cari user by email
+        $user = User::where('email', $googleUser->getEmail())->first();
+
+        if (!$user) {
+            // Register baru
+            $user = User::create([
+                'name' => $googleUser->getName(),
+                'email' => $googleUser->getEmail(),
+                'password' => Hash::make(Str::random(32)),
+                'role' => 'client',
+            ]);
+        }
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return $user->role === 'client'
+            ? redirect()->intended(route('client.dashboard'))
+            : redirect()->intended(route('admin.dashboard'));
+    }
+
+    // ── Forgot / Reset Password ──────────────────────────────
 
     public function showForgotPassword(): Response
     {
@@ -73,11 +132,7 @@ class AuthController extends Controller
     public function sendResetLink(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate(['email' => 'required|email']);
-
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-
+        $status = Password::sendResetLink($request->only('email'));
         return $status === Password::RESET_LINK_SENT
             ? back()->with('status', __($status))
             : back()->withErrors(['email' => __($status)]);
@@ -85,12 +140,9 @@ class AuthController extends Controller
 
     public function showResetPassword(Request $request): Response
     {
-        $token = $request->route('token');
-        $email = $request->query('email', '');
-
         return Inertia::render('Auth/ResetPassword', [
-            'token' => $token,
-            'email' => $email,
+            'token' => $request->route('token'),
+            'email' => $request->query('email', ''),
         ]);
     }
 
@@ -109,7 +161,6 @@ class AuthController extends Controller
                     'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
                 ])->save();
-
                 event(new PasswordReset($user));
             }
         );

@@ -26,6 +26,14 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Register
+Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+
+// Google OAuth
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+
 // Password Reset
 Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->middleware('throttle:3,1')->name('password.email');
@@ -39,6 +47,10 @@ Route::prefix('client')->name('client.')->group(function () {
         Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');
         Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
         Route::get('/payments/{id}', [PaymentController::class, 'show'])->name('payments.show');
+
+        // Client: Request Tenant
+        Route::get('/request-tenant', [\App\Http\Controllers\Client\TenantRequestController::class, 'create'])->name('request-tenant');
+        Route::post('/request-tenant', [\App\Http\Controllers\Client\TenantRequestController::class, 'store'])->name('request-tenant.store');
     });
 });
 

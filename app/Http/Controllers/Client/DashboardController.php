@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\TenantRequest;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,6 +15,10 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $subscription = $user->subscription;
+        $activeTenantRequest = TenantRequest::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
 
         $recentPayments = $subscription
             ? $subscription->payments()
@@ -32,6 +37,13 @@ class DashboardController extends Controller
         ];
 
         return Inertia::render('Client/Dashboard', [
+            'pendingRequest' => $activeTenantRequest,
+            'userTenants' => $user->ksuSubscriptions()->with('tenant')->get()->map(fn($s) => [
+                'id' => $s->id,
+                'tenant_name' => $s->tenant?->name,
+                'tenant_domain' => $s->tenant?->domain,
+                'status' => $s->status,
+            ]),
             'subscription' => $subscription ? [
                 'id' => $subscription->id,
                 'plan' => $subscription->plan,

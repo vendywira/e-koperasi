@@ -59,6 +59,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
     });
 
+    // Tenant Requests (admin only)
+    Route::middleware('role:admin')->prefix('tenant-requests')->name('tenant-request.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\TenantRequestController::class, 'index'])->name('index');
+        Route::post('/{id}/approve', [\App\Http\Controllers\Admin\TenantRequestController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [\App\Http\Controllers\Admin\TenantRequestController::class, 'reject'])->name('reject');
+    });
+
     // KSU Tenant Management (admin only)
     Route::middleware('role:admin')->prefix('tenants')->name('tenant.')->group(function () {
         Route::get('/', [TenantController::class, 'index'])->name('index');
