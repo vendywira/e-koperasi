@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Models\User;
 use App\Models\Subscription;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -72,7 +73,17 @@ class TenantController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('Admin/Tenant/Create');
+        $clients = User::where('role', 'client')->get(['id', 'name', 'email']);
+        return Inertia::render('Admin/Tenant/Create', [
+            'clients' => $clients,
+        ]);
+    }
+
+    public function checkDomain(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $domain = $request->get('domain');
+        $taken = Tenant::where('domain', $domain)->exists();
+        return response()->json(['taken' => $taken]);
     }
 
     public function show(string $id): Response
@@ -95,60 +106,36 @@ class TenantController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'domain' => 'required|string|max:100|unique:tenants,domain',
+            'domain' => 'required|string|max:100|unique:tenants,domain|regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
+            'client_id' => 'required|exists:users,id',
             'max_resorts' => 'required|integer|min:1',
             'price_per_resort' => 'required|numeric|min:0',
             'plan' => 'required|in:monthly,yearly',
             'trial_days' => 'nullable|integer|min:0|max:90',
         ]);
 
-        $artisan = base_path('../ksu-app/artisan');
-        if (file_exists($artisan)) {
-            $cmd = sprintf(
-                "php %s tenant:create %s '%s' --max-resorts=%d --price-per-resort=%d --plan=%s 2>&1",
-                escapeshellarg($artisan),
-                escapeshellarg($validated['domain']),
-                escapeshellarg($validated['name']),
-                $validated['max_resorts'],
-                $validated['price_per_resort'],
-                $validated['plan']
-            );
-            exec($cmd, $output, $exitCode);
-
-            if ($exitCode !== 0) {
-                return redirect()->route('admin.tenant.index')
-                    ->with('error', 'Gagal: ' . implode("\n", $output));
-            }
-            return redirect()->route('admin.tenant.index')
-                ->with('success', "Tenant '{$validated['name']}' berhasil dibuat.");
-        }
-
-        $dbName = 'ksu_tnt_' . $validated['domain'];
-        DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}`");
-
-        $trialDays = $validated['trial_days'] ?? 14;
         $startedAt = now();
 
         $tenant = Tenant::create([
             'name' => $validated['name'],
             'domain' => $validated['domain'],
-            'db_name' => $dbName,
-            'status' => $trialDays > 0 ? 'trialing' : 'active',
+            'db_name' => 'ksu_tnt_' . str_replace('-', '_', $validated['domain']),
+            'status' => 'pending',
         ]);
 
         $tenant->subscription()->create([
-            'user_id' => auth()->id(),
+            'user_id' => $validated['client_id'],
             'plan' => $validated['plan'],
             'max_resorts' => $validated['max_resorts'],
             'price_per_resort' => $validated['price_per_resort'],
             'type' => 'ksu',
-            'status' => $trialDays > 0 ? 'trialing' : 'active',
+            'status' => 'pending',
             'started_at' => $startedAt,
-            'ends_at' => $trialDays > 0 ? $startedAt->copy()->addDays($trialDays) : null,
+            'ends_at' => $startedAt->copy()->addDays(30),
         ]);
 
         return redirect()->route('admin.tenant.index')
-            ->with('success', "Tenant '{$tenant->name}' berhasil dibuat (trial {$trialDays} hari).");
+            ->with('success', "Tenant '{$tenant->name}' berhasil dibuat. Status pending — aktifkan setelah pembayaran.");
     }
 
     public function extend(Request $request, string $id): RedirectResponse
@@ -204,9 +191,9 @@ class TenantController extends Controller
         $tenant = Tenant::findOrFail($id);
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'domain' => 'required|string|max:100|unique:tenants,domain,' . $id,
+            'domain' => 'required|string|max:100|unique:tenants,domain,' . $id . '|regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
             'db_name' => 'required|string|max:100|unique:tenants,db_name,' . $id,
-            'status' => 'required|in:active,suspended,trialing',
+            'status' => 'required|in:active,suspended,trialing,pending',
             'max_resorts' => 'required|integer|min:1',
             'price_per_resort' => 'required|numeric|min:0',
             'plan' => 'required|in:monthly,yearly',

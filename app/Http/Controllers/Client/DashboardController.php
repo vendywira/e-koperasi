@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\TenantRequest;
+use App\Models\Tenant;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,8 +15,12 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $subscription = $user->subscription;
-        $activeTenantRequest = TenantRequest::where('user_id', $user->id)
+        // Pending request yang belum punya invoice
+        $invoicedIds = \App\Models\Invoice::whereIn('status', ['pending','paid'])
+            ->pluck('tenant_id')->toArray();
+        $activeTenantRequest = Tenant::where('requested_by', $user->id)
             ->where('status', 'pending')
+            ->whereNotIn('id', $invoicedIds)
             ->latest()
             ->first();
 
@@ -42,7 +46,7 @@ class DashboardController extends Controller
                 'id' => $s->id,
                 'tenant_name' => $s->tenant?->name,
                 'tenant_domain' => $s->tenant?->domain,
-                'status' => $s->status,
+                'status' => $s->tenant?->status ?? $s->status,
             ]),
             'subscription' => $subscription ? [
                 'id' => $subscription->id,

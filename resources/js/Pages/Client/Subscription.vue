@@ -39,7 +39,7 @@ const statusBadge = (s: string) => {
                 <div class="p-5 sm:p-6 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
                     <div>
                         <h3 class="text-lg font-bold text-neutral-900 dark:text-white">{{ sub.tenant_name }}</h3>
-                        <p class="text-sm text-neutral-500 dark:text-neutral-400 font-mono">{{ sub.tenant_domain }}.ksu.app</p>
+                        <p class="text-sm text-neutral-500 dark:text-neutral-400 font-mono">{{ sub.tenant_domain }}.e-koperasi.com</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="px-3 py-1 rounded-full text-xs font-semibold" :class="statusBadge(sub.status)">
@@ -103,7 +103,7 @@ const statusBadge = (s: string) => {
                 <!-- Harga -->
                 <div class="px-5 sm:px-6 py-4 bg-neutral-50 dark:bg-neutral-800/50 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
                     <span class="text-sm text-neutral-500">Rp {{ Number(sub.price_per_resort).toLocaleString('id-ID') }} / resort</span>
-                    <a :href="'https://' + sub.tenant_domain + '.ksu.app'" target="_blank"
+                    <a :href="'https://' + sub.tenant_domain + '.e-koperasi.com'" target="_blank"
                         class="text-sm text-primary-600 hover:underline font-medium">
                         Buka Aplikasi &rarr;
                     </a>

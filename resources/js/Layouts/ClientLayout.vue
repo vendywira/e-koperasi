@@ -31,6 +31,8 @@ const navItems = [
     { key: 'dashboard', label: 'Beranda', href: '/client/dashboard', icon: 'home' },
     { key: 'subscription', label: 'Langganan', href: '/client/subscription', icon: 'clipboard' },
     { key: 'payments', label: 'Pembayaran', href: '/client/payments', icon: 'credit-card' },
+    { key: 'request-tenant', label: 'Ajukan Tenant', href: '/client/request-tenant', icon: 'plus' },
+    { key: 'invoices', label: 'Invoice', href: '/client/invoices', icon: 'receipt' },
     { key: 'tickets', label: 'Ticket', href: '/tickets', icon: 'ticket' },
 ];
 

@@ -46,12 +46,12 @@ const statusBadge = (s: string) => {
                     <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
                         <tr v-for="r in requests.data" :key="r.id" class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50">
                             <td class="px-4 py-3">
-                                <p class="font-medium">{{ r.user?.name }}</p>
-                                <p class="text-xs text-neutral-400">{{ r.user?.email }}</p>
+                                <p class="font-medium">{{ r.requestor?.name }}</p>
+                                <p class="text-xs text-neutral-400">{{ r.requestor?.email }}</p>
                             </td>
                             <td class="px-4 py-3 font-medium">{{ r.name }}</td>
-                            <td class="px-4 py-3 text-center font-mono text-xs">{{ r.domain }}.ksu.app</td>
-                            <td class="px-4 py-3 text-center">{{ r.max_resorts }}</td>
+                            <td class="px-4 py-3 text-center font-mono text-xs">{{ r.domain }}.e-koperasi.com</td>
+                            <td class="px-4 py-3 text-center">{{ r.subscription?.max_resorts ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">
                                 <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium" :class="statusBadge(r.status)">{{ r.status }}</span>
                             </td>

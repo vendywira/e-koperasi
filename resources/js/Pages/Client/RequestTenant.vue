@@ -53,8 +53,8 @@ const statusBadge = (s: string) => {
                     <div>
                         <label class="block text-sm font-medium mb-1.5">Domain (subdomain)</label>
                         <div class="flex items-center gap-2">
-                            <input v-model="form.domain" type="text" required class="flex-1 px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm font-mono focus:ring-2 focus:ring-primary-500" placeholder="koperasi-anda" />
-                            <span class="text-sm text-neutral-400 font-mono">.ksu.app</span>
+                            <input v-model="form.domain" type="text" required pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Hanya huruf kecil, angka, dan tanda strip (-)" class="flex-1 px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm font-mono focus:ring-2 focus:ring-primary-500" placeholder="koperasi-anda" />
+                            <span class="text-sm text-neutral-400 font-mono">.e-koperasi.com</span>
                         </div>
                     </div>
                     <div>

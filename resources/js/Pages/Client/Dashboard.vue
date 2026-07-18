@@ -5,6 +5,8 @@ import { computed } from 'vue';
 
 const props = defineProps<{
     subscription: any;
+    pendingRequest: any;
+    userTenants: any[];
     recentPayments: any[];
     ticketStats?: {
         total: number;
@@ -140,6 +142,40 @@ const statusLabel = computed(() => {
                         <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ ticketStats?.solved || 0 }}</p>
                         <p class="text-xs text-neutral-500 dark:text-neutral-400">Selesai</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- KSU Tenants -->
+            <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+                <div class="px-5 sm:px-6 py-4 border-b border-neutral-200 dark:border-neutral-800">
+                    <h3 class="font-semibold text-neutral-900 dark:text-white">Tenant KSU Saya</h3>
+                </div>
+                <div v-if="userTenants.length > 0" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-neutral-50 dark:bg-neutral-800/50">
+                            <tr>
+                                <th class="text-left px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Nama</th>
+                                <th class="text-left px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Domain</th>
+                                <th class="text-center px-5 py-3 font-medium text-neutral-500 text-xs uppercase">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
+                            <tr v-for="t in userTenants" :key="t.id" class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30">
+                                <td class="px-5 py-3 font-medium">{{ t.tenant_name }}</td>
+                                <td class="px-5 py-3 text-neutral-500 font-mono text-xs">{{ t.tenant_domain }}.e-koperasi.com</td>
+                                <td class="px-5 py-3 text-center">
+                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
+                                        :class="t.status === 'active' ? 'bg-emerald-100 text-emerald-700' : t.status === 'trialing' ? 'bg-amber-100 text-amber-700' : t.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'">
+                                        {{ t.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div v-else class="p-5 text-center text-sm text-neutral-400">
+                    Belum memiliki tenant KSU.
+                    <Link href="/client/request-tenant" class="text-primary-600 hover:underline ml-1">Ajukan tenant baru</Link>
                 </div>
             </div>
 

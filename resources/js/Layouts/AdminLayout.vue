@@ -167,28 +167,12 @@ onUnmounted(() => {
                         User Management
                     </Link>
 
-                    <!-- Tenant Requests menu -->
+                    <!-- Tenant menu (gabung requests + tenant + invoice) -->
                     <Link
-                        v-if="user?.role === 'admin'"
-                        href="/admin/tenant-requests"
+                        v-if="user?.role === 'admin' || user?.role === 'it-ops'"
+                        href="/admin/tenant-overview"
                         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                        :class="$page.url.startsWith('/admin/tenant-requests')
-                            ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
-                            : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'"
-                        @click="closeSidebar"
-                    >
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                        </svg>
-                        Tenant Requests
-                    </Link>
-
-                    <!-- KSU Tenants menu -->
-                    <Link
-                        v-if="user?.role === 'admin'"
-                        href="/admin/tenants"
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                        :class="$page.url.startsWith('/admin/tenants')
+                        :class="$page.url.startsWith('/admin/tenant-overview')
                             ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
                             : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'"
                         @click="closeSidebar"
@@ -196,7 +180,7 @@ onUnmounted(() => {
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
                         </svg>
-                        KSU Tenants
+                        Tenant
                     </Link>
 
                     <p v-if="user?.role === 'admin'|| user?.role === 'editor'"
@@ -381,6 +365,20 @@ onUnmounted(() => {
                     </svg>
                     User Management
                 </Link>
+
+                <!-- Tenant (desktop) -->
+                <Link
+                    v-if="user?.role === 'admin' || user?.role === 'it-ops'"
+                    href="/admin/tenant-overview"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    :class="$page.url.startsWith('/admin/tenant-overview')
+                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                        : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'"
+                >
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                    Tenant
+                </Link>
+
                 <p  v-if="user?.role === 'admin'|| user?.role === 'editor'"
                     class="px-3 py-1 mt-4 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
                     Konten

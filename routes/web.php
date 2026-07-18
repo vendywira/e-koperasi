@@ -51,6 +51,10 @@ Route::prefix('client')->name('client.')->group(function () {
         // Client: Request Tenant
         Route::get('/request-tenant', [\App\Http\Controllers\Client\TenantRequestController::class, 'create'])->name('request-tenant');
         Route::post('/request-tenant', [\App\Http\Controllers\Client\TenantRequestController::class, 'store'])->name('request-tenant.store');
+
+        // Client: Invoices
+        Route::get('/invoices', [\App\Http\Controllers\Client\InvoiceController::class, 'index'])->name('invoices');
+        Route::post('/invoices/{id}/upload-proof', [\App\Http\Controllers\Client\InvoiceController::class, 'uploadProof'])->name('invoices.upload-proof');
     });
 });
 

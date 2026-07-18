@@ -9,12 +9,13 @@ use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    // Root redirect — admin goes to dashboard, editor goes to CMS, it-ops goes to tickets
+    // Root redirect — admin goes to dashboard, editor goes to CMS, it-ops goes to tenant-requests
     Route::get('/', function () {
         $user = request()->user();
         return match ($user->role) {
             'admin' => app(\App\Http\Controllers\Admin\ClientController::class)->dashboard(),
             'editor' => redirect()->route('admin.cms.index'),
+            'it-ops' => redirect()->route('admin.tenant-request.index'),
             default => redirect()->route('admin.ticket.index'),
         };
     })->name('dashboard');
@@ -59,17 +60,30 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('destroy');
     });
 
-    // Tenant Requests (admin only)
-    Route::middleware('role:admin')->prefix('tenant-requests')->name('tenant-request.')->group(function () {
+    // Tenant Overview (admin & it-ops) — gabung request + tenant + invoice
+    Route::middleware('role:admin,it-ops')->prefix('tenant-overview')->name('tenant-overview.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\TenantOverviewController::class, 'index'])->name('index');
+    });
+
+    // Tenant Requests (admin & it-ops)
+    Route::middleware('role:admin,it-ops')->prefix('tenant-requests')->name('tenant-request.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\TenantRequestController::class, 'index'])->name('index');
         Route::post('/{id}/approve', [\App\Http\Controllers\Admin\TenantRequestController::class, 'approve'])->name('approve');
         Route::post('/{id}/reject', [\App\Http\Controllers\Admin\TenantRequestController::class, 'reject'])->name('reject');
     });
 
-    // KSU Tenant Management (admin only)
+    // Invoice management (admin & it-ops)
+    Route::middleware('role:admin,it-ops')->prefix('invoices')->name('invoice.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\InvoiceController::class, 'index'])->name('index');
+        Route::post('/{id}/generate', [\App\Http\Controllers\Admin\InvoiceController::class, 'generate'])->name('generate');
+        Route::post('/{id}/confirm-paid', [\App\Http\Controllers\Admin\InvoiceController::class, 'confirmPaid'])->name('confirm-paid');
+    });
+
+    // KSU Tenant Management (admin only — billing/subscription sensitive)
     Route::middleware('role:admin')->prefix('tenants')->name('tenant.')->group(function () {
         Route::get('/', [TenantController::class, 'index'])->name('index');
         Route::get('/create', [TenantController::class, 'create'])->name('create');
+        Route::get('/check-domain', [TenantController::class, 'checkDomain'])->name('check-domain');
         Route::get('/{id}', [TenantController::class, 'show'])->name('show');
         Route::post('/', [TenantController::class, 'store'])->name('store');
         Route::put('/{id}', [TenantController::class, 'update'])->name('update');

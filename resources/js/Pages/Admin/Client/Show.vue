@@ -271,7 +271,7 @@ const formatDate = (dt: string | null) => {
                         <tbody class="divide-y divide-neutral-200 dark:divide-neutral-800">
                             <tr v-for="sub in ksuSubscriptions" :key="sub.id" class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30">
                                 <td class="px-5 py-3 font-medium text-neutral-900 dark:text-white">{{ sub.tenant_name }}</td>
-                                <td class="px-5 py-3 text-neutral-500 font-mono text-xs">{{ sub.tenant_domain }}.ksu.app</td>
+                                <td class="px-5 py-3 text-neutral-500 font-mono text-xs">{{ sub.tenant_domain }}.e-koperasi.com</td>
                                 <td class="px-5 py-3 text-center capitalize">{{ sub.plan }}</td>
                                 <td class="px-5 py-3 text-center">{{ sub.max_resorts }}</td>
                                 <td class="px-5 py-3 text-center">

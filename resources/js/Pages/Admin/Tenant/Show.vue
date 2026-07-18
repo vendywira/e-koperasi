@@ -8,6 +8,7 @@ const props = defineProps<{ tenant: any }>();
 const editing = ref(false);
 const extendDays = ref(30);
 const showExtend = ref(false);
+const dialog = ref<{ show: boolean; title: string; message: string; onConfirm: () => void }>({ show: false, title: '', message: '', onConfirm: () => {} });
 
 const form = ref({
   name: props.tenant.name,
@@ -32,18 +33,29 @@ function save() {
   });
 }
 
+function confirmAction(title: string, message: string, fn: () => void) {
+  dialog.value = { show: true, title, message, onConfirm: fn };
+}
+
 function doExtend() {
-  if (!confirm(`Perpanjang ${extendDays.value} hari untuk "${props.tenant.name}"?`)) return;
-  router.post(`/admin/tenants/${props.tenant.id}/extend`, { extend_days: extendDays.value }, {
-    preserveScroll: true,
-  });
+  confirmAction(
+    'Perpanjang Subscription',
+    `Perpanjang ${extendDays.value} hari untuk "${props.tenant.name}"?`,
+    () => {
+      dialog.value.show = false;
+      router.post(`/admin/tenants/${props.tenant.id}/extend`, { extend_days: extendDays.value }, { preserveScroll: true });
+    }
+  );
 }
 
 function toggleSuspend() {
-  const action = props.tenant.status === 'suspended' ? 'aktifkan' : 'suspend';
-  if (!confirm(`${action} tenant "${props.tenant.name}"?`)) return;
-  router.post(`/admin/tenants/${props.tenant.id}/toggle-suspend`, {}, {
-    preserveScroll: true,
+  const action = props.tenant.status === 'suspended' ? 'Aktifkan' : 'Suspend';
+  const message = props.tenant.status === 'suspended'
+    ? `Aktifkan kembali tenant "${props.tenant.name}"?`
+    : `Suspend tenant "${props.tenant.name}"? Semua akses akan diblokir.`;
+  confirmAction(action, message, () => {
+    dialog.value.show = false;
+    router.post(`/admin/tenants/${props.tenant.id}/toggle-suspend`, {}, { preserveScroll: true });
   });
 }
 
@@ -77,7 +89,7 @@ function daysLeft(endsAt: string | null): number | null {
         <div>
           <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">{{ tenant.name }}</h1>
           <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-            {{ tenant.domain }}.ksu.app
+            {{ tenant.domain }}.e-koperasi.com
             <span class="inline-flex ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium" :class="statusBadge(tenant.status)">{{ tenant.status }}</span>
           </p>
         </div>
@@ -98,7 +110,7 @@ function daysLeft(endsAt: string | null): number | null {
       <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
         <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5">
           <p class="text-xs text-neutral-500 uppercase tracking-wider mb-1">Domain</p>
-          <p class="font-mono text-sm font-medium">{{ tenant.domain }}.ksu.app</p>
+          <p class="font-mono text-sm font-medium">{{ tenant.domain }}.e-koperasi.com</p>
           <p class="text-xs text-neutral-400 mt-0.5">DB: {{ tenant.db_name }}</p>
         </div>
         <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-5">
@@ -143,7 +155,7 @@ function daysLeft(endsAt: string | null): number | null {
           <div>
             <label class="block text-sm font-medium mb-1">Domain (subdomain)</label>
             <input v-model="form.domain" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm font-mono focus:ring-2 focus:ring-primary-500" />
-            <p class="text-xs text-neutral-400 mt-1">Akses: https://<span class="font-mono">{{ form.domain }}</span>.ksu.app</p>
+            <p class="text-xs text-neutral-400 mt-1">Akses: https://<span class="font-mono">{{ form.domain }}</span>.e-koperasi.com</p>
           </div>
           <div>
             <label class="block text-sm font-medium mb-1">Database Name</label>
@@ -206,6 +218,28 @@ function daysLeft(endsAt: string | null): number | null {
           <div><dt class="text-neutral-500">Berakhir</dt><dd class="font-medium">{{ tenant.subscription.ends_at ? new Date(tenant.subscription.ends_at).toLocaleDateString('id-ID') : '-' }}</dd></div>
         </dl>
       </div>
+
+      <!-- Confirmation Dialog -->
+      <Teleport to="body">
+        <div v-if="dialog.show" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click.self="dialog.show = false">
+          <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6">
+            <div class="flex items-start gap-3 mb-5">
+              <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 text-amber-600">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-neutral-900 dark:text-white">{{ dialog.title }}</h3>
+                <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{{ dialog.message }}</p>
+              </div>
+            </div>
+            <div class="flex gap-3 justify-end">
+              <button @click="dialog.show = false" class="px-4 py-2 text-sm font-medium rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors">Batal</button>
+              <button @click="dialog.onConfirm" class="px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors"
+                :class="dialog.title === 'Suspend' ? 'bg-red-600 hover:bg-red-700' : 'bg-primary-600 hover:bg-primary-700'">Lanjutkan</button>
+            </div>
+          </div>
+        </div>
+      </Teleport>
     </div>
   </AdminLayout>
 </template>
