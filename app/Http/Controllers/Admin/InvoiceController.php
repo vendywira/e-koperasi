@@ -91,10 +91,16 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Gagal membuat database tenant: ' . $e->getMessage());
         }
 
-        // 2. Provision via ksu-app API (migrate + seed)
+        // 2. Provision via ksu-app API (migrate + seed + admin user)
         try {
             $ksuApiUrl = env('KSU_API_URL', config('app.url'));
-            $response = Http::timeout(180)->post("{$ksuApiUrl}/api/tenants/{$tenant->domain}/provision");
+            $response = Http::timeout(180)->post("{$ksuApiUrl}/api/tenants/{$tenant->domain}/provision", [
+                'user' => [
+                    'name' => $clientUser->name,
+                    'email' => $clientUser->email,
+                    'password' => $clientUser->password,
+                ],
+            ]);
 
             if (!$response->successful()) {
                 Log::warning("Provision tenant {$tenant->domain} gagal: " . $response->body());
@@ -105,31 +111,7 @@ class InvoiceController extends Controller
             $provisionFailed = true;
         }
 
-        // 3. Seed admin user ke tenant DB
-        if (!$provisionFailed) {
-            try {
-                config(['database.connections.tenant.database' => $dbName]);
-                DB::purge('tenant');
-                DB::reconnect('tenant');
-
-                $password = $clientUser->password;
-                DB::connection('tenant')->table('users')->insert([
-                    'id' => $clientUser->id,
-                    'name' => $clientUser->name,
-                    'email' => $clientUser->email,
-                    'password' => $password,
-                    'role' => 'admin',
-                    'phone_number' => $clientUser->phone ?? '',
-                    'base_salary' => 0,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            } catch (\Throwable $e) {
-                Log::warning("Seed user ke tenant DB gagal (mungkin sudah ada): " . $e->getMessage());
-            }
-        }
-
-        // 4. Update invoice, tenant, subscription dalam 1 DB transaction
+        // 3. Update invoice, tenant, subscription dalam 1 DB transaction
         DB::transaction(function () use ($invoice, $tenant, $provisionFailed) {
             $invoice->update([
                 'status' => 'paid',

@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,8 +35,14 @@ class TenantRequestController extends Controller
         }
 
         $dbName = $tenant->db_name;
+        $clientUser = $tenant->requestor;
+        $provisionFailed = false;
 
-        // 1. Buat database tenant
+        if (!$clientUser) {
+            return redirect()->back()->with('error', 'User requester tidak ditemukan.');
+        }
+
+        // 1. Create database
         try {
             DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         } catch (\Throwable $e) {
@@ -43,35 +50,61 @@ class TenantRequestController extends Controller
             return redirect()->back()->with('error', 'Gagal membuat database: ' . $e->getMessage());
         }
 
-        // 2. Update status tenant & subscription dalam transaction
-        DB::transaction(function () use ($tenant) {
-            $tenant->update(['status' => 'active']);
+        // 2. Provision via ksu-app API (migrate + seed + admin user)
+        try {
+            $ksuApiUrl = env('KSU_API_URL', config('app.url'));
+            $response = Http::timeout(180)->post("{$ksuApiUrl}/api/tenants/{$tenant->domain}/provision", [
+                'user' => [
+                    'name' => $clientUser->name,
+                    'email' => $clientUser->email,
+                    'password' => $clientUser->password,
+                ],
+            ]);
+
+            if (!$response->successful()) {
+                Log::warning("Provision tenant {$tenant->domain} gagal: " . $response->body());
+                $provisionFailed = true;
+            }
+        } catch (\Throwable $e) {
+            Log::error("Provision tenant {$tenant->domain} error: " . $e->getMessage());
+            $provisionFailed = true;
+        }
+
+        // 3. Update status tenant & subscription dalam transaction
+        DB::transaction(function () use ($tenant, $provisionFailed) {
+            $tenant->update(['status' => $provisionFailed ? 'pending' : 'active']);
 
             if ($tenant->subscription) {
                 $tenant->subscription->update([
-                    'status' => 'active',
+                    'status' => $provisionFailed ? 'pending' : 'active',
                     'started_at' => now(),
                     'ends_at' => now()->addMonth(),
                 ]);
             }
         });
 
-        // 3. Notify client
-        try {
-            app(NotificationService::class)->send(
-                $tenant->requestor,
-                'tenant',
-                "Tenant {$tenant->name} Aktif!",
-                "Tenant Anda telah diaktifkan. Akses di https://{$tenant->domain}.e-koperasi.com",
-                '/client/dashboard',
-                $tenant
-            );
-        } catch (\Throwable $e) {
-            Log::warning("Gagal kirim notifikasi tenant {$tenant->domain}: " . $e->getMessage());
+        // 4. Notify client
+        if (!$provisionFailed) {
+            try {
+                app(NotificationService::class)->send(
+                    $clientUser,
+                    'tenant',
+                    "Tenant {$tenant->name} Aktif!",
+                    "Tenant Anda telah diaktifkan. Login di https://{$tenant->domain}.e-koperasi.com dengan email yang sama.",
+                    '/client/dashboard',
+                    $tenant
+                );
+            } catch (\Throwable $e) {
+                Log::warning("Gagal kirim notifikasi tenant {$tenant->domain}: " . $e->getMessage());
+            }
         }
 
+        $message = $provisionFailed
+            ? "Database tenant dibuat, tetapi provisioning gagal. Cek log untuk detail."
+            : "Tenant '{$tenant->name}' berhasil diaktifkan dengan admin user.";
+
         return redirect()->route('admin.tenant-request.index')
-            ->with('success', "Tenant '{$tenant->name}' berhasil diaktifkan.");
+            ->with('success', $message);
     }
 
     public function reject(string $id): RedirectResponse
