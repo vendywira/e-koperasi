@@ -7,7 +7,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE tenants MODIFY COLUMN status ENUM('active','suspended','trialing','pending','rejected') DEFAULT 'active'");
+        DB::statement("ALTER TABLE tenants MODIFY COLUMN status ENUM('active','suspended','trialing','pending','rejected', 'paid') DEFAULT 'active'");
     }
 
     public function down(): void
