@@ -80,7 +80,7 @@ class InvoiceController extends Controller
                 ->with('error', 'User client tidak ditemukan.');
         }
 
-        $dbName = $tenant->db_name;
+        $dbName = config('database.tenant_prefix', '') . $tenant->db_name;
         $provisionFailed = false;
 
         // 1. Coba create DB — silent kalo gagal (cpanel restricted / udah ada)
