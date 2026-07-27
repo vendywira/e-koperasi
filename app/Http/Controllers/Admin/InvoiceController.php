@@ -83,17 +83,10 @@ class InvoiceController extends Controller
         $dbName = config('database.tenant_prefix', '') . $tenant->db_name;
         $provisionFailed = false;
 
-        // 1. Coba create DB — silent kalo gagal (cpanel restricted / udah ada)
-        try {
-            DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        } catch (\Throwable $e) {
-            Log::warning("Invoice: create DB skipped {$dbName}: " . $e->getMessage());
-        }
-
-        // 2. Provision via ksu-app API (migrate + seed + admin user)
+        // 1. Provision via ksu-app API (migrate + seed + admin user)
         try {
             $ksuApiUrl = env('KSU_API_URL', config('app.url'));
-            $response = Http::timeout(180)->post("{$ksuApiUrl}/api/tenants/{$tenant->domain}/provision", [
+            $response = Http::timeout(180)->post("{$ksuApiUrl}/tenants/{$tenant->domain}/provision", [
                 'user' => [
                     'name' => $clientUser->name,
                     'email' => $clientUser->email,
@@ -117,7 +110,7 @@ class InvoiceController extends Controller
             $provisionFailed = true;
         }
 
-        // 3. Update invoice, tenant, subscription dalam 1 DB transaction
+        // 2. Update invoice, tenant, subscription dalam 1 DB transaction
         DB::transaction(function () use ($invoice, $tenant, $provisionFailed) {
             $invoice->update([
                 'status' => 'paid',
@@ -137,7 +130,7 @@ class InvoiceController extends Controller
             }
         });
 
-        // 5. Notify client (di luar transaction — tidak kritis)
+        // 3. Notify client (di luar transaction — tidak kritis)
         if (!$provisionFailed) {
             try {
                 app(NotificationService::class)->send(
