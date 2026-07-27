@@ -10,6 +10,9 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->uuid('tenant_id')->nullable();
+            $table->uuid('tenant_request_id')->nullable();
+            $table->uuid('requested_by')->nullable();
             $table->uuid('user_id');
             $table->string('name'); // tenant name
             $table->string('domain');
@@ -22,6 +25,7 @@ return new class extends Migration
             $table->text('payment_proof')->nullable(); // uploaded file path
             $table->uuid('confirmed_by')->nullable();
             $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('tenant_request_id')->references('id')->on('tenants');
             $table->foreign('confirmed_by')->references('id')->on('users');
             $table->timestamps();
         });
