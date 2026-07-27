@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 
 const props = defineProps<{
@@ -11,7 +12,23 @@ const form = useForm({
     domain: '',
     max_resorts: 1,
     notes: '',
+    company_address: '',
+    company_phone: '',
+    company_email: '',
+    logo: null as File | null,
 });
+
+const logoPreview = ref<string | null>(null);
+
+function onLogoChange(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (file) {
+        form.logo = file;
+        const reader = new FileReader();
+        reader.onload = () => logoPreview.value = reader.result as string;
+        reader.readAsDataURL(file);
+    }
+}
 
 function submit() {
     form.post('/client/request-tenant', {
@@ -65,6 +82,36 @@ const statusBadge = (s: string) => {
                         <label class="block text-sm font-medium mb-1.5">Catatan (opsional)</label>
                         <textarea v-model="form.notes" rows="3" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Informasi tambahan..."></textarea>
                     </div>
+
+                    <!-- Company Profile -->
+                    <div class="pt-4 border-t dark:border-neutral-700">
+                        <h3 class="text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-3">Profil Perusahaan</h3>
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium mb-1.5">Alamat</label>
+                            <textarea v-model="form.company_address" rows="2" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Alamat perusahaan..."></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">No. Telepon</label>
+                                <input v-model="form.company_phone" type="text" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Contoh: 08123456789" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1.5">Email Perusahaan</label>
+                                <input v-model="form.company_email" type="email" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="company@email.com" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium mb-1.5">Logo Perusahaan</label>
+                            <input type="file" accept="image/jpeg,image/png" @change="onLogoChange" class="w-full text-sm text-neutral-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+                            <div v-if="logoPreview" class="mt-2">
+                                <img :src="logoPreview" class="h-20 w-auto rounded border" alt="Preview logo" />
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" :disabled="form.processing || existingRequest?.status === 'pending'"
                         class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
                         {{ form.processing ? 'Mengirim...' : 'Ajukan Tenant' }}

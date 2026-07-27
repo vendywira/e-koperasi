@@ -58,6 +58,13 @@ class TenantRequestController extends Controller
                     'email' => $clientUser->email,
                     'password' => $clientUser->password,
                 ],
+                'company' => [
+                    'name' => $tenant->name,
+                    'address' => $tenant->company_address ?? '',
+                    'phone' => $tenant->company_phone ?? '',
+                    'email' => $tenant->company_email ?? '',
+                    'logo_url' => $tenant->logo ? \Storage::disk('public')->url($tenant->logo) : null,
+                ],
             ]);
 
             if (!$response->successful()) {
