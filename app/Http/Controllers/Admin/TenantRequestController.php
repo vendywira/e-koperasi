@@ -42,12 +42,11 @@ class TenantRequestController extends Controller
             return redirect()->back()->with('error', 'User requester tidak ditemukan.');
         }
 
-        // 1. Create database
+        // 1. Coba create DB — silent kalo gagal (cpanel restricted / udah ada)
         try {
             DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
         } catch (\Throwable $e) {
-            Log::error("Gagal create DB tenant {$dbName}: " . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal membuat database: ' . $e->getMessage());
+            Log::warning("Provision: create DB skipped {$dbName}: " . $e->getMessage());
         }
 
         // 2. Provision via ksu-app API (migrate + seed + admin user)
