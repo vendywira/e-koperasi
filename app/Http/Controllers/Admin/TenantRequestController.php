@@ -52,7 +52,8 @@ class TenantRequestController extends Controller
         // 2. Provision via ksu-app API (migrate + seed + admin user)
         try {
             $ksuApiUrl = env('KSU_API_URL', config('app.url'));
-            $response = Http::timeout(180)->post("{$ksuApiUrl}/api/tenants/{$tenant->domain}/provision", [
+            $provisionUrl = rtrim($ksuApiUrl, '/') . "/api/tenants/{$tenant->domain}/provision";
+            $response = Http::timeout(180)->post($provisionUrl, [
                 'user' => [
                     'name' => $clientUser->name,
                     'email' => $clientUser->email,

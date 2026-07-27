@@ -80,13 +80,13 @@ class InvoiceController extends Controller
                 ->with('error', 'User client tidak ditemukan.');
         }
 
-        $dbName = config('database.tenant_prefix', '') . $tenant->db_name;
         $provisionFailed = false;
 
         // 1. Provision via ksu-app API (migrate + seed + admin user)
         try {
             $ksuApiUrl = env('KSU_API_URL', config('app.url'));
-            $response = Http::timeout(180)->post("{$ksuApiUrl}/tenants/{$tenant->domain}/provision", [
+            $provisionUrl = rtrim($ksuApiUrl, '/') . "/api/tenants/{$tenant->domain}/provision";
+            $response = Http::timeout(180)->post($provisionUrl, [
                 'user' => [
                     'name' => $clientUser->name,
                     'email' => $clientUser->email,
