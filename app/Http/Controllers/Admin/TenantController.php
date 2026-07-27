@@ -119,7 +119,7 @@ class TenantController extends Controller
         $tenant = Tenant::create([
             'name' => $validated['name'],
             'domain' => $validated['domain'],
-            'db_name' => 'ksu_tnt_' . str_replace('-', '_', $validated['domain']),
+            'db_name' => config('database.tenant_prefix', '') . 'tnt_' . str_replace('-', '_', $validated['domain']),
             'status' => 'pending',
         ]);
 

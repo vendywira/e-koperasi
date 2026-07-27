@@ -75,7 +75,7 @@ class TenantSeeder extends Seeder
         ];
 
         foreach ($tenants as $data) {
-            $dbName = 'ksu_tnt_' . $data['domain'];
+            $dbName = config('database.tenant_prefix', '') . 'tnt_' . $data['domain'];
 
             try {
                 DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");

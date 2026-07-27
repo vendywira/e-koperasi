@@ -5,6 +5,8 @@ use Pdo\Mysql;
 
 return [
 
+    'tenant_prefix' => env('DB_TENANT_PREFIX', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Default Database Connection Name

@@ -33,7 +33,7 @@ class TenantRequestController extends Controller
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $dbName = 'ksu_tnt_' . str_replace('-', '_', $validated['domain']);
+        $dbName = config('database.tenant_prefix', '') . 'tnt_' . str_replace('-', '_', $validated['domain']);
 
         $tenant = Tenant::create([
             'name' => $validated['name'],
