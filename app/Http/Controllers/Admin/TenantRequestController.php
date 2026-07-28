@@ -34,24 +34,16 @@ class TenantRequestController extends Controller
             return redirect()->back()->with('error', 'Tenant sudah diproses.');
         }
 
-        $dbName = $tenant->db_name;
         $clientUser = $tenant->requestor;
-        $provisionFailed = false;
-
         if (!$clientUser) {
             return redirect()->back()->with('error', 'User requester tidak ditemukan.');
         }
 
-        // 1. Coba create DB — silent kalo gagal (cpanel restricted / udah ada)
-        try {
-            DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-        } catch (\Throwable $e) {
-            Log::warning("Provision: create DB skipped {$dbName}: " . $e->getMessage());
-        }
+        $provisionFailed = false;
 
-        // 2. Provision via ksu-app API (migrate + seed + admin user)
+        // 1. Provision via artisan CLI (bypass HTTP self-request ke ksu-app)
         try {
-            $ksuApiUrl = env('KSU_API_URL', config('app.url'));
+            $ksuApiUrl = config('services.ksu_app.api_url');
             $provisionUrl = rtrim($ksuApiUrl, '/') . "/api/tenants/{$tenant->domain}/provision";
             $response = Http::timeout(300)->post($provisionUrl, [
                 'user' => [
