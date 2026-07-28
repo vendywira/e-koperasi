@@ -279,6 +279,13 @@ POST /webhook/duitku
 - Navigation: existing sidebar (desktop) + hamburger (mobile) — kept
 - Touch targets: minimum 44×44px
 
+### Home Page — Pricing Section
+- **Existing:** PricingTable component reads from CMS SiteConfig (hardcoded tiers)
+- **Target:** PricingTable receives live `plans[]` data from server — fetched from `plans` table, rendered dynamic
+- HomeController passes `plans` to Home page, no CMS editing needed for pricing
+- CMS tetap bisa override title/subtitle/footer via SiteConfig
+- Tombol "Pilih {Plan}" → `/register?plan={plan_id}` atau langsung ke registration flow
+
 ### Client Portal Pages
 
 | Page | Key Changes |
