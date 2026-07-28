@@ -13,6 +13,8 @@ e-Koperasi is a multi-tenant SaaS B2B platform for KSU (Koperasi Simpan Pinjam).
 - **Provisioning creates admin user in ksu-app** — user's email/password from e-koperasi is sent to ksu-app via provision API; user becomes admin of their tenant instance
 - **Cross-system login** — user logs in to e-koperasi (portal), then clicks into each tenant app using same credentials
 
+- Admin retry provision — button di tenant detail page, reruns provision API ke ksu-app. Sukses → tenant 'active', subscription 'active'
+
 ### Existing (kept untouched)
 - Provisioning API POST `/api/tenants/{domain}/provision` to ksu-app
 - Auto-suspend cron `tenant:auto-suspend` (grace period 7 days)
