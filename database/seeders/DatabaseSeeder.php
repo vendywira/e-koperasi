@@ -29,6 +29,8 @@ class DatabaseSeeder extends Seeder
             ClientSeeder::class,
             TenantSeeder::class,
             BillingSeeder::class,
+            BillingCycleSeeder::class,
+            PlanSeeder::class,
             TicketSeeder::class,
         ]);
     }

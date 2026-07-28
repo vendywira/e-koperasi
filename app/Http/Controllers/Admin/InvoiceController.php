@@ -82,30 +82,10 @@ class InvoiceController extends Controller
 
         $provisionFailed = false;
 
-        // 1. Provision via ksu-app API (migrate + seed + admin user)
+        // 1. Provision via ksu-app API (with company info & logo)
         try {
-            $ksuApiUrl = config('services.ksu_app.api_url');
-            $provisionUrl = rtrim($ksuApiUrl, '/') . "/api/tenants/{$tenant->domain}/provision";
-            Log::warning("url: {$provisionUrl}");
-            $response = Http::timeout(180)->post($provisionUrl, [
-                'user' => [
-                    'name' => $clientUser->name,
-                    'email' => $clientUser->email,
-                    'password' => $clientUser->password,
-                ],
-                'company' => [
-                    'name' => $tenant->name,
-                    'address' => $tenant->company_address ?? '',
-                    'phone' => $tenant->company_phone ?? '',
-                    'email' => $tenant->company_email ?? '',
-                    'logo_url' => $tenant->logo ? \Storage::disk('public')->url($tenant->logo) : null,
-                ],
-            ]);
-
-            if (!$response->successful()) {
-                Log::warning("Provision tenant {$tenant->domain} gagal: " . $response->body());
-                $provisionFailed = true;
-            }
+            $provisionService = app(\App\Services\ProvisionService::class);
+            $provisionFailed = !$provisionService->provision($tenant, $clientUser);
         } catch (\Throwable $e) {
             Log::error("Provision tenant {$tenant->domain} error: " . $e->getMessage());
             $provisionFailed = true;

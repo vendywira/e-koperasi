@@ -20,6 +20,8 @@ defineProps<{
     personas?: Array<any>;
     howItWorks?: Array<any>;
     trust?: Array<{ name: string; logo?: string }>;
+    plans?: Array<any>;
+    billingCycles?: Array<any>;
 }>();
 </script>
 
@@ -36,7 +38,7 @@ defineProps<{
         <WhyChooseUs />
         <PersonaCards :items="personas" />
         <HowItWorks :items="howItWorks" />
-        <PricingTable />
+        <PricingTable :plans="plans" :billingCycles="billingCycles" />
         <TestimonialSection :items="testimonials" />
         <FaqSection :items="faqs" />
         <CtaSection />

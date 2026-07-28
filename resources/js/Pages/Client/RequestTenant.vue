@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 
-const props = defineProps<{
-    existingRequest: any | null;
-}>();
+const props = defineProps<{ existingRequest: any | null; plans: any[] }>();
+const page = usePage();
+const cycles = computed(() => (page.props as any).billing_cycles || []);
 
 const form = useForm({
     name: '',
     domain: '',
-    max_resorts: 1,
+    plan_id: props.plans?.[0]?.id || '',
+    billing_cycle: cycles.value?.[0]?.slug || 'monthly',
+    resort_qty: 1,
     notes: '',
     company_address: '',
     company_phone: '',
@@ -19,6 +21,27 @@ const form = useForm({
 });
 
 const logoPreview = ref<string | null>(null);
+const domainStatus = ref<'idle' | 'checking' | 'available' | 'taken'>('idle');
+const domainSuggestions = ref<string[]>([]);
+let domainTimer: ReturnType<typeof setTimeout> | null = null;
+
+const selectedPlan = computed(() => props.plans?.find(p => p.id === form.plan_id));
+const planType = computed(() => selectedPlan.value?.type);
+
+const pricePreview = computed(() => {
+    if (planType.value === 'enterprise' || planType.value === 'trial') return null;
+    const plan = selectedPlan.value;
+    if (!plan) return null;
+    const qty = form.resort_qty || plan.max_resorts;
+    const cfg = plan.pricing_config || {};
+    const unitPrice = cfg.price_per_resort || plan.price_per_month / Math.max(1, qty);
+    const subtotal = qty * unitPrice;
+    const cycle = cycles.value.find((c: any) => c.slug === form.billing_cycle);
+    const discountPct = cycle?.discount_percent || 0;
+    const months = cycle?.months || 1;
+    const discount = subtotal * discountPct / 100;
+    return { qty, unitPrice: Math.round(unitPrice), subtotal: Math.round(subtotal), discountPct, discount: Math.round(discount), total: Math.round(subtotal - discount), months };
+});
 
 function onLogoChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
@@ -30,20 +53,22 @@ function onLogoChange(e: Event) {
     }
 }
 
-function submit() {
-    form.post('/client/request-tenant', {
-        preserveScroll: true,
-    });
+function checkDomain() {
+    const d = form.domain?.trim().toLowerCase();
+    if (!d || d.length < 3) { domainStatus.value = 'idle'; return; }
+    domainStatus.value = 'checking';
+    if (domainTimer) clearTimeout(domainTimer);
+    domainTimer = setTimeout(async () => {
+        try {
+            const res = await fetch(`/client/request-tenant/check-domain?domain=${d}`);
+            const data = await res.json();
+            domainStatus.value = data.available ? 'available' : 'taken';
+            domainSuggestions.value = data.suggestions || [];
+        } catch { domainStatus.value = 'idle'; }
+    }, 500);
 }
 
-const statusBadge = (s: string) => {
-    const map: Record<string, string> = {
-        pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-        approved: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-        rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-    };
-    return map[s] ?? '';
-};
+function submit() { form.post('/client/request-tenant', { preserveScroll: true }); }
 </script>
 
 <template>
@@ -51,69 +76,116 @@ const statusBadge = (s: string) => {
         <Head title="Ajukan Tenant - e-Koperasi" />
         <div class="p-4 sm:p-6 lg:p-8 max-w-3xl">
             <h2 class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white mb-2">Ajukan Tenant Baru</h2>
-            <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-6">Isi form di bawah untuk mengajukan pembuatan tenant KSU. Admin akan memproses dalam 1x24 jam.</p>
+            <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-6">Pilih paket, isi detail tenant, dan kirim permintaan. Admin akan memproses dalam 1x24 jam.</p>
 
-            <!-- Existing request status -->
-            <div v-if="existingRequest" class="mb-6 p-4 rounded-lg border"
-                :class="existingRequest.status === 'pending' ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800' : ''">
-                <p class="text-sm font-medium">Permintaan sebelumnya:</p>
-                <p class="text-sm mt-1">{{ existingRequest.name }} — <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" :class="statusBadge(existingRequest.status)">{{ existingRequest.status }}</span></p>
-                <p v-if="existingRequest.status === 'pending'" class="text-xs text-amber-600 mt-1">Masih diproses, silakan tunggu.</p>
+            <div v-if="existingRequest" class="mb-6 p-4 rounded-lg border bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800">
+                <p class="text-sm font-medium">Permintaan sebelumnya: {{ existingRequest.name }}</p>
+                <p class="text-xs text-amber-600 mt-1">Masih diproses, silakan tunggu.</p>
             </div>
 
             <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6">
-                <form @submit.prevent="submit" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-1.5">Nama Koperasi</label>
-                        <input v-model="form.name" type="text" required class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Koperasi Anda" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1.5">Domain (subdomain)</label>
-                        <div class="flex items-center gap-2">
-                            <input v-model="form.domain" type="text" required pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Hanya huruf kecil, angka, dan tanda strip (-)" class="flex-1 px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm font-mono focus:ring-2 focus:ring-primary-500" placeholder="koperasi-anda" />
-                            <span class="text-sm text-neutral-400 font-mono">.e-koperasi.com</span>
+                <form @submit.prevent="submit" class="space-y-5">
+                    <!-- Plan -->
+                    <div v-if="plans.length">
+                        <label class="block text-sm font-medium mb-2">Pilih Paket</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <button v-for="p in plans" :key="p.id" type="button" @click="form.plan_id = p.id"
+                                class="px-3 py-3 border-2 rounded-lg text-sm text-left transition cursor-pointer"
+                                :class="form.plan_id === p.id ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700' : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-300'">
+                                <p class="font-semibold">{{ p.name }}</p>
+                                <p class="text-xs text-neutral-400">{{ p.type }}</p>
+                                <template v-if="p.type === 'trial'">
+                                    <p class="text-sm font-bold mt-1 text-emerald-600">Gratis</p>
+                                    <p class="text-[10px] text-neutral-400">{{ p.trial_days }} hari trial</p>
+                                </template>
+                                <template v-else-if="p.type === 'enterprise'">
+                                    <p class="text-sm font-bold mt-1 text-purple-600">Rp{{ Number(p.pricing_config?.price || 0).toLocaleString('id-ID') }}</p>
+                                    <p class="text-[10px] text-neutral-400">One-time, on-premise</p>
+                                </template>
+                                <template v-else-if="p.type === 'business' || !p.type">
+                                    <p class="text-sm font-bold mt-1 text-primary-600">Rp{{ Number(p.pricing_config?.price_per_resort || p.price_per_month / Math.max(1, p.max_resorts)).toLocaleString('id-ID') }}<span class="text-[10px] font-normal text-neutral-400">/resort/bln</span></p>
+                                    <p class="text-[10px] text-neutral-400">{{ p.max_resorts }} resort max</p>
+                                </template>
+                            </button>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1.5">Jumlah Resort</label>
-                        <input v-model.number="form.max_resorts" type="number" min="1" max="100" required class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-1.5">Catatan (opsional)</label>
-                        <textarea v-model="form.notes" rows="3" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Informasi tambahan..."></textarea>
-                    </div>
 
-                    <!-- Company Profile -->
-                    <div class="pt-4 border-t dark:border-neutral-700">
-                        <h3 class="text-sm font-semibold text-neutral-800 dark:text-neutral-200 mb-3">Profil Perusahaan</h3>
-
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium mb-1.5">Alamat</label>
-                            <textarea v-model="form.company_address" rows="2" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Alamat perusahaan..."></textarea>
+                    <!-- Cycle -->
+                    <div v-if="selectedPlan && selectedPlan.type !== 'enterprise' && selectedPlan.type !== 'trial'">
+                        <label class="block text-sm font-medium mb-2">Jumlah Resort</label>
+                        <input v-model.number="form.resort_qty" type="number" :min="1" :max="selectedPlan.max_resorts" class="w-full sm:w-32 px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" />
+                        <p class="text-xs text-neutral-400 mt-1">Maksimal {{ selectedPlan.max_resorts }} resort</p>
+                        
+                        <label class="block text-sm font-medium mb-2 mt-4">Siklus Tagihan</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button v-for="c in cycles" :key="c.slug" type="button" @click="form.billing_cycle = c.slug"
+                                class="px-3 py-3 border-2 rounded-lg text-sm text-left transition cursor-pointer"
+                                :class="form.billing_cycle === c.slug ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700' : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-300'">
+                                <p class="font-semibold">{{ c.name }}</p>
+                                <p v-if="c.discount_percent > 0" class="text-xs text-emerald-600 font-medium">Hemat {{ c.discount_percent }}%</p>
+                                <p v-else class="text-xs text-neutral-400">Harga normal</p>
+                            </button>
                         </div>
+                    </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                            <div>
-                                <label class="block text-sm font-medium mb-1.5">No. Telepon</label>
-                                <input v-model="form.company_phone" type="text" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Contoh: 08123456789" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1.5">Email Perusahaan</label>
-                                <input v-model="form.company_email" type="email" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="company@email.com" />
-                            </div>
+                    <div v-if="planType === 'enterprise'" class="rounded-lg bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 p-4">
+                        <p class="text-sm font-semibold text-purple-800 dark:text-purple-300">Paket Enterprise (On-Premise)</p>
+                        <p class="text-xs text-purple-600 dark:text-purple-400 mt-1">Server dikelola client. Bayar satu kali. Request fitur di-charge terpisah.</p>
+                    </div>
+
+                    <!-- Price Preview -->
+                    <div v-if="pricePreview && planType !== 'enterprise' && planType !== 'trial'" class="rounded-lg bg-neutral-50 dark:bg-neutral-800/50 p-4 space-y-1.5 text-sm">
+                        <div class="flex justify-between"><span class="text-neutral-500">{{ pricePreview.qty }} × Rp{{ pricePreview.unitPrice.toLocaleString('id-ID') }}</span><span>Rp{{ pricePreview.subtotal.toLocaleString('id-ID') }}</span></div>
+                        <div v-if="pricePreview.discount > 0" class="flex justify-between"><span class="text-emerald-600">Diskon {{ pricePreview.discountPct }}%</span><span class="text-emerald-600">-Rp{{ pricePreview.discount.toLocaleString('id-ID') }}</span></div>
+                        <div class="flex justify-between font-bold text-primary-700 pt-1 border-t border-neutral-200 dark:border-neutral-700">
+                            <span>Total per {{ pricePreview.months }} bulan</span><span>Rp{{ pricePreview.total.toLocaleString('id-ID') }}</span>
                         </div>
+                    </div>
 
+                    <!-- Nama & Domain -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium mb-1.5">Logo Perusahaan</label>
-                            <input type="file" accept="image/jpeg,image/png" @change="onLogoChange" class="w-full text-sm text-neutral-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
-                            <div v-if="logoPreview" class="mt-2">
-                                <img :src="logoPreview" class="h-20 w-auto rounded border" alt="Preview logo" />
+                            <label class="block text-sm font-medium mb-1.5">Nama Koperasi</label>
+                            <input v-model="form.name" type="text" required class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Koperasi Anda" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1.5">Domain</label>
+                            <div class="flex items-center gap-2">
+                                <input v-model="form.domain" type="text" required pattern="[a-z0-9]+(-[a-z0-9]+)*" class="flex-1 px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm font-mono focus:ring-2 focus:ring-primary-500" placeholder="koperasi-anda" @input="checkDomain" />
+                                <span class="text-sm text-neutral-400 font-mono">.e-koperasi.com</span>
+                            </div>
+                            <div class="mt-1">
+                                <span v-if="domainStatus === 'checking'" class="text-xs text-neutral-400">Memeriksa...</span>
+                                <span v-else-if="domainStatus === 'available'" class="text-xs text-emerald-600">✅ Tersedia</span>
+                                <span v-else-if="domainStatus === 'taken'" class="text-xs text-red-500">❌ Sudah dipakai</span>
+                            </div>
+                            <div v-if="domainStatus === 'taken' && domainSuggestions.length" class="mt-1 flex flex-wrap gap-1">
+                                <span class="text-xs text-neutral-400">Rekomendasi:</span>
+                                <button v-for="s in domainSuggestions" :key="s" type="button" @click="form.domain = s; domainStatus = 'available'"
+                                    class="text-xs text-primary-600 hover:underline font-mono cursor-pointer">{{ s }}.e-koperasi.com</button>
                             </div>
                         </div>
                     </div>
 
-                    <button type="submit" :disabled="form.processing || existingRequest?.status === 'pending'"
-                        class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium">
+                    <div><label class="block text-sm font-medium mb-1.5">Catatan (opsional)</label><textarea v-model="form.notes" rows="2" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Informasi tambahan..."></textarea></div>
+
+                    <!-- Profil Perusahaan -->
+                    <div class="pt-4 border-t dark:border-neutral-700">
+                        <h3 class="text-sm font-semibold mb-3">Profil Perusahaan</h3>
+                        <div class="mb-3"><label class="block text-sm font-medium mb-1.5">Alamat</label><textarea v-model="form.company_address" rows="2" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Alamat..."></textarea></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <div><label class="block text-sm font-medium mb-1.5">Telepon</label><input v-model="form.company_phone" type="text" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="08123456789" /></div>
+                            <div><label class="block text-sm font-medium mb-1.5">Email</label><input v-model="form.company_email" type="email" class="w-full px-4 py-2.5 rounded-lg border dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:ring-2 focus:ring-primary-500" placeholder="company@email.com" /></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1.5">Logo</label>
+                            <input type="file" accept="image/jpeg,image/png" @change="onLogoChange" class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100" />
+                            <div v-if="logoPreview" class="mt-2"><img :src="logoPreview" class="h-20 w-auto rounded border" alt="Preview" /></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" :disabled="form.processing || existingRequest?.status === 'pending' || domainStatus === 'taken'"
+                        class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium cursor-pointer">
                         {{ form.processing ? 'Mengirim...' : 'Ajukan Tenant' }}
                     </button>
                 </form>

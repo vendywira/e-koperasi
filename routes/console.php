@@ -16,3 +16,8 @@ Schedule::command('tenant:auto-suspend --grace-days=7')->dailyAt('02:00');
 Schedule::call(function () {
     app(NotificationService::class)->deleteOldRead(30);
 })->daily();
+
+// ── Billing Engine ──────────────────────────────────────────
+Schedule::command('billing:pre-bill')->dailyAt('06:00');
+Schedule::command('billing:dunning')->dailyAt('08:00');
+Schedule::command('billing:cancel-expired')->dailyAt('04:00');

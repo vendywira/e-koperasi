@@ -27,13 +27,21 @@ function handleKeydown(e: KeyboardEvent) {
 onMounted(() => window.addEventListener('keydown', handleKeydown));
 onUnmounted(() => window.removeEventListener('keydown', handleKeydown));
 
-const navItems = [
-    { key: 'dashboard', label: 'Beranda', href: '/client/dashboard', icon: 'home' },
-    { key: 'subscription', label: 'Langganan', href: '/client/subscription', icon: 'clipboard' },
-    { key: 'payments', label: 'Pembayaran', href: '/client/payments', icon: 'credit-card' },
-    { key: 'request-tenant', label: 'Ajukan Tenant', href: '/client/request-tenant', icon: 'plus' },
-    { key: 'invoices', label: 'Invoice', href: '/client/invoices', icon: 'receipt' },
-    { key: 'tickets', label: 'Ticket', href: '/tickets', icon: 'ticket' },
+const navGroups = [
+    { label: 'Menu', items: [
+        { key: 'dashboard', label: 'Beranda', href: '/client/dashboard', icon: 'home' },
+    ]},
+    { label: 'Tagihan', items: [
+        { key: 'subscription', label: 'Langganan', href: '/client/subscription', icon: 'clipboard' },
+        { key: 'invoices', label: 'Invoice', href: '/client/invoices', icon: 'receipt' },
+        { key: 'payments', label: 'Pembayaran', href: '/client/payments', icon: 'credit-card' },
+    ]},
+    { label: 'Tenant', items: [
+        { key: 'request-tenant', label: 'Kelola Tenant', href: '/client/request-tenant', icon: 'building' },
+    ]},
+    { label: 'Bantuan', items: [
+        { key: 'tickets', label: 'Ticket', href: '/tickets', icon: 'ticket' },
+    ]},
 ];
 
 const isActive = (href: string) => page.url === href || page.url.startsWith(href + '/');
@@ -66,13 +74,13 @@ const isActive = (href: string) => page.url === href || page.url.startsWith(href
                 v-if="sidebarOpen"
                 class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col lg:hidden"
             >
-                <SidebarContent :user :subscription :navItems :isActive :theme :toggleTheme :logout :closeSidebar="() => sidebarOpen = false" />
+                <SidebarContent :user :subscription :navGroups :isActive :theme :toggleTheme :logout :closeSidebar="() => sidebarOpen = false" />
             </aside>
         </Transition>
 
         <!-- Desktop Sidebar -->
         <aside class="hidden lg:flex lg:flex-col w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex-shrink-0">
-            <SidebarContent :user :subscription :navItems :isActive :theme :toggleTheme :logout :closeSidebar="() => {}" />
+            <SidebarContent :user :subscription :navGroups :isActive :theme :toggleTheme :logout :closeSidebar="() => {}" />
         </aside>
 
         <!-- Main -->
@@ -136,12 +144,14 @@ import { defineComponent, h } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
 const SidebarContent = defineComponent({
-    props: ['user', 'subscription', 'navItems', 'isActive', 'theme', 'toggleTheme', 'logout', 'closeSidebar'],
+    props: ['user', 'subscription', 'navGroups', 'isActive', 'theme', 'toggleTheme', 'logout', 'closeSidebar'],
     setup(props) {
         const icons: Record<string, string> = {
             home: 'M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25',
             clipboard: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+            receipt: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
             'credit-card': 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z',
+            building: 'M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21',
             ticket: 'M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-.095 48.64 48.64 0 00-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0011.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155',
         };
 
@@ -168,8 +178,9 @@ const SidebarContent = defineComponent({
 
             // Nav items
             h('nav', { class: 'flex-1 px-3 py-4 space-y-1' }, [
-                h('p', { class: 'px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500' }, 'Menu'),
-                ...props.navItems.map((item: any) =>
+                ...props.navGroups.flatMap((group: any) => [
+                    h('p', { class: 'px-3 py-1 mt-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500' }, group.label),
+                    ...group.items.map((item: any) =>
                     h(Link, {
                         href: item.href,
                         class: 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ' +
@@ -184,6 +195,9 @@ const SidebarContent = defineComponent({
                         item.label,
                     ])
                 ),
+            ]),
+
+            // Close h('nav')
             ]),
 
             // Subscription status mini

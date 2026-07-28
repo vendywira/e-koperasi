@@ -235,4 +235,24 @@ class TenantController extends Controller
         return redirect()->route('admin.tenant.index')
             ->with('success', "Tenant '{$tenant->name}' berhasil dihapus.");
     }
+
+    public function retryProvision(string $id): RedirectResponse
+    {
+        $tenant = Tenant::with('requestor')->findOrFail($id);
+        $clientUser = $tenant->requestor;
+
+        if (!$clientUser) {
+            return redirect()->back()->with('error', 'User requester tidak ditemukan.');
+        }
+
+        $success = app(\App\Services\ProvisionService::class)->provision($tenant, $clientUser);
+
+        if ($success) {
+            $tenant->update(['status' => 'active']);
+            $tenant->subscription?->update(['status' => 'active']);
+            return redirect()->back()->with('success', "Provisioning '{$tenant->name}' berhasil.");
+        }
+
+        return redirect()->back()->with('error', 'Provisioning gagal. Cek log server.');
+    }
 }

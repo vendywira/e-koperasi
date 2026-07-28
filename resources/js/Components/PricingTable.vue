@@ -5,10 +5,43 @@ import { computed } from 'vue';
 import { useScrollReveal } from '@/composables/useScrollReveal';
 import { useSiteConfig } from '@/composables/useSiteConfig';
 
+const props = defineProps<{
+    billingCycles?: Array<{slug:string;name:string;months:number;discount_percent:number}>;
+    plans?: Array<{
+        id: string;
+        name: string;
+        description: string | null;
+        type: string;
+        max_resorts: number;
+        price_per_month: number;
+        trial_days: number;
+        features: string[];
+        pricing_config?: any;
+    }>;
+}>();
+
 const reveal = useScrollReveal({ staggerMs: 80 });
 const { pricing } = useSiteConfig();
 
-const tiers = computed(() => Object.values(pricing.value.tiers || {}));
+const tiers = computed(() => {
+    if (!props.plans?.length) return Object.values(pricing.value.tiers || {});
+    return props.plans.map((p, i) => {
+        const cfg = p.pricing_config || {};
+        let price = '', period = '', tagline = '';
+        if (p.type === 'trial') {
+            price = 'Gratis'; period = `${p.trial_days} hari`;
+            tagline = p.description || `Coba gratis, ${p.max_resorts} resort`;
+        } else if (p.type === 'enterprise') {
+            price = cfg.price ? `Rp${Number(cfg.price).toLocaleString('id-ID')}` : 'Custom';
+            period = 'one-time'; tagline = p.description || 'Server dikelola client. Unlimited.';
+        } else {
+            const ppu = cfg.price_per_resort || p.price_per_month / Math.max(1, p.max_resorts);
+            price = `Rp${ppu.toLocaleString('id-ID')}`; period = 'resort/bln';
+            tagline = p.description || `${p.max_resorts} resort maksimal`;
+        }
+        return { id: p.id, name: p.name, price, period, tagline, features: p.features, type: p.type, highlight: i === 1 };
+    });
+});
 
 const tierIcons: Record<string, any> = {
     starter: Sparkles,
@@ -67,6 +100,13 @@ const tierIcons: Record<string, any> = {
                         <span class="text-sm text-neutral-500 dark:text-neutral-400">/ {{ tier.period }}</span>
                     </div>
 
+                    <div v-if="billingCycles && billingCycles.length > 0 && tier.period !== 'one-time' && tier.period !== 'hari'" class="mt-3 flex flex-wrap gap-1.5">
+                        <span v-for="bc in billingCycles" :key="bc.slug" class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            :class="bc.discount_percent > 0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'">
+                            {{ bc.name }}<span v-if="bc.discount_percent > 0"> -{{ bc.discount_percent }}%</span>
+                        </span>
+                    </div>
+
                     <ul class="mt-6 space-y-3 flex-1">
                         <li
                             v-for="feature in tier.features"
@@ -79,7 +119,7 @@ const tierIcons: Record<string, any> = {
                     </ul>
 
                     <Link
-                        href="/demo#konsultasi"
+                        :href="`/register${tier.id ? `?plan=${tier.id}` : ''}`"
                         :class="[
                             'mt-8 block w-full text-center px-4 py-3 rounded-md font-semibold transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 cursor-pointer',
                             tier.highlight
@@ -87,13 +127,13 @@ const tierIcons: Record<string, any> = {
                                 : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-600',
                         ]"
                     >
-                        {{ tier.name === 'Enterprise' ? 'Hubungi Kami' : `Pilih ${tier.name}` }}
+                        {{ tier.name === 'Enterprise' ? 'Hubungi Kami' : 'Pilih ' + tier.name }}
                     </Link>
                 </div>
             </div>
 
             <p class="mt-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
-                {{ pricing.value?.footer_note || 'Semua paket include: dashboard real-time, mobile app iOS/Android, backup otomatis, dan kepatuhan UU PDP.' }}
+                {{ pricing.value?.footer_note || 'Semua paket include dashboard, mobile app, backup otomatis, dan kepatuhan UU PDP.' }}
             </p>
         </div>
     </section>

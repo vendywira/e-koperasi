@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import BillingSummaryCard from '@/Components/BillingSummaryCard.vue';
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 import { computed } from 'vue';
 
 const props = defineProps<{
     subscription: any;
+    nextInvoice?: any;
     pendingRequest: any;
     userTenants: any[];
     recentPayments: any[];
@@ -58,6 +60,9 @@ const statusLabel = computed(() => {
                 </h2>
                 <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Ringkasan langganan koperasi Anda.</p>
             </div>
+
+            <!-- Billing Summary Card -->
+            <BillingSummaryCard v-if="nextInvoice || subscription" :invoice="nextInvoice" :subscription="subscription" />
 
             <!-- Cards Row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -165,7 +170,7 @@ const statusLabel = computed(() => {
                                 <td class="px-5 py-3 text-neutral-500 font-mono text-xs">{{ t.tenant_domain }}.e-koperasi.com</td>
                                 <td class="px-5 py-3 text-center">
                                     <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
-                                        :class="t.status === 'active' ? 'bg-emerald-100 text-emerald-700' : t.status === 'trialing' ? 'bg-amber-100 text-amber-700' : t.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'">
+                                        :class="t.status === 'active' ? 'bg-emerald-100 text-emerald-700' : t.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'">
                                         {{ t.status }}
                                     </span>
                                 </td>

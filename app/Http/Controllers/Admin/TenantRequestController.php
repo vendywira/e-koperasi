@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Invoice;
 use App\Models\Tenant;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -16,22 +17,46 @@ class TenantRequestController extends Controller
 {
     public function index(): Response
     {
-        $pendingTenants = Tenant::with(['requestor', 'subscription'])
+        $pendingRequests = Tenant::with(['requestor', 'subscription', 'invoice'])
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'domain' => $t->domain,
+                'plan' => $t->subscription?->plan ?? '-',
+                'billing_cycle' => $t->subscription?->billing_cycle ?? 'monthly',
+                'max_resorts' => $t->subscription?->max_resorts ?? '-',
+                'price_per_resort' => $t->subscription?->price_per_resort ?? 0,
+                'total_amount' => $t->invoice?->total_amount ?? 0,
+                'has_invoice' => $t->invoice ? true : false,
+                'invoice_status' => $t->invoice?->status ?? '-',
+                'user_name' => $t->requestor?->name,
+                'user_email' => $t->requestor?->email,
+                'company_address' => $t->company_address,
+                'company_phone' => $t->company_phone,
+                'notes' => $t->notes,
+                'created_at' => $t->created_at->format('d M Y'),
+            ]);
 
         return Inertia::render('Admin/TenantRequest/Index', [
-            'requests' => $pendingTenants,
+            'requests' => $pendingRequests,
         ]);
     }
 
     public function approve(string $id): RedirectResponse
     {
-        $tenant = Tenant::with(['subscription', 'requestor'])->findOrFail($id);
+        $tenant = Tenant::with(['subscription', 'requestor', 'invoice'])->findOrFail($id);
 
         if ($tenant->status !== 'pending') {
             return redirect()->back()->with('error', 'Tenant sudah diproses.');
+        }
+
+        // Activate invoice
+        $invoice = $tenant->invoice;
+        if ($invoice && $invoice->status === 'pending') {
+            $invoice->update(['status' => 'paid', 'paid_at' => now(), 'confirmed_by' => auth()->id()]);
         }
 
         $clientUser = $tenant->requestor;
@@ -41,69 +66,47 @@ class TenantRequestController extends Controller
 
         $provisionFailed = false;
 
-        // 1. Provision via artisan CLI (bypass HTTP self-request ke ksu-app)
+        // 1. Provision via ksu-app API (with company info & logo)
         try {
-            $ksuApiUrl = config('services.ksu_app.api_url');
-            $provisionUrl = rtrim($ksuApiUrl, '/') . "/api/tenants/{$tenant->domain}/provision";
-            $response = Http::timeout(300)->post($provisionUrl, [
-                'user' => [
-                    'name' => $clientUser->name,
-                    'email' => $clientUser->email,
-                    'password' => $clientUser->password,
-                ],
-                'company' => [
-                    'name' => $tenant->name,
-                    'address' => $tenant->company_address ?? '',
-                    'phone' => $tenant->company_phone ?? '',
-                    'email' => $tenant->company_email ?? '',
-                    'logo_url' => $tenant->logo ? \Storage::disk('public')->url($tenant->logo) : null,
-                ],
-            ]);
-
-            if (!$response->successful()) {
-                Log::warning("Provision tenant {$tenant->domain} gagal: " . $response->body());
-                $provisionFailed = true;
-            }
+            $provisionService = app(\App\Services\ProvisionService::class);
+            $provisionFailed = !$provisionService->provision($tenant, $clientUser);
         } catch (\Throwable $e) {
             Log::error("Provision tenant {$tenant->domain} error: " . $e->getMessage());
             $provisionFailed = true;
         }
 
-        // 3. Update status tenant & subscription dalam transaction
-        DB::transaction(function () use ($tenant, $provisionFailed) {
-            $tenant->update(['status' => $provisionFailed ? 'pending' : 'active']);
-
-            if ($tenant->subscription) {
-                $tenant->subscription->update([
-                    'status' => $provisionFailed ? 'pending' : 'active',
-                    'started_at' => now(),
-                    'ends_at' => now()->addMonth(),
-                ]);
-            }
-        });
-
-        // 4. Notify client
+        // 3. Update status tenant & subscription
         if (!$provisionFailed) {
-            try {
-                app(NotificationService::class)->send(
-                    $clientUser,
-                    'tenant',
-                    "Tenant {$tenant->name} Aktif!",
-                    "Tenant Anda telah diaktifkan. Login di https://{$tenant->domain}.e-koperasi.com dengan email yang sama.",
-                    '/client/dashboard',
-                    $tenant
-                );
-            } catch (\Throwable $e) {
-                Log::warning("Gagal kirim notifikasi tenant {$tenant->domain}: " . $e->getMessage());
+            $tenant->update(['status' => 'active']);
+            if ($tenant->subscription) {
+                $tenant->subscription->update(['status' => 'active']);
             }
         }
 
-        $message = $provisionFailed
-            ? "Database tenant dibuat, tetapi provisioning gagal. Cek log untuk detail."
-            : "Tenant '{$tenant->name}' berhasil diaktifkan dengan admin user.";
+        // 4. Notify client
+        try {
+            $message = $provisionFailed
+                ? "Permintaan tenant {$tenant->name} disetujui, tetapi provisioning gagal. Admin sedang meninjau."
+                : "Tenant {$tenant->name} sudah aktif! Anda bisa login ke tenant sekarang.";
+
+            app(NotificationService::class)->send(
+                $clientUser,
+                'tenant',
+                "Tenant {$tenant->name} Diaktifkan!",
+                $message,
+                '/client/dashboard',
+                $tenant
+            );
+        } catch (\Throwable $e) {
+            Log::warning("Gagal kirim notifikasi tenant {$tenant->domain}: " . $e->getMessage());
+        }
+
+        $msg = $provisionFailed
+            ? "Tenant disetujui, tetapi provisioning gagal. Cek log."
+            : "Tenant '{$tenant->name}' berhasil diaktifkan.";
 
         return redirect()->route('admin.tenant-request.index')
-            ->with('success', $message);
+            ->with('success', $msg);
     }
 
     public function reject(string $id): RedirectResponse
@@ -115,6 +118,11 @@ class TenantRequestController extends Controller
         }
 
         $tenant->update(['status' => 'rejected']);
+
+        // Cancel associated invoice
+        if ($tenant->invoice && $tenant->invoice->status === 'pending') {
+            $tenant->invoice->update(['status' => 'cancelled']);
+        }
 
         return redirect()->route('admin.tenant-request.index')
             ->with('error', "Permintaan tenant '{$tenant->name}' ditolak.");

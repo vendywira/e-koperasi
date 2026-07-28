@@ -55,6 +55,19 @@ Route::prefix('client')->name('client.')->group(function () {
         // Client: Invoices
         Route::get('/invoices', [\App\Http\Controllers\Client\InvoiceController::class, 'index'])->name('invoices');
         Route::post('/invoices/{id}/upload-proof', [\App\Http\Controllers\Client\InvoiceController::class, 'uploadProof'])->name('invoices.upload-proof');
+        Route::get('/invoices/{id}/download', [\App\Http\Controllers\Client\InvoiceController::class, 'download'])->name('invoices.download');
+
+        // Client: Coupon validation (AJAX)
+        Route::post('/coupon/validate', [\App\Http\Controllers\Client\CouponController::class, 'validate'])->name('coupon.validate');
+
+        // Client: Duitku payment
+        Route::post('/payment/duitku', [\App\Http\Controllers\Client\PaymentController::class, 'payViaDuitku'])->name('payment.duitku');
+
+        // Client: Subscription upgrade/downgrade
+        Route::post('/subscription/upgrade', [\App\Http\Controllers\Client\SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
+        Route::post('/subscription/change-cycle', [\App\Http\Controllers\Client\SubscriptionController::class, 'changeCycle'])->name('subscription.change-cycle');
+        Route::post('/subscription/cancel', [\App\Http\Controllers\Client\SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+        Route::post('/subscription/resume', [\App\Http\Controllers\Client\SubscriptionController::class, 'resume'])->name('subscription.resume');
     });
 });
 
@@ -74,6 +87,11 @@ Route::middleware(['auth'])->prefix('api/notifications')->name('api.notification
     Route::post('/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
     Route::post('/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read-all');
 });
+
+// Webhook: Duitku (public, no CSRF)
+Route::post('/webhook/duitku', \App\Http\Controllers\Webhook\DuitkuController::class)
+    ->name('webhook.duitku')
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
 // CMS Admin Routes
 require __DIR__ . '/cms.php';

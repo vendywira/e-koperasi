@@ -90,7 +90,59 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/{id}/extend', [TenantController::class, 'extend'])->name('extend');
         Route::post('/{id}/toggle-suspend', [TenantController::class, 'toggleSuspend'])->name('toggle-suspend');
         Route::delete('/{id}', [TenantController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/retry-provision', [TenantController::class, 'retryProvision'])->name('retry-provision');
     });
+
+    // Plan Management (admin only)
+    Route::middleware('role:admin')->prefix('plans')->name('plan.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PlanController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\PlanController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\PlanController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\Admin\PlanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\Admin\PlanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\PlanController::class, 'destroy'])->name('destroy');
+    });
+
+    // Coupon Management (admin only)
+    Route::middleware('role:admin')->prefix('coupons')->name('coupon.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\CouponController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Admin\CouponController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Admin\CouponController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [\App\Http\Controllers\Admin\CouponController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [\App\Http\Controllers\Admin\CouponController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\CouponController::class, 'destroy'])->name('destroy');
+    });
+
+    // Billing dashboard (admin & it-ops)
+    Route::middleware('role:admin,it-ops')->prefix('billing')->name('billing.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\BillingController::class, 'index'])->name('index');
+        Route::get('/transactions', [\App\Http\Controllers\Admin\BillingController::class, 'transactionLog'])->name('transactions');
+    });
+
+    // Payment Channels (admin & it-ops)
+    Route::middleware('role:admin,it-ops')->prefix('payment-channels')->name('payment-channel.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PaymentChannelController::class, 'index'])->name('index');
+        Route::post('/sync', [\App\Http\Controllers\Admin\PaymentChannelController::class, 'sync'])->name('sync');
+        Route::post('/{id}/toggle', [\App\Http\Controllers\Admin\PaymentChannelController::class, 'toggle'])->name('toggle');
+        Route::put('/reorder', [\App\Http\Controllers\Admin\PaymentChannelController::class, 'reorder'])->name('reorder');
+    });
+
+    // Payment Transactions (admin & it-ops)
+    Route::middleware('role:admin,it-ops')->prefix('payment-transactions')->name('payment-transaction.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PaymentTransactionController::class, 'index'])->name('index');
+        Route::post('/{id}/check-status', [\App\Http\Controllers\Admin\PaymentTransactionController::class, 'checkStatus'])->name('check-status');
+    });
+    // Billing Cycles (admin only)
+    Route::middleware('role:admin')->prefix('billing-cycles')->name('billing-cycle.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\BillingCycleController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\BillingCycleController::class, 'store'])->name('store');
+        Route::put('/{id}', [\App\Http\Controllers\Admin\BillingCycleController::class, 'update'])->name('update');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\BillingCycleController::class, 'destroy'])->name('destroy');
+    });
+
+
+    // Invoice download (admin)
+    Route::get('/invoices/{id}/download', [\App\Http\Controllers\Admin\InvoiceController::class, 'download'])->name('invoice.download');
 
     // Ticket Management (admin & it-ops)
     Route::middleware('role:admin,it-ops')->prefix('tickets')->name('ticket.')->group(function () {

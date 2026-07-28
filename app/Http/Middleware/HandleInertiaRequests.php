@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\BillingCycle;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -55,6 +56,7 @@ class HandleInertiaRequests extends Middleware
                         : null,
                 ] : null,
             ],
+            'billing_cycles' => BillingCycle::active()->get(['slug', 'name', 'months', 'discount_percent', 'sort_order']),
         ]);
     }
 }

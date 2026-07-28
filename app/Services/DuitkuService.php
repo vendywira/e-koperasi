@@ -1,0 +1,163 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Invoice;
+use App\Models\PaymentChannel;
+use App\Models\PaymentTransaction;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
+class DuitkuService
+{
+    protected string $merchantCode;
+    protected string $apiKey;
+    protected string $callbackUrl;
+    protected string $returnUrl;
+    protected int $expiryPeriod;
+    protected bool $sandbox;
+
+    public function __construct()
+    {
+        $this->merchantCode = config('services.duitku.merchant_code', '');
+        $this->apiKey = config('services.duitku.api_key', '');
+        $this->callbackUrl = config('services.duitku.callback_url', '');
+        $this->returnUrl = config('services.duitku.return_url', '');
+        $this->expiryPeriod = (int) config('services.duitku.expiry_period', 1440);
+        $this->sandbox = (bool) config('services.duitku.sandbox', true);
+    }
+
+    protected function baseUrl(): string
+    {
+        return $this->sandbox
+            ? 'https://sandbox.duitku.com'
+            : 'https://passport.duitku.com';
+    }
+
+    public function createInvoice(Invoice $invoice, string $paymentMethod, string $customerName, string $customerEmail, string $customerPhone = ''): array
+    {
+        $transaction = PaymentTransaction::create([
+            'invoice_id' => $invoice->id,
+            'amount' => $invoice->total_amount,
+            'channel_code' => $paymentMethod,
+            'status' => 'pending',
+        ]);
+
+        $payload = [
+            'merchantCode' => $this->merchantCode,
+            'paymentAmount' => (int) round($invoice->total_amount),
+            'paymentMethod' => $paymentMethod,
+            'merchantOrderId' => $transaction->id,
+            'productDetails' => "Invoice {$invoice->invoice_number} — {$invoice->name}",
+            'customerVaName' => $customerName,
+            'email' => $customerEmail,
+            'phoneNumber' => $customerPhone,
+            'callbackUrl' => $this->callbackUrl,
+            'returnUrl' => str_replace('{ref}', $transaction->id, $this->returnUrl),
+            'signature' => $this->generateSignature($transaction->id),
+            'expiryPeriod' => $this->expiryPeriod,
+        ];
+
+        $response = Http::post("{$this->baseUrl()}/api/v1/merchant/v2/createInvoice", $payload);
+
+        if ($response->failed()) {
+            Log::error('Duitku createInvoice failed', [
+                'transaction_id' => $transaction->id,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            $transaction->update([
+                'status' => 'failed',
+                'raw_response' => $response->json(),
+            ]);
+            $msg = $response->json()['Message'] ?? 'Gagal membuat pembayaran';
+            throw new \RuntimeException($msg);
+        }
+
+        $data = $response->json();
+        $transaction->update([
+            'duitku_ref' => $data['reference'] ?? null,
+            'expiry' => now()->addMinutes($this->expiryPeriod),
+            'raw_response' => $data,
+        ]);
+
+        return $data;
+    }
+
+    public function checkStatus(string $merchantOrderId): array
+    {
+        $payload = [
+            'merchantCode' => $this->merchantCode,
+            'merchantOrderId' => $merchantOrderId,
+            'signature' => md5($this->merchantCode . $merchantOrderId . $this->apiKey),
+        ];
+
+        $response = Http::get("{$this->baseUrl()}/api/v1/merchant/v2/transactionStatus", $payload);
+
+        return $response->json() ?? [];
+    }
+
+    public function verifyCallback(array $data): bool
+    {
+        if (!isset($data['signature'], $data['merchantOrderId'])) return false;
+        $expected = md5($this->merchantCode . $data['merchantOrderId'] . $this->apiKey);
+        return hash_equals($expected, $data['signature']);
+    }
+
+    protected function generateSignature(string $merchantOrderId): string
+    {
+        return md5($this->merchantCode . $merchantOrderId . $this->apiKey);
+    }
+
+    public function syncPaymentChannels(): array
+    {
+        $merchantOrderId = Str::uuid()->toString();
+
+        try {
+            $response = Http::get("{$this->baseUrl()}/api/v1/merchant/v2/paymentMethod", [
+                'merchantCode' => $this->merchantCode,
+                'merchantOrderId' => $merchantOrderId,
+                'signature' => md5($this->merchantCode . $merchantOrderId . $this->apiKey),
+            ]);
+
+            if ($response->failed()) {
+                Log::warning('Duitku syncPaymentChannels failed: ' . $response->body());
+                return ['total' => 0];
+            }
+
+            $channels = $response->json()['paymentFee'] ?? [];
+            $saved = 0;
+
+            foreach ($channels as $ch) {
+                $code = $ch['paymentMethod'] ?? $ch['code'] ?? '';
+                if (empty($code)) continue;
+
+                PaymentChannel::updateOrCreate(
+                    ['code' => $code],
+                    [
+                        'name' => $ch['paymentName'] ?? $ch['name'] ?? $code,
+                        'icon_url' => $ch['iconUrl'] ?? null,
+                        'type' => $this->mapChannelType($code),
+                        'is_active' => true,
+                    ]
+                );
+                $saved++;
+            }
+
+            return ['total' => $saved];
+        } catch (\Throwable $e) {
+            Log::error('Duitku sync exception: ' . $e->getMessage());
+            return ['total' => 0];
+        }
+    }
+
+    protected function mapChannelType(string $code): string
+    {
+        $c = strtolower($code);
+        if (str_contains($c, 'va') || str_contains($c, 'virtual')) return 'va';
+        if (str_contains($c, 'qris')) return 'qris';
+        if (in_array($c, ['gopay', 'ovo', 'dana', 'shopeepay', 'linkaja'])) return 'ewallet';
+        return 'retail';
+    }
+}

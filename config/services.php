@@ -56,4 +56,18 @@ return [
         'path' => env('KSU_APP_PATH', base_path('../ksu-app')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Duitku Payment Gateway
+    |--------------------------------------------------------------------------
+    */
+    'duitku' => [
+        'merchant_code' => env('DUITKU_MERCHANT_CODE'),
+        'api_key' => env('DUITKU_API_KEY'),
+        'callback_url' => env('DUITKU_CALLBACK_URL'),
+        'return_url' => env('DUITKU_RETURN_URL'),
+        'expiry_period' => env('DUITKU_EXPIRY_PERIOD', 1440),
+        'sandbox' => env('DUITKU_SANDBOX', true),
+    ],
+
 ];
