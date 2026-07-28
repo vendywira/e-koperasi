@@ -8,6 +8,11 @@
 
 e-Koperasi is a multi-tenant SaaS B2B platform for KSU (Koperasi Simpan Pinjam). Tenants are provisioned as isolated Laravel instances (ksu-app) via API. Current flow is manual: admin creates tenant, generates invoice, client uploads proof, admin confirms. This spec automates the full billing lifecycle while preserving all existing provisioning/support/management flows.
 
+### Multi-Tenant & User Model (existing, kept)
+- **1 user → multiple tenants** — a client can have several KSU tenants under one e-koperasi account
+- **Provisioning creates admin user in ksu-app** — user's email/password from e-koperasi is sent to ksu-app via provision API; user becomes admin of their tenant instance
+- **Cross-system login** — user logs in to e-koperasi (portal), then clicks into each tenant app using same credentials
+
 ### Existing (kept untouched)
 - Provisioning API POST `/api/tenants/{domain}/provision` to ksu-app
 - Auto-suspend cron `tenant:auto-suspend` (grace period 7 days)
