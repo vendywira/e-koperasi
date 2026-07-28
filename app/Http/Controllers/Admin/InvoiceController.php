@@ -86,7 +86,7 @@ class InvoiceController extends Controller
         try {
             $ksuApiUrl = env('KSU_API_URL', config('app.url'));
             $provisionUrl = rtrim($ksuApiUrl, '/') . "/api/tenants/{$tenant->domain}/provision";
-            $response = Http::timeout(180)->post($provisionUrl, [
+            $response = Http::timeout(300)->post($provisionUrl, [
                 'user' => [
                     'name' => $clientUser->name,
                     'email' => $clientUser->email,
