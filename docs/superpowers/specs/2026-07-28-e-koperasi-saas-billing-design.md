@@ -29,32 +29,36 @@ e-Koperasi is a multi-tenant SaaS B2B platform for KSU (Koperasi Simpan Pinjam).
 
 ## 2. Data Model Changes
 
-### New Tables (migrations, no existing table modifications)
+### New Tables (migrations, all UUID primary keys)
+
+All new tables use UUID primary keys. PK is CHAR(36) with `HasUuids` trait in Eloquent models — non-sequential, unguessable.
 
 ```sql
 CREATE TABLE plans (
-    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    description TEXT NULL,
-    max_resorts INT UNSIGNED NOT NULL DEFAULT 1,
+    id              CHAR(36) PRIMARY KEY,
+    name            VARCHAR(100) NOT NULL,
+    description     TEXT NULL,
+    max_resorts     INT UNSIGNED NOT NULL DEFAULT 1,
     price_per_month DECIMAL(12,2) NOT NULL,
-    trial_days  INT UNSIGNED NOT NULL DEFAULT 30,
-    sort_order  INT UNSIGNED NOT NULL DEFAULT 0,
-    is_active   TINYINT(1) NOT NULL DEFAULT 1,
-    created_at  TIMESTAMP NULL,
-    updated_at  TIMESTAMP NULL
+    trial_days      INT UNSIGNED NOT NULL DEFAULT 30,
+    sort_order      INT UNSIGNED NOT NULL DEFAULT 0,
+    is_active       TINYINT(1) NOT NULL DEFAULT 1,
+    created_at      TIMESTAMP NULL,
+    updated_at      TIMESTAMP NULL
 );
 
 CREATE TABLE plan_features (
-    id           BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    plan_id      BIGINT UNSIGNED NOT NULL,
+    id           CHAR(36) PRIMARY KEY,
+    plan_id      CHAR(36) NOT NULL,
     feature_text VARCHAR(255) NOT NULL,
     sort_order   INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at   TIMESTAMP NULL,
+    updated_at   TIMESTAMP NULL,
     FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE CASCADE
 );
 
 CREATE TABLE coupons (
-    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id              CHAR(36) PRIMARY KEY,
     code            VARCHAR(50) NOT NULL UNIQUE,
     discount_type   ENUM('percentage', 'fixed') NOT NULL,
     discount_value  DECIMAL(12,2) NOT NULL,
@@ -69,11 +73,11 @@ CREATE TABLE coupons (
 );
 
 CREATE TABLE subscription_line_items (
-    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id                CHAR(36) PRIMARY KEY,
     subscription_id   BIGINT UNSIGNED NOT NULL,
     type              ENUM('upgrade','downgrade','renewal','adjustment') NOT NULL,
-    previous_plan_id  BIGINT UNSIGNED NULL,
-    new_plan_id       BIGINT UNSIGNED NULL,
+    previous_plan_id  CHAR(36) NULL,
+    new_plan_id       CHAR(36) NULL,
     previous_price    DECIMAL(12,2) NULL,
     new_price         DECIMAL(12,2) NULL,
     prorated_amount   DECIMAL(12,2) NULL,
@@ -86,7 +90,7 @@ CREATE TABLE subscription_line_items (
 );
 
 CREATE TABLE invoice_items (
-    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id              CHAR(36) PRIMARY KEY,
     invoice_id      CHAR(36) NOT NULL,
     description     VARCHAR(255) NOT NULL,
     quantity        INT UNSIGNED NOT NULL DEFAULT 1,
@@ -99,13 +103,15 @@ CREATE TABLE invoice_items (
 );
 
 CREATE TABLE payment_channels (
-    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id          CHAR(36) PRIMARY KEY,
     code        VARCHAR(50) NOT NULL UNIQUE,
     name        VARCHAR(100) NOT NULL,
     icon_url    VARCHAR(255) NULL,
     type        ENUM('va','qris','ewallet','retail') NOT NULL,
     is_active   TINYINT(1) NOT NULL DEFAULT 1,
-    sort_order  INT UNSIGNED NOT NULL DEFAULT 0
+    sort_order  INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at  TIMESTAMP NULL,
+    updated_at  TIMESTAMP NULL
 );
 
 CREATE TABLE payment_transactions (
@@ -181,9 +187,16 @@ ALTER TABLE invoices
 1. Validates signature (merchant key)
 2. Updates PaymentTransaction → success
 3. Updates Invoice → paid, paid_at=now
-4. Extends subscription: ends_at = max(ends_at, now) + cycle_period
+4. Extends subscription: new_ends_at = max(ends_at ?? now, now->addDay()) + cycle_period
+   - Example: active until Aug 15, bayar monthly → new ends_at = Aug 16 + 1 month = Sep 16
+   - Example: expired/suspended, bayar → starts from tomorrow + 1 month
 5. Reactivates tenant if suspended
 6. Sends notification
+
+### 3f. Manual Extend (Admin)
+- Admin extend: new_ends_at = max(ends_at ?? now, now->addDay()) + extend_days
+- NOT from current date — preserves remaining active days
+- Example: active until Aug 15, extend 30 hari → ends at Sep 15 (not Aug 1 + 30)
 
 ## 4. Proration Engine
 
@@ -225,11 +238,11 @@ DUITKU_RETURN_URL=https://e-koperasi.com/payment/{ref}/finish
 DUITKU_EXPIRY_PERIOD=1440  # minutes (24h for VA)
 ```
 
-### Payment Channel Sync
+### Payment Channel Sync & Admin Management
 - Duitku provides list of available payment channels per merchant
-- Sync on deploy / via admin button
-- Store in `payment_channels` table
-- Client sees: VA (BCA, Mandiri, BNI, BRI, Permata), QRIS, e-wallet (GoPay, OVO, Dana, ShopeePay), retail (Indomaret, Alfamart)
+- Admin page `Admin/PaymentChannels/Index.vue`: enable/disable channels, reorder, set default
+- Admin page `Admin/PaymentTransactions/Index.vue`: full transaction log with filters (status, method, date), manual status check via Duitku API, manual refund trigger
+- Sync on deploy or via admin button: fetch channels from Duitku → upsert `payment_channels`
 
 ### Webhook Handler
 ```
@@ -280,6 +293,9 @@ POST /webhook/duitku
 | Billing | new: revenue dashboard, invoice list with filters, transaction log, failed payments |
 | Plans | new: CRUD plans + features, drag reorder, toggle active |
 | Coupons | new: CRUD coupons, usage stats, validity calendar |
+| Payment Channels | new: enable/disable channels, reorder, set default |
+| Payment Transactions | new: full transaction log, filter by status/method/date, manual status check, refund |
+| Invoice PDF | download button in invoice list + detail page |
 | Tenant create | + plan selector, billing cycle, coupon, prorata preview |
 | Tenant detail | + subscription timeline, payment history inline, next bill date |
 
@@ -310,6 +326,8 @@ app/
 │   ├── Admin/
 │   │   ├── PlanController.php      [NEW]
 │   │   ├── CouponController.php    [NEW]
+│   │   ├── PaymentChannelController.php [NEW]
+│   │   ├── PaymentTransactionController.php [NEW]
 │   │   └── BillingController.php   [NEW]
 │   └── Webhook/
 │       └── DuitkuController.php    [NEW]
@@ -338,9 +356,13 @@ resources/js/Pages/
 │   ├── Plans/
 │   │   ├── Index.vue               [NEW]
 │   │   └── Form.vue                [NEW]
-│   └── Coupons/
-│       ├── Index.vue               [NEW]
-│       └── Form.vue                [NEW]
+│   ├── Coupons/
+│   │   ├── Index.vue               [NEW]
+│   │   └── Form.vue                [NEW]
+│   ├── PaymentChannels/
+│   │   └── Index.vue               [NEW]
+│   └── PaymentTransactions/
+│       └── Index.vue               [NEW]
 routes/
 ├── web.php                         [ADD webhook & billing routes]
 └── cms.php                         [ADD admin plan/coupon/billing routes]
@@ -372,7 +394,22 @@ billing:cancel-expired              → daily (04:00)
 | Integration testing + Duitku sandbox | 2 | All |
 | **Total** | **~21 days** | |
 
-## 11. What to Skip (YAGNI)
+## 13. Invoice PDF Export
+
+### Implementation
+- Library: `barryvdh/laravel-dompdf` or `laravel-dompdf` — lightweight PDF generation
+- Route: `GET /client/invoices/{id}/download` (client) + `GET /admin/invoices/{id}/download` (admin)
+- PDF includes:
+  - Company logo & info (from SiteConfig)
+  - Invoice number, date issued, due date
+  - Client name & tenant domain
+  - Line items table (subscription, proration, discount)
+  - Subtotal, discount, total
+  - Payment status + QR link to pay if pending
+  - Duitku VA/barcode if pending and has payment channel
+
+### Template
+Use Blade PDF view or Inertia render → HTML → PDF. Kept simple — bordered table, no watermark, no footer stitching.
 
 - No separate billing microservice (stays in e-Koperasi monolith)
 - No usage-based metering (per-resort is flat limit, not metered)
