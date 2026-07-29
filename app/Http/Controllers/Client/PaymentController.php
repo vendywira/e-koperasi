@@ -83,7 +83,7 @@ class PaymentController extends Controller
             'total_amount' => $ch->totalAmount((int) $invoice->total_amount),
         ]);
 
-        $groupedChannels = collect(['va' => [], 'qris' => [], 'ewallet' => [], 'retail' => []]);
+        $groupedChannels = ['va' => [], 'qris' => [], 'ewallet' => [], 'retail' => []];
         foreach ($channels as $ch) {
             $groupedChannels[$ch['type']][] = $ch;
         }
@@ -97,7 +97,7 @@ class PaymentController extends Controller
                 'status' => $invoice->status,
                 'domain' => $invoice->domain,
             ],
-            'groupedChannels' => $groupedChannels->toArray(),
+            'groupedChannels' => $groupedChannels,
             'existingTransaction' => $existingTransaction ? [
                 'id' => $existingTransaction->id,
                 'status' => $existingTransaction->status,

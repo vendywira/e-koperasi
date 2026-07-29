@@ -11,21 +11,21 @@ use Illuminate\Support\Str;
 
 class DuitkuService
 {
-    protected string $merchantCode;
-    protected string $apiKey;
-    protected string $callbackUrl;
-    protected string $returnUrl;
-    protected int $expiryPeriod;
-    protected bool $sandbox;
+    protected string $merchantCode = '';
+    protected string $apiKey = '';
+    protected string $callbackUrl = '';
+    protected string $returnUrl = '';
+    protected int $expiryPeriod = 1440;
+    protected bool $sandbox = true;
 
     public function __construct()
     {
-        $this->merchantCode = config('services.duitku.merchant_code', '');
-        $this->apiKey = config('services.duitku.api_key', '');
-        $this->callbackUrl = config('services.duitku.callback_url', '');
-        $this->returnUrl = config('services.duitku.return_url', '');
-        $this->expiryPeriod = (int) config('services.duitku.expiry_period', 1440);
-        $this->sandbox = (bool) config('services.duitku.sandbox', true);
+        $this->merchantCode = (string) (config('services.duitku.merchant_code') ?? '');
+        $this->apiKey = (string) (config('services.duitku.api_key') ?? '');
+        $this->callbackUrl = (string) (config('services.duitku.callback_url') ?? '');
+        $this->returnUrl = (string) (config('services.duitku.return_url') ?? '');
+        $this->expiryPeriod = (int) (config('services.duitku.expiry_period') ?? 1440);
+        $this->sandbox = (bool) (config('services.duitku.sandbox') ?? true);
     }
 
     protected function baseUrl(): string
