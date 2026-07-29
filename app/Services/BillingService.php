@@ -139,18 +139,24 @@ class BillingService
 
         $oldMonthly = ($subscription->max_resorts ?? 1) * ($subscription->price_per_resort ?? 0);
         $newMonthly = $newMaxResorts * $newPricePerResort;
-        $diffMonthly = $newMonthly - $oldMonthly;
 
-        $proratedAmount = ($remainingDays / $totalDays) * $diffMonthly;
+        // Daily rate — akurat berdasarkan hari tersisa
+        $oldDaily = $oldMonthly / $totalDays;
+        $newDaily = $newMonthly / $totalDays;
+        $diffDaily = $newDaily - $oldDaily;
+
+        $proratedAmount = $remainingDays * $diffDaily;
 
         return [
             'old_monthly' => $oldMonthly,
             'new_monthly' => $newMonthly,
-            'diff_monthly' => $diffMonthly,
+            'diff_monthly' => $newMonthly - $oldMonthly,
+            'old_daily' => round($oldDaily, 2),
+            'new_daily' => round($newDaily, 2),
             'prorated_amount' => round($proratedAmount, 2),
             'remaining_days' => $remainingDays,
             'total_days' => $totalDays,
-            'type' => $diffMonthly >= 0 ? 'upgrade' : 'downgrade',
+            'type' => $diffDaily >= 0 ? 'upgrade' : 'downgrade',
         ];
     }
 

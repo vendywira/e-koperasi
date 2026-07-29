@@ -15,7 +15,7 @@ class InvoiceController extends Controller
 {
     public function index(): Response
     {
-        $invoices = Invoice::where('user_id', auth()->id())
+        $invoices = Invoice::with('invoiceItems')->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($inv) {
@@ -51,6 +51,49 @@ class InvoiceController extends Controller
         ]);
     }
 
+    public function show(string $id): Response
+    {
+        $invoice = Invoice::with('invoiceItems')
+            ->where('user_id', auth()->id())
+            ->findOrFail($id);
+
+        $data = [
+            'id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
+            'name' => $invoice->name,
+            'domain' => $invoice->domain,
+            'resort_count' => $invoice->resort_count,
+            'price_per_resort' => $invoice->price_per_resort,
+            'months' => $invoice->months,
+            'subtotal' => $invoice->subtotal ?? $invoice->total_amount,
+            'discount_amount' => $invoice->discount_amount ?? 0,
+            'total_amount' => $invoice->total_amount,
+            'status' => $invoice->status,
+            'payment_proof' => $invoice->payment_proof ? asset('storage/' . $invoice->payment_proof) : null,
+            'due_date' => $invoice->due_date?->format('d M Y'),
+            'paid_at' => $invoice->paid_at?->format('d M Y'),
+            'created_at' => $invoice->created_at->format('d M Y'),
+            'items' => $invoice->invoiceItems->map(fn($i) => [
+                'id' => $i->id,
+                'description' => $i->description,
+                'quantity' => $i->quantity,
+                'unit_price' => $i->unit_price,
+                'discount_amount' => $i->discount_amount,
+                'total_amount' => $i->total_amount,
+            ]),
+        ];
+
+        return Inertia::render('Client/InvoiceDetail', [
+            'invoice' => $data,
+            'paymentChannels' => \App\Models\PaymentChannel::active()->get()->map(fn($ch) => [
+                'id' => $ch->id,
+                'code' => $ch->code,
+                'name' => $ch->name,
+                'type' => $ch->type,
+            ]),
+        ]);
+    }
+
     public function uploadProof(Request $request, string $id): RedirectResponse
     {
         $invoice = Invoice::where('id', $id)
@@ -83,6 +126,9 @@ class InvoiceController extends Controller
             'companyLogo' => $companyLogo,
         ]);
 
-        return $pdf->download("invoice-{$invoice->invoice_number}.pdf");
+        return response()->make($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="invoice-' . $invoice->invoice_number . '.pdf"',
+        ]);
     }
 }

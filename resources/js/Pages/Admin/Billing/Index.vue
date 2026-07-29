@@ -42,7 +42,7 @@ defineProps<{ invoices: any; stats: any }>();
                                 <td class="px-5 py-3">{{ inv.name }}</td>
                                 <td class="px-5 py-3 text-right font-mono">Rp{{ Number(inv.total_amount).toLocaleString('id-ID') }}</td>
                                 <td class="px-5 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-medium" :class="inv.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : inv.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-neutral-100 text-neutral-500'">{{ inv.status }}</span></td>
-                                <td class="px-5 py-3 text-center"><Link :href="`/admin/invoices/${inv.id}/download`" class="text-xs text-primary-600 hover:underline cursor-pointer">PDF</Link></td>
+                                <td class="px-5 py-3 text-center"><div class="flex justify-center gap-2"><Link :href="`/admin/invoices/${inv.id}`" class="text-xs text-primary-600 hover:underline cursor-pointer">Detail</Link><a :href="`/admin/invoices/${inv.id}/download`" target="_blank" class="text-xs text-neutral-500 hover:underline cursor-pointer">PDF</a></div></td>
                             </tr>
                         </tbody>
                     </table>

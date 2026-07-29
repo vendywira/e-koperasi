@@ -49,7 +49,7 @@
                 <td style="text-align:right">Rp{{ number_format($item->total_amount, 0, ',', '.') }}</td>
             </tr>
             @empty
-            <tr><td colspan="5" style="text-align:center; color:#94a3b8;">Tidak ada item</td></tr>
+            <tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic;">Belum ada rincian item untuk invoice ini.</td></tr>
             @endforelse
         </tbody>
     </table>

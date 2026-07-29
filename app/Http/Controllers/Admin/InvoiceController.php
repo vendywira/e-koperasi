@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\NotificationService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\SiteConfig;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -150,5 +151,47 @@ class InvoiceController extends Controller
         $invoice->update(['payment_proof' => $path]);
 
         return redirect()->back()->with('success', 'Bukti pembayaran berhasil diupload.');
+    }
+
+    public function show(string $id): \Inertia\Response
+    {
+        $invoice = \App\Models\Invoice::with("invoiceItems", "user", "confirmor")->findOrFail($id);
+        return \Inertia\Inertia::render("Admin/Invoice/Show", ["invoice" => [
+            "id" => $invoice->id,
+            "invoice_number" => $invoice->invoice_number,
+            "name" => $invoice->name,
+            "domain" => $invoice->domain,
+            "resort_count" => $invoice->resort_count,
+            "price_per_resort" => $invoice->price_per_resort,
+            "months" => $invoice->months,
+            "subtotal" => $invoice->subtotal ?? $invoice->total_amount,
+            "discount_amount" => $invoice->discount_amount ?? 0,
+            "total_amount" => $invoice->total_amount,
+            "status" => $invoice->status,
+            "payment_proof" => $invoice->payment_proof ? asset("storage/" . $invoice->payment_proof) : null,
+            "due_date" => $invoice->due_date?->format("d M Y"),
+            "paid_at" => $invoice->paid_at?->format("d M Y"),
+            "created_at" => $invoice->created_at->format("d M Y"),
+            "client_name" => $invoice->user?->name,
+            "client_email" => $invoice->user?->email,
+            "confirmed_by" => $invoice->confirmor?->name,
+            "items" => $invoice->invoiceItems->map(fn($i) => ["id" => $i->id, "description" => $i->description, "quantity" => $i->quantity, "unit_price" => $i->unit_price, "discount_amount" => $i->discount_amount, "total_amount" => $i->total_amount, ]),
+        ]]);
+    }
+
+    public function download(string $id)
+    {
+        $invoice = Invoice::with('invoiceItems')->findOrFail($id);
+        $companyName = app(\App\Services\SiteConfig::class)->get('company.name', 'e-Koperasi');
+
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'invoice' => $invoice,
+            'companyName' => $companyName,
+        ]);
+
+        return response()->make($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="invoice-' . $invoice->invoice_number . '.pdf"',
+        ]);
     }
 }

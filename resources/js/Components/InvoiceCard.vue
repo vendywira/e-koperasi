@@ -7,6 +7,8 @@ const props = defineProps<{
     channels?: any[];
 }>();
 
+const showModal = ref(false);
+
 const paying = ref(false);
 const selectedChannel = ref('');
 
@@ -35,13 +37,15 @@ function payNow(invoiceId: string) {
         onError: () => { paying.value = false; },
     });
 }
+const downloading = ref<string | null>(null);
+function onDownload() { downloading.value = "loading"; setTimeout(() => { downloading.value = null; }, 3000); }
 </script>
 
 <template>
     <div class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-4 sm:p-5 shadow-sm mb-3">
         <div class="flex items-start justify-between mb-3">
             <div>
-                <p class="text-xs font-mono text-neutral-400">{{ invoice.invoice_number }}</p>
+                <p class="text-xs font-mono text-neutral-400">{{ invoice.invoice_number || invoice.id?.substring(0, 8) }}</p>
                 <h3 class="font-semibold text-neutral-900 dark:text-white">{{ invoice.name }}</h3>
                 <p class="text-xs text-neutral-500 font-mono">{{ invoice.domain }}.e-koperasi.com</p>
             </div>
@@ -91,7 +95,7 @@ function payNow(invoiceId: string) {
 
         <div v-if="invoice.status === 'paid'" class="border-t border-neutral-100 dark:border-neutral-800 pt-3 text-xs text-emerald-600 flex items-center justify-between">
             <span>✅ Dibayar {{ invoice.paid_at }}</span>
-            <Link :href="`/client/invoices/${invoice.id}/download`" class="underline hover:text-emerald-700">Download PDF</Link>
+            <a :href="`/client/invoices/${invoice.id}/download`" target="_blank" class="underline hover:text-emerald-700 cursor-pointer" @click="onDownload">Download PDF</a>
         </div>
     </div>
 </template>

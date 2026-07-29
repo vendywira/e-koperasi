@@ -63,7 +63,7 @@ function playNotificationSound() {
 // Module-level — track ID yang sudah pernah bunyi sound-nya agar tidak double
 let soundPlayedForIds = new Set<string>();
 
-export function useNotifications(pollingIntervalMs = 20000) {
+export function useNotifications(pollingIntervalMs = 300000) {
     const unreadCount = ref(0);
     const notifications = ref<Notification[]>([]);
     const showDropdown = ref(false);

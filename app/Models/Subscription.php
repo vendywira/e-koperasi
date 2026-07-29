@@ -20,6 +20,10 @@ class Subscription extends Model
         'trial_ends_at',
         'ends_at',
         'renewed_at',
+        'plan_id',
+        'billing_cycle',
+        'grace_period_days',
+        'cancelled_at',
     ];
 
     protected function casts(): array

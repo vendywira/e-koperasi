@@ -82,7 +82,7 @@ class TenantRequestController extends Controller
             'name' => 'required|string|max:255',
             'domain' => 'required|string|max:100|unique:tenants,domain|regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
             'plan_id' => 'required|exists:plans,id',
-            'resort_qty' => 'nullable|integer|min:1',
+            'resort_qty' => 'nullable|integer|min:0',
             'billing_cycle' => 'nullable|in:monthly,quarterly,semiannual,yearly',
             'notes' => 'nullable|string|max:500',
             'company_address' => 'nullable|string|max:500',
@@ -113,7 +113,7 @@ class TenantRequestController extends Controller
                 'status' => 'pending',
             ]);
 
-            $cycle = $validated['billing_cycle'] ?? 'monthly';
+            $cycle = !empty($validated['billing_cycle']) ? $validated['billing_cycle'] : 'monthly';
             if ($plan->type !== 'business') $cycle = 'monthly';
             $subscription = $tenant->subscription()->create([
                 'user_id' => auth()->id(),
