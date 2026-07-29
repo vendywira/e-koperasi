@@ -8,6 +8,7 @@ const props = defineProps<{
     subscription: any;
     nextInvoice?: any;
     pendingRequest: any;
+    pendingInvoices: any[];
     userTenants: any[];
     recentPayments: any[];
     ticketStats?: {
@@ -121,6 +122,39 @@ const statusLabel = computed(() => {
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                         </svg>
                     </Link>
+                </div>
+            </div>
+
+            <!-- Pending Invoices -->
+            <div v-if="pendingInvoices.length > 0" class="bg-white dark:bg-neutral-900 rounded-xl border border-amber-200 dark:border-amber-800 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-semibold text-neutral-900 dark:text-white">Tagihan Belum Dibayar</h3>
+                        <Link href="/client/invoices" class="text-xs text-emerald-600 dark:text-emerald-400 hover:underline">Lihat Semua</Link>
+                    </div>
+                    <div class="space-y-3">
+                        <div v-for="inv in pendingInvoices" :key="inv.id"
+                            class="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/50"
+                        >
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium text-neutral-900 dark:text-white truncate">{{ inv.invoice_number }}</p>
+                                <p class="text-xs text-neutral-500 dark:text-neutral-400">{{ inv.name }} · {{ inv.created_at }}</p>
+                            </div>
+                            <div class="text-right flex-shrink-0 ml-3">
+                                <p class="text-sm font-bold text-neutral-900 dark:text-white font-mono">Rp{{ Number(inv.total_amount).toLocaleString('id-ID') }}</p>
+                                <p v-if="inv.due_date" class="text-xs text-red-500">{{ inv.due_date }}</p>
+                            </div>
+                            <Link
+                                :href="`/client/invoices/${inv.id}/payment`"
+                                class="ml-3 px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-medium hover:bg-emerald-700 transition-colors inline-flex items-center gap-1 flex-shrink-0"
+                            >
+                                Bayar
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </div>
 

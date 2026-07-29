@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Invoice;
 use App\Models\Tenant;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class DashboardController extends Controller
         $user = auth()->user();
         $subscription = $user->subscription;
         // Pending request yang belum punya invoice
-        $invoicedIds = \App\Models\Invoice::whereIn('status', ['pending','paid'])
+        $invoicedIds = Invoice::whereIn('status', ['pending','paid'])
             ->pluck('tenant_id')->toArray();
         $activeTenantRequest = Tenant::where('requested_by', $user->id)
             ->where('status', 'pending')
@@ -40,8 +41,23 @@ class DashboardController extends Controller
             'close' => Ticket::where('user_id', $user->id)->where('status', 'close')->count(),
         ];
 
+        // Pending invoices — unpaid
+        $pendingInvoices = Invoice::where('user_id', $user->id)
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($inv) => [
+                'id' => $inv->id,
+                'invoice_number' => $inv->invoice_number,
+                'name' => $inv->name,
+                'total_amount' => (int) $inv->total_amount,
+                'due_date' => $inv->due_date?->format('d M Y'),
+                'created_at' => $inv->created_at->format('d M Y'),
+            ]);
+
         return Inertia::render('Client/Dashboard', [
             'pendingRequest' => $activeTenantRequest,
+            'pendingInvoices' => $pendingInvoices,
             'userTenants' => $user->ksuSubscriptions()->with('tenant')->get()->map(fn($s) => [
                 'id' => $s->id,
                 'tenant_name' => $s->tenant?->name,

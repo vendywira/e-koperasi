@@ -26,12 +26,13 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             SiteContentSeeder::class,
-            ClientSeeder::class,
-            TenantSeeder::class,
             BillingSeeder::class,
             BillingCycleSeeder::class,
             PlanSeeder::class,
+            ClientSeeder::class,
+            TenantSeeder::class,
             TicketSeeder::class,
+            PaymentDemoSeeder::class,
         ]);
     }
 }
