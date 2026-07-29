@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -89,6 +90,7 @@ class PaymentController extends Controller
         }
 
         return Inertia::render('Client/PaymentPage', [
+            'mockMode' => config('services.duitku.mock_enabled', false),
             'invoice' => [
                 'id' => $invoice->id,
                 'invoice_number' => $invoice->invoice_number,
@@ -219,6 +221,47 @@ class PaymentController extends Controller
             $oldTransaction->update(['status' => 'pending']);
             return response()->json(['error' => $e->getMessage()], 422);
         }
+    }
+
+    public function simulateCallback(Request $request): JsonResponse
+    {
+        if (!config('services.duitku.mock_enabled')) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'transaction_id' => 'required|exists:payment_transactions,id',
+            'status' => 'required|in:success,failed',
+        ]);
+
+        $transaction = PaymentTransaction::where('id', $validated['transaction_id'])
+            ->where('status', 'pending')
+            ->first();
+
+        if (!$transaction) {
+            return response()->json(['error' => 'Transaction not found or already processed'], 404);
+        }
+
+        $newStatus = $validated['status'];
+        $transaction->update([
+            'status' => $newStatus,
+            'paid_at' => $newStatus === 'success' ? now() : null,
+            'raw_response' => array_merge($transaction->raw_response ?? [], [
+                'simulated_at' => now()->toIso8601String(),
+                'simulated_status' => $newStatus,
+            ]),
+        ]);
+
+        if ($newStatus === 'success') {
+            $invoice = Invoice::find($transaction->invoice_id);
+            if ($invoice && $invoice->status === 'pending') {
+                app(\App\Services\BillingService::class)->confirmPayment($invoice);
+            }
+        }
+
+        Log::info("Payment simulated: {$newStatus}", ['transaction_id' => $transaction->id]);
+
+        return response()->json(['ok' => true, 'transaction_id' => $transaction->id, 'status' => $newStatus]);
     }
 
     public function status(string $id): JsonResponse

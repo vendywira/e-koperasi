@@ -5,6 +5,7 @@ import axios from 'axios';
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 
 const props = defineProps<{
+    mockMode?: boolean;
     invoice: {
         id: string;
         invoice_number: string;
@@ -39,6 +40,7 @@ const step = ref<Step>(
 const selectedCode = ref(props.existingTransaction?.channel_code ?? '');
 const transactionId = ref(props.existingTransaction?.id ?? '');
 const loading = ref(false);
+const simulating = ref(false);
 const error = ref('');
 const copied = ref(false);
 const openAccordions = ref<string[]>(['va']);
@@ -259,6 +261,28 @@ async function checkStatus() {
         }
     } catch {
         // silent
+    }
+}
+
+async function simulatePayment(targetStatus: 'success' | 'failed') {
+    if (!transactionId.value) return;
+    simulating.value = true;
+    try {
+        await axios.post('/client/payment/simulate-callback', {
+            transaction_id: transactionId.value,
+            status: targetStatus,
+        });
+        if (targetStatus === 'success') {
+            step.value = 'success';
+        } else {
+            step.value = 'select';
+            selectedCode.value = '';
+        }
+        stopPolling();
+    } catch {
+        // silent
+    } finally {
+        simulating.value = false;
     }
 }
 
@@ -589,6 +613,17 @@ const showCheckmark = ref(false);
                         <div class="px-5 py-3 flex gap-2">
                             <button @click="changeMethod" :disabled="loading" class="flex-1 h-[38px] border border-neutral-200 dark:border-neutral-700 rounded-lg text-[12px] font-medium text-neutral-500 hover:bg-neutral-50 dark:hover:bg-neutral-800 disabled:opacity-50 transition-all cursor-pointer">Ganti Metode</button>
                             <button @click="checkStatus" class="flex-1 h-[38px] bg-neutral-100 dark:bg-neutral-800 rounded-lg text-[12px] font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-all cursor-pointer">Cek Status</button>
+                        </div>
+
+                        <!-- Mock Simulation -->
+                        <div v-if="mockMode && step === 'payment'" class="border-t border-dashed border-neutral-200 dark:border-neutral-800">
+                            <div class="px-5 py-3">
+                                <p class="text-[10px] text-neutral-400 uppercase tracking-wide font-medium mb-2">Simulasi (Mock Mode)</p>
+                                <div class="flex gap-2">
+                                    <button @click="simulatePayment('success')" :disabled="simulating" class="flex-1 h-[34px] bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded text-[11px] font-semibold hover:bg-emerald-200 dark:hover:bg-emerald-900/40 transition-all disabled:opacity-50 cursor-pointer">✓ Simulasi Sukses</button>
+                                    <button @click="simulatePayment('failed')" :disabled="simulating" class="flex-1 h-[34px] bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded text-[11px] font-semibold hover:bg-red-200 dark:hover:bg-red-900/40 transition-all disabled:opacity-50 cursor-pointer">✗ Simulasi Gagal</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

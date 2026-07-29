@@ -71,6 +71,9 @@ Route::prefix('client')->name('client.')->group(function () {
         Route::post('/payment/{id}/change-method', [\App\Http\Controllers\Client\PaymentController::class, 'changeMethod'])->name('payment.change-method');
         Route::get('/payment/{id}/status', [\App\Http\Controllers\Client\PaymentController::class, 'status'])->name('payment.status');
 
+        // Mock: simulate Duitku callback (only when DUITKU_MOCK_ENABLED=true)
+        Route::post('/payment/simulate-callback', [\App\Http\Controllers\Client\PaymentController::class, 'simulateCallback'])->name('payment.simulate-callback');
+
         // Client: Subscription upgrade/downgrade
         Route::post('/subscription/upgrade', [\App\Http\Controllers\Client\SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
         Route::post('/subscription/change-cycle', [\App\Http\Controllers\Client\SubscriptionController::class, 'changeCycle'])->name('subscription.change-cycle');
