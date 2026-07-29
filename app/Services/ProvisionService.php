@@ -28,7 +28,7 @@ class ProvisionService
         }
 
         try {
-            $response = Http::timeout(300)->post($provisionUrl, [
+            $response = Http::timeout(150)->post($provisionUrl, [
                 'user' => [
                     'name' => $user->name,
                     'email' => $user->email,

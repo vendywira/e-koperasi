@@ -68,31 +68,11 @@ function onDownload() { downloading.value = "loading"; setTimeout(() => { downlo
         </div>
 
         <div v-if="invoice.status === 'pending'" class="border-t border-neutral-100 dark:border-neutral-800 pt-3 space-y-3">
-            <div v-if="channels && channels.length > 0" class="space-y-2">
-                <p class="text-xs font-medium text-neutral-600 dark:text-neutral-400">Bayar Online:</p>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                    <button v-for="ch in channels" :key="ch.id" @click="selectedChannel = ch.code"
-                        class="px-2 py-2 text-[10px] border rounded-lg transition text-center cursor-pointer min-h-[44px]"
-                        :class="selectedChannel === ch.code ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700' : 'border-neutral-200 dark:border-neutral-700 hover:border-primary-300'">
-                        {{ ch.name }}
-                    </button>
-                </div>
-                <button @click="payNow(invoice.id)" :disabled="!selectedChannel || paying"
-                    class="w-full px-4 py-3 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition disabled:opacity-50 cursor-pointer min-h-[44px]">
-                    {{ paying ? 'Memproses...' : 'Bayar Sekarang' }}
-                </button>
-            </div>
-
-            <div class="space-y-2">
-                <p class="text-xs text-neutral-400">Atau transfer manual:</p>
-                <button @click="uploadProof(invoice.id)"
-                    class="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-lg text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800 transition cursor-pointer min-h-[44px]">
-                    {{ invoice.payment_proof ? 'Ganti Bukti Transfer' : 'Upload Bukti Transfer' }}
-                </button>
-                <a v-if="invoice.payment_proof" :href="invoice.payment_proof" target="_blank" class="block text-xs text-primary-600 hover:underline text-center">Lihat bukti</a>
-            </div>
+            <Link :href="`/client/invoices/${invoice.id}`"
+                class="block w-full px-4 py-3 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition text-center cursor-pointer">
+                Lihat Detail & Bayar
+            </Link>
         </div>
-
         <div v-if="invoice.status === 'paid'" class="border-t border-neutral-100 dark:border-neutral-800 pt-3 text-xs text-emerald-600 flex items-center justify-between">
             <span>✅ Dibayar {{ invoice.paid_at }}</span>
             <a :href="`/client/invoices/${invoice.id}/download`" target="_blank" class="underline hover:text-emerald-700 cursor-pointer" @click="onDownload">Download PDF</a>
