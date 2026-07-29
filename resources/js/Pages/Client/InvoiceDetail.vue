@@ -5,8 +5,6 @@ import ClientLayout from '@/Layouts/ClientLayout.vue';
 
 const props = defineProps<{ invoice: any; paymentChannels: any[] }>();
 const downloading = ref(false);
-const selectedChannel = ref('');
-const paying = ref(false);
 const showProof = ref(false);
 
 function onDownload() {
@@ -26,18 +24,6 @@ function uploadProof() {
         router.post(`/client/invoices/${props.invoice.id}/upload-proof`, form, { preserveScroll: true });
     };
     input.click();
-}
-
-function payNow() {
-    if (!selectedChannel.value || paying.value) return;
-    paying.value = true;
-    router.post('/client/payment/duitku', {
-        invoice_id: props.invoice.id,
-        payment_method: selectedChannel.value,
-    }, {
-        preserveScroll: true,
-        onFinish: () => { paying.value = false; },
-    });
 }
 </script>
 
@@ -114,19 +100,12 @@ function payNow() {
                 <!-- Payment Section (pending only) -->
                 <div v-if="invoice.status === 'pending'" class="p-6 sm:p-8 space-y-4">
                     <h2 class="text-sm font-semibold">Pembayaran</h2>
-                    <div v-if="paymentChannels.length" class="space-y-2">
-                        <p class="text-xs text-neutral-400">Pilih metode bayar:</p>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <button v-for="ch in paymentChannels" :key="ch.id" @click="selectedChannel = ch.code"
-                                class="px-3 py-2.5 border-2 rounded-lg text-xs text-left transition cursor-pointer min-h-[44px]"
-                                :class="selectedChannel === ch.code ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-neutral-200 hover:border-primary-300'">
-                                {{ ch.name }}
-                            </button>
-                        </div>
-                        <div class="flex gap-2 pt-2">
-                            <button @click="payNow" :disabled="!selectedChannel || paying" class="px-5 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 cursor-pointer min-h-[44px]">{{ paying ? '...' : 'Bayar Sekarang' }}</button>
-                            <button @click="uploadProof" class="px-5 py-2.5 border border-neutral-200 rounded-lg text-sm hover:bg-neutral-50 cursor-pointer min-h-[44px]">Upload Bukti Transfer</button>
-                        </div>
+                    <p class="text-xs text-neutral-400">Lanjutkan pembayaran untuk invoice ini</p>
+                    <div class="flex gap-2 pt-2">
+                        <Link :href="`/client/invoices/${invoice.id}/payment`" class="px-5 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 cursor-pointer min-h-[44px] inline-flex items-center">
+                            Bayar Sekarang
+                        </Link>
+                        <button @click="uploadProof" class="px-5 py-2.5 border border-neutral-200 rounded-lg text-sm hover:bg-neutral-50 cursor-pointer min-h-[44px]">Upload Bukti Transfer</button>
                     </div>
                 </div>
 
@@ -147,7 +126,7 @@ function payNow() {
                 </div>
             </div>
         </div>
-            <Teleport to="body">
+        <Teleport to="body">
             <div v-if="showProof" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="showProof = false">
                 <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xl max-w-xl w-full overflow-hidden">
                     <div class="flex items-center justify-between px-5 py-3 border-b">
