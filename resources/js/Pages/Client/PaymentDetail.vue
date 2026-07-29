@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import ClientLayout from '@/Layouts/ClientLayout.vue';
 
 const props = defineProps<{
-    payment: any;
+    transaction: any;
     subscription: any;
 }>();
 
@@ -44,9 +44,9 @@ const statusBadge = (status: string) => {
                         </div>
                         <span
                             class="px-3 py-1 rounded-full text-xs font-semibold"
-                            :class="statusBadge(payment.status).class"
+                            :class="statusBadge(transaction.status).class"
                         >
-                            {{ statusBadge(payment.status).label }}
+                            {{ statusBadge(transaction.status).label }}
                         </span>
                     </div>
                 </div>
@@ -56,12 +56,12 @@ const statusBadge = (status: string) => {
                     <div class="grid grid-cols-2 gap-4 sm:gap-6">
                         <div>
                             <p class="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Tanggal</p>
-                            <p class="text-sm font-medium text-neutral-900 dark:text-white mt-1">{{ payment.paid_at ?? payment.created_at ?? '-' }}</p>
+                            <p class="text-sm font-medium text-neutral-900 dark:text-white mt-1">{{ transaction.paid_at ?? transaction.created_at ?? '-' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Metode</p>
                             <p class="text-sm font-medium text-neutral-900 dark:text-white mt-1">
-                                {{ payment.payment_method === 'manual_transfer' ? 'Transfer Manual' : payment.payment_method }}
+                                {{ transaction.payment_method === 'manual_transfer' ? 'Transfer Manual' : transaction.payment_method }}
                             </p>
                         </div>
                         <div>
@@ -70,21 +70,21 @@ const statusBadge = (status: string) => {
                         </div>
                         <div>
                             <p class="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Periode</p>
-                            <p class="text-sm font-medium text-neutral-900 dark:text-white mt-1">{{ payment.paid_at ?? '-' }}</p>
+                            <p class="text-sm font-medium text-neutral-900 dark:text-white mt-1">{{ transaction.paid_at ?? '-' }}</p>
                         </div>
                     </div>
 
                     <!-- Catatan -->
-                    <div v-if="payment.notes" class="pt-4 border-t border-neutral-200 dark:border-neutral-700">
+                    <div v-if="transaction.notes" class="pt-4 border-t border-neutral-200 dark:border-neutral-700">
                         <p class="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-1">Catatan</p>
-                        <p class="text-sm text-neutral-700 dark:text-neutral-300">{{ payment.notes }}</p>
+                        <p class="text-sm text-neutral-700 dark:text-neutral-300">{{ transaction.notes }}</p>
                     </div>
 
                     <!-- Total -->
                     <div class="pt-4 border-t border-neutral-200 dark:border-neutral-700">
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium text-neutral-700 dark:text-neutral-300">Total Pembayaran</span>
-                            <span class="text-xl font-bold text-neutral-900 dark:text-white">Rp{{ Number(payment.amount).toLocaleString('id-ID') }}</span>
+                            <span class="text-xl font-bold text-neutral-900 dark:text-white">Rp{{ Number(transaction.amount).toLocaleString('id-ID') }}</span>
                         </div>
                     </div>
                 </div>
