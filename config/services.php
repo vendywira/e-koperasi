@@ -68,6 +68,7 @@ return [
         'return_url' => env('DUITKU_RETURN_URL'),
         'expiry_period' => env('DUITKU_EXPIRY_PERIOD', 1440),
         'sandbox' => env('DUITKU_SANDBOX', true),
+        'mock_enabled' => env('DUITKU_MOCK_ENABLED', false),
     ],
 
 ];

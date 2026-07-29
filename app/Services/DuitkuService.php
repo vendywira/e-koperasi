@@ -17,6 +17,7 @@ class DuitkuService
     protected string $returnUrl = '';
     protected int $expiryPeriod = 1440;
     protected bool $sandbox = true;
+    protected bool $mockMode = false;
 
     public function __construct()
     {
@@ -26,6 +27,7 @@ class DuitkuService
         $this->returnUrl = (string) (config('services.duitku.return_url') ?? '');
         $this->expiryPeriod = (int) (config('services.duitku.expiry_period') ?? 1440);
         $this->sandbox = (bool) (config('services.duitku.sandbox') ?? true);
+        $this->mockMode = (bool) (config('services.duitku.mock_enabled') ?? false);
     }
 
     protected function baseUrl(): string
@@ -51,8 +53,8 @@ class DuitkuService
             'status' => 'pending',
         ]);
 
-        // Sandbox mock — no real API call when credentials missing
-        if ($this->sandbox && empty($this->merchantCode)) {
+        // Mock mode — return fake data without hitting Duitku API
+        if ($this->mockMode) {
             $ref = strtoupper(bin2hex(random_bytes(8)));
             $va = match ($paymentMethod) {
                 'M1' => '88888' . str_pad((string) random_int(100000000, 999999999), 9, '0', STR_PAD_LEFT),
