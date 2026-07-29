@@ -51,6 +51,33 @@ class DuitkuService
             'status' => 'pending',
         ]);
 
+        // Sandbox mock — no real API call when credentials missing
+        if ($this->sandbox && empty($this->merchantCode)) {
+            $ref = strtoupper(bin2hex(random_bytes(8)));
+            $va = match ($paymentMethod) {
+                'M1' => '88888' . str_pad((string) random_int(100000000, 999999999), 9, '0', STR_PAD_LEFT),
+                'M2' => '70000' . str_pad((string) random_int(1000000, 9999999), 7, '0', STR_PAD_LEFT),
+                'BRIVA' => '88888' . str_pad((string) random_int(10000000, 99999999), 8, '0', STR_PAD_LEFT),
+                'BNIVA' => '90000' . str_pad((string) random_int(1000000, 9999999), 7, '0', STR_PAD_LEFT),
+                default => null,
+            };
+            $data = [
+                'vaNumber' => $va,
+                'reference' => 'DEMO-' . $ref,
+                'redirectUrl' => null,
+                'paymentUrl' => null,
+                'qrUrl' => $paymentMethod === 'QRIS'
+                    ? 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=DEMO-' . $ref
+                    : null,
+            ];
+            $transaction->update([
+                'duitku_ref' => 'DEMO-' . $ref,
+                'expiry' => now()->addMinutes($this->expiryPeriod),
+                'raw_response' => $data,
+            ]);
+            return $data;
+        }
+
         $payload = [
             'merchantCode' => $this->merchantCode,
             'paymentAmount' => $totalAmount,
