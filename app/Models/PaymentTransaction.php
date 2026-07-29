@@ -11,9 +11,15 @@ class PaymentTransaction extends Model
     use HasUuids;
 
     protected $fillable = [
-        'invoice_id', 'duitku_ref', 'amount', 'channel_code',
-        'channel_name', 'status', 'paid_at', 'expiry', 'raw_response',
+        'invoice_id', 'duitku_ref', 'amount', 'base_amount', 'fee_amount',
+        'channel_code', 'channel_name', 'status', 'paid_at', 'expiry', 'raw_response',
     ];
+
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_SUCCESS = 'success';
+    public const STATUS_FAILED = 'failed';
+    public const STATUS_EXPIRED = 'expired';
+    public const STATUS_CANCELLED = 'cancelled';
 
     protected function casts(): array
     {
