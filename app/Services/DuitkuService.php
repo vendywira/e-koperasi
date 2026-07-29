@@ -37,16 +37,23 @@ class DuitkuService
 
     public function createInvoice(Invoice $invoice, string $paymentMethod, string $customerName, string $customerEmail, string $customerPhone = ''): array
     {
+        $channel = PaymentChannel::where('code', $paymentMethod)->first();
+        $baseAmount = (int) round($invoice->total_amount);
+        $feeAmount = $channel ? $channel->calculateFee($baseAmount) : 0;
+        $totalAmount = $channel ? $channel->totalAmount($baseAmount) : $baseAmount;
+
         $transaction = PaymentTransaction::create([
             'invoice_id' => $invoice->id,
-            'amount' => $invoice->total_amount,
+            'amount' => $totalAmount,
+            'base_amount' => $baseAmount,
+            'fee_amount' => $feeAmount,
             'channel_code' => $paymentMethod,
             'status' => 'pending',
         ]);
 
         $payload = [
             'merchantCode' => $this->merchantCode,
-            'paymentAmount' => (int) round($invoice->total_amount),
+            'paymentAmount' => $totalAmount,
             'paymentMethod' => $paymentMethod,
             'merchantOrderId' => $transaction->id,
             'productDetails' => "Invoice {$invoice->invoice_number} — {$invoice->name}",
@@ -138,6 +145,8 @@ class DuitkuService
                     [
                         'name' => $ch['paymentName'] ?? $ch['name'] ?? $code,
                         'icon_url' => $ch['iconUrl'] ?? null,
+                        'fee_fixed' => (int) ($ch['totalFee'] ?? 0),
+                        'fee_percent' => (int) ($ch['totalFeePercent'] ?? 0),
                         'type' => $this->mapChannelType($code),
                         'is_active' => true,
                     ]
