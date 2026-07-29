@@ -21,3 +21,6 @@ Schedule::call(function () {
 Schedule::command('billing:pre-bill')->dailyAt('06:00');
 Schedule::command('billing:dunning')->dailyAt('08:00');
 Schedule::command('billing:cancel-expired')->dailyAt('04:00');
+
+// Expire stale payment transactions
+Schedule::command('billing:expire-transactions')->everyMinute();

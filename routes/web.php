@@ -65,6 +65,12 @@ Route::prefix('client')->name('client.')->group(function () {
         // Client: Duitku payment
         Route::post('/payment/duitku', [\App\Http\Controllers\Client\PaymentController::class, 'payViaDuitku'])->name('payment.duitku');
 
+        // Client: Self-hosted payment UI
+        Route::get('/invoices/{id}/payment', [\App\Http\Controllers\Client\PaymentController::class, 'showPaymentPage'])->name('invoices.payment');
+        Route::post('/payment/initiate', [\App\Http\Controllers\Client\PaymentController::class, 'initiate'])->name('payment.initiate');
+        Route::post('/payment/{id}/change-method', [\App\Http\Controllers\Client\PaymentController::class, 'changeMethod'])->name('payment.change-method');
+        Route::get('/payment/{id}/status', [\App\Http\Controllers\Client\PaymentController::class, 'status'])->name('payment.status');
+
         // Client: Subscription upgrade/downgrade
         Route::post('/subscription/upgrade', [\App\Http\Controllers\Client\SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
         Route::post('/subscription/change-cycle', [\App\Http\Controllers\Client\SubscriptionController::class, 'changeCycle'])->name('subscription.change-cycle');
