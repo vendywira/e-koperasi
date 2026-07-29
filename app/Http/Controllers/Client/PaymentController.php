@@ -258,18 +258,6 @@ class PaymentController extends Controller
                 app(\App\Services\BillingService::class)->confirmPayment($invoice);
             }
 
-            // Also record in Payment model (old system) for dashboard history
-            $sub = \App\Models\Subscription::where('user_id', $invoice->user_id)->first();
-            if ($sub && !$sub->payments()->where('receipt_number', $invoice->invoice_number)->exists()) {
-                $sub->payments()->create([
-                    'amount' => $transaction->amount,
-                    'status' => 'paid',
-                    'payment_method' => $transaction->channel_name ?? 'mock_duitku',
-                    'paid_at' => now(),
-                    'receipt_number' => $invoice->invoice_number,
-                    'notes' => 'Simulasi pembayaran (mock)',
-                ]);
-            }
         }
 
         Log::info("Payment simulated: {$newStatus}", ['transaction_id' => $transaction->id]);

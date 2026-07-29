@@ -13,6 +13,8 @@ class PaymentTransaction extends Model
     protected $fillable = [
         'invoice_id', 'duitku_ref', 'amount', 'base_amount', 'fee_amount',
         'channel_code', 'channel_name', 'status', 'paid_at', 'expiry', 'raw_response',
+        'payment_type', 'payment_method_name', 'notes', 'payment_proof', 'confirmed_by',
+        'receipt_number',
     ];
 
     public const STATUS_PENDING = 'pending';
@@ -27,11 +29,29 @@ class PaymentTransaction extends Model
             'paid_at' => 'datetime',
             'expiry' => 'datetime',
             'raw_response' => 'array',
+            'amount' => 'integer',
+            'base_amount' => 'integer',
+            'fee_amount' => 'integer',
         ];
     }
 
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function confirmor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    public function isGateway(): bool
+    {
+        return $this->payment_type === 'gateway';
+    }
+
+    public function isManual(): bool
+    {
+        return $this->payment_type === 'manual';
     }
 }

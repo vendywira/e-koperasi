@@ -33,7 +33,7 @@ defineProps<{
                                 <td class="px-5 sm:px-6 py-3.5 text-neutral-500 dark:text-neutral-400">{{ idx + 1 }}</td>
                                 <td class="px-5 sm:px-6 py-3.5">
                                     <Link :href="'/client/payments/' + payment.id" class="text-emerald-600 dark:text-emerald-400 hover:underline font-mono text-xs">
-                                        {{ payment.receipt_number }}
+                                        {{ payment.invoice_number }}
                                     </Link>
                                 </td>
                                 <td class="px-5 sm:px-6 py-3.5 text-neutral-700 dark:text-neutral-300">{{ payment.paid_at ?? payment.created_at }}</td>
@@ -43,9 +43,9 @@ defineProps<{
                                 <td class="px-5 sm:px-6 py-3.5 text-center">
                                     <span
                                         class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                        :class="payment.status === 'paid' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'"
+                                        :class="payment.status === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : payment.status === 'pending' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'"
                                     >
-                                        {{ payment.status === 'paid' ? 'Lunas' : payment.status === 'pending' ? 'Pending' : 'Gagal' }}
+                                        {{ payment.status === 'success' ? 'Lunas' : payment.status === 'pending' ? 'Pending' : payment.status === 'expired' ? 'Kadaluarsa' : 'Gagal' }}
                                     </span>
                                 </td>
                             </tr>

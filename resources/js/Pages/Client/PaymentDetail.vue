@@ -9,9 +9,11 @@ const props = defineProps<{
 
 const statusBadge = (status: string) => {
     const map: Record<string, { class: string; label: string }> = {
-        paid: { class: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300', label: 'Lunas' },
+        success: { class: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300', label: 'Lunas' },
         pending: { class: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300', label: 'Pending' },
+        expired: { class: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300', label: 'Kadaluarsa' },
         failed: { class: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300', label: 'Gagal' },
+        cancelled: { class: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400', label: 'Dibatalkan' },
     };
     return map[status] || { class: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400', label: status };
 };
@@ -38,7 +40,7 @@ const statusBadge = (status: string) => {
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-xs font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Invoice</p>
-                            <h2 class="text-xl font-bold text-neutral-900 dark:text-white mt-1 font-mono">{{ payment.receipt_number }}</h2>
+                            <h2 class="text-xl font-bold text-neutral-900 dark:text-white mt-1 font-mono">{{ transaction.receipt_number ?? transaction.invoice_number }}</h2>
                         </div>
                         <span
                             class="px-3 py-1 rounded-full text-xs font-semibold"

@@ -26,7 +26,7 @@ class DashboardController extends Controller
             ->first();
 
         $recentPayments = $subscription
-            ? $subscription->payments()
+            ? $subscription->paymentTransactions()
                 ->orderBy('created_at', 'desc')
                 ->take(5)
                 ->get()

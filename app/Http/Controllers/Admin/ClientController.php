@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Subscription;
-use App\Models\Payment;
+use App\Models\PaymentTransaction;
 use App\Models\Ticket;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
@@ -34,12 +34,12 @@ class ClientController extends Controller
                 });
         })->count();
 
-        $totalRevenue = Payment::where('status', 'paid')->sum('amount');
+        $totalRevenue = PaymentTransaction::where('status', 'success')->sum('amount');
 
         $totalRevenueFormatted = 'Rp' . number_format($totalRevenue, 0, ',', '.');
 
-        $recentPayments = Payment::with('subscription.user')
-            ->where('status', 'paid')
+        $recentPayments = PaymentTransaction::with('invoice.user')
+            ->where('status', 'success')
             ->orderBy('paid_at', 'desc')
             ->take(10)
             ->get();
@@ -49,7 +49,7 @@ class ClientController extends Controller
             ->pluck('total', 'plan')
             ->toArray();
 
-        $monthlyRevenue = Payment::where('status', 'paid')
+        $monthlyRevenue = PaymentTransaction::where('status', 'success')
             ->where('paid_at', '>=', now()->subMonths(6))
             ->select(DB::raw("DATE_FORMAT(paid_at, '%Y-%m') as month"), DB::raw('SUM(amount) as total'))
             ->groupBy('month')
@@ -115,7 +115,7 @@ class ClientController extends Controller
     public function show(string $id): Response
     {
         $client = User::where('role', 'client')
-            ->with(['subscriptions.payments' => function ($q) {
+            ->with(['subscriptions.paymentTransactions' => function ($q) {
                 $q->orderBy('created_at', 'desc');
             }])
             ->findOrFail($id);
@@ -129,7 +129,7 @@ class ClientController extends Controller
         // Separate client subscription vs KSU tenant subscriptions
         $clientSubscription = $client->subscriptions()
             ->where(function ($q) { $q->whereNull('type')->orWhere('type', 'client'); })
-            ->with('payments')
+            ->with('paymentTransactions')
             ->first();
 
         $ksuSubscriptions = $client->subscriptions()

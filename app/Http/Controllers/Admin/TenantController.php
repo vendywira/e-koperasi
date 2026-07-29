@@ -38,7 +38,7 @@ class TenantController extends Controller
                     : null;
 
                 // Find last payment if any (via subscription model)
-                $lastPayment = $sub->payments()->latest()->first();
+                $lastPayment = $sub->paymentTransactions()->latest()->first();
                 $t->subscription->last_payment_status = $lastPayment?->status;
                 $t->subscription->last_payment_date = $lastPayment?->paid_at?->format('d M Y');
             }
@@ -95,7 +95,7 @@ class TenantController extends Controller
         }
 
         // Get last payment
-        $lastPayment = $tenant->subscription?->payments()->latest()->first();
+        $lastPayment = $tenant->subscription?->paymentTransactions()->latest()->first();
         $tenant->subscription->last_payment_status = $lastPayment?->status;
         $tenant->subscription->last_payment_date = $lastPayment?->paid_at?->format('d M Y');
 

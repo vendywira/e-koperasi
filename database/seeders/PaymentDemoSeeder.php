@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\Payment;
 use App\Models\PaymentChannel;
 use App\Models\PaymentTransaction;
 use App\Models\Subscription;
@@ -46,7 +45,7 @@ class PaymentDemoSeeder extends Seeder
 
         $this->command?->info("Found {$subscriptions->count()} subscriptions. Generating invoices & payments...");
 
-        $count = ['invoices' => 0, 'transactions' => 0, 'payments' => 0, 'pending' => 0];
+        $count = ['invoices' => 0, 'transactions' => 0, 'pending' => 0];
 
         foreach ($subscriptions as $sub) {
             // Generate 3-6 months of invoices
@@ -116,19 +115,6 @@ class PaymentDemoSeeder extends Seeder
                 $count['invoices']++;
 
                 if ($status === 'paid') {
-                    // Create Payment model (old system)
-                    $receipt = 'INV-' . $invoiceDate->format('Ym') . '-' . str_pad((string) random_int(1, 999), 4, '0', STR_PAD_LEFT);
-                    Payment::create([
-                        'subscription_id' => $sub->id,
-                        'amount' => $totalAmount,
-                        'status' => 'paid',
-                        'payment_method' => 'manual_transfer',
-                        'paid_at' => $inv->paid_at,
-                        'receipt_number' => $receipt,
-                    ]);
-                    $count['payments']++;
-
-                    // Create PaymentTransaction (Duitku system) — simulate as success
                     $randomChannel = $channels->random();
                     $feeAmount = $randomChannel->calculateFee($totalAmount);
 
@@ -140,6 +126,8 @@ class PaymentDemoSeeder extends Seeder
                         'fee_amount' => $feeAmount,
                         'channel_code' => $randomChannel->code,
                         'channel_name' => $randomChannel->name,
+                        'payment_type' => 'manual',
+                        'payment_method_name' => 'manual_transfer',
                         'status' => PaymentTransaction::STATUS_SUCCESS,
                         'paid_at' => $inv->paid_at,
                         'expiry' => $inv->paid_at?->copy()->addHours(24),
@@ -173,6 +161,8 @@ class PaymentDemoSeeder extends Seeder
                         'fee_amount' => $feeAmount,
                         'channel_code' => $randomChannel->code,
                         'channel_name' => $randomChannel->name,
+                        'payment_type' => 'gateway',
+                        'payment_method_name' => $randomChannel->name,
                         'status' => PaymentTransaction::STATUS_PENDING,
                         'expiry' => $expiry,
                         'raw_response' => [
@@ -194,9 +184,8 @@ class PaymentDemoSeeder extends Seeder
         }
 
         $this->command?->info(sprintf(
-            'Done. %d invoices, %d payments, %d transactions (%d pending, %d success)',
+            'Done. %d invoices, %d transactions (%d pending, %d success)',
             $count['invoices'],
-            $count['payments'],
             $count['transactions'],
             $count['pending'],
             $count['transactions'] - $count['pending'],
