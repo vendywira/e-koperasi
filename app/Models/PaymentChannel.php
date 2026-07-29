@@ -17,7 +17,19 @@ class PaymentChannel extends Model
     {
         return [
             'is_active' => 'boolean',
+            'fee_fixed' => 'integer',
+            'fee_percent' => 'integer',
         ];
+    }
+
+    public function calculateFee(int $baseAmount): int
+    {
+        return $this->fee_fixed + (int) round($baseAmount * $this->fee_percent / 100);
+    }
+
+    public function totalAmount(int $baseAmount): int
+    {
+        return $baseAmount + $this->calculateFee($baseAmount);
     }
 
     public function scopeActive($q)
