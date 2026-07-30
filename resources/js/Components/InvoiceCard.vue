@@ -14,8 +14,9 @@ defineProps<{
         <div class="flex items-start justify-between mb-3">
             <div>
                 <p class="text-xs font-mono text-neutral-400">{{ invoice.invoice_number || invoice.id?.substring(0, 8) }}</p>
-                <h3 class="font-semibold text-neutral-900 dark:text-white">{{ invoice.name }}</h3>
+                <h3 class="font-semibold text-neutral-900 dark:text-white">{{ invoice.tenant_name || invoice.name }}</h3>
                 <p class="text-xs text-neutral-500 font-mono">{{ invoice.domain }}.e-koperasi.com</p>
+                <p v-if="invoice.plan_name" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{{ invoice.plan_name }}</p>
             </div>
             <span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap"
                 :class="invoice.status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :

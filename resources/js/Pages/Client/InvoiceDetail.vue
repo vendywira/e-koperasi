@@ -43,7 +43,8 @@ function uploadProof() {
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-xs font-mono text-neutral-400">{{ invoice.invoice_number || invoice.id?.substring(0, 8) }}</p>
-                            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white mt-1">{{ invoice.name }}</h1>
+                            <h1 class="text-2xl font-bold text-neutral-900 dark:text-white mt-1">{{ invoice.tenant_name || invoice.name }}</h1>
+                            <p v-if="invoice.plan_name" class="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{{ invoice.plan_name }}</p>
                             <p class="text-sm text-neutral-500 font-mono">{{ invoice.domain }}.e-koperasi.com</p>
                         </div>
                         <span class="px-3 py-1 rounded-full text-xs font-semibold"
@@ -75,7 +76,7 @@ function uploadProof() {
                             </thead>
                             <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
                                 <tr>
-                                    <td class="py-3 pr-4 text-neutral-700 dark:text-neutral-300 font-medium">{{ invoice.name }}</td>
+                                    <td class="py-3 pr-4 text-neutral-700 dark:text-neutral-300 font-medium">{{ invoice.plan_name || "Langganan" }} — {{ invoice.tenant_name || invoice.name }}</td>
                                     <td class="py-3 text-center">{{ invoice.resort_count }} <span class="text-neutral-400 text-[10px]">resort</span></td>
                                     <td class="py-3 text-right font-mono">Rp{{ Number(invoice.price_per_resort).toLocaleString('id-ID') }}</td>
                                     <td class="py-3 text-right font-mono font-medium">Rp{{ Number(invoice.resort_count * invoice.price_per_resort).toLocaleString('id-ID') }}</td>

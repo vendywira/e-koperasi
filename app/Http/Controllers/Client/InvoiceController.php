@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\PaymentChannel;
-use App\Models\PaymentTransaction;
+use App\Models\Subscription;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,9 +22,13 @@ class InvoiceController extends Controller
             ->get()
             ->map(function ($inv) {
                 $latestTxn = $inv->paymentTransactions->sortByDesc('created_at')->first();
+                $sub = Subscription::where('tenant_id', $inv->tenant_id)->first();
+                $planName = $sub?->plan ?? 'Business';
                 return [
                     'id' => $inv->id,
                     'invoice_number' => $inv->invoice_number,
+                    'plan_name' => ucfirst($planName),
+                    'tenant_name' => $inv->name,
                     'name' => $inv->name,
                     'domain' => $inv->domain,
                     'resort_count' => $inv->resort_count,
@@ -32,7 +36,7 @@ class InvoiceController extends Controller
                     'months' => $inv->months,
                     'subtotal' => $inv->subtotal ?? $inv->total_amount,
                     'discount_amount' => $inv->discount_amount ?? 0,
-                    'total_amount' => $inv->total_amount,
+                    'total_amount' => (int) $inv->total_amount,
                     'status' => $inv->status,
                     'payment_proof' => $inv->payment_proof ? asset('storage/' . $inv->payment_proof) : null,
                     'due_date' => $inv->due_date?->format('d M Y'),
@@ -62,9 +66,14 @@ class InvoiceController extends Controller
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
+        $sub = Subscription::where('tenant_id', $invoice->tenant_id)->first();
+        $planName = $sub?->plan ?? 'Business';
+
         $data = [
             'id' => $invoice->id,
             'invoice_number' => $invoice->invoice_number,
+            'plan_name' => ucfirst($planName),
+            'tenant_name' => $invoice->name,
             'name' => $invoice->name,
             'domain' => $invoice->domain,
             'resort_count' => $invoice->resort_count,
@@ -72,7 +81,7 @@ class InvoiceController extends Controller
             'months' => $invoice->months,
             'subtotal' => $invoice->subtotal ?? $invoice->total_amount,
             'discount_amount' => $invoice->discount_amount ?? 0,
-            'total_amount' => $invoice->total_amount,
+            'total_amount' => (int) $invoice->total_amount,
             'status' => $invoice->status,
             'payment_proof' => $invoice->payment_proof ? asset('storage/' . $invoice->payment_proof) : null,
             'due_date' => $invoice->due_date?->format('d M Y'),
@@ -88,7 +97,7 @@ class InvoiceController extends Controller
             ]),
             'transactions' => $invoice->paymentTransactions->sortByDesc('created_at')->values()->map(fn($t) => [
                 'id' => $t->id,
-                'amount' => $t->amount,
+                'amount' => (int) $t->amount,
                 'status' => $t->status,
                 'payment_type' => $t->payment_type,
                 'channel_name' => $t->channel_name,
@@ -100,7 +109,7 @@ class InvoiceController extends Controller
 
         return Inertia::render('Client/InvoiceDetail', [
             'invoice' => $data,
-            'paymentChannels' => \App\Models\PaymentChannel::active()->get()->map(fn($ch) => [
+            'paymentChannels' => PaymentChannel::active()->get()->map(fn($ch) => [
                 'id' => $ch->id,
                 'code' => $ch->code,
                 'name' => $ch->name,
@@ -144,9 +153,9 @@ class InvoiceController extends Controller
             'payment' => $latestPayment ? [
                 'method' => $latestPayment->channel_name ?? ($latestPayment->payment_type === 'manual' ? 'Transfer Manual' : '-'),
                 'payment_type' => $latestPayment->payment_type,
-                'amount' => $latestPayment->amount,
-                'base_amount' => $latestPayment->base_amount,
-                'fee_amount' => $latestPayment->fee_amount,
+                'amount' => (int) $latestPayment->amount,
+                'base_amount' => (int) $latestPayment->base_amount,
+                'fee_amount' => (int) $latestPayment->fee_amount,
                 'status' => $latestPayment->status,
                 'paid_at' => $latestPayment->paid_at,
                 'receipt_number' => $latestPayment->receipt_number,
