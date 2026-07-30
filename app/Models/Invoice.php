@@ -63,7 +63,7 @@ class Invoice extends Model
         return $this->hasOne(Subscription::class, 'tenant_id', 'tenant_id');
     }
 
-    public function toResource(): array
+    public function toResourceData(): array
     {
         $latestTxn = $this->paymentTransactions->sortByDesc('created_at')->first();
         $planName = $this->subscription?->display_name ?? $this->subscription?->plan ?? 'Business';
@@ -71,7 +71,7 @@ class Invoice extends Model
         return [
             'id' => $this->id,
             'invoice_number' => $this->invoice_number,
-            'plan_name' => ucfirst($planName),
+            'plan_name' => $planName,
             'tenant_name' => $this->tenant?->name ?? $this->name,
             'name' => $this->name,
             'domain' => $this->domain,
@@ -88,6 +88,10 @@ class Invoice extends Model
             'created_at' => $this->created_at->format('d M Y'),
             'payment_method' => $latestTxn?->channel_name,
             'payment_type' => $latestTxn?->payment_type,
+            // Admin-only (optional fields)
+            'client_name' => $this->user?->name,
+            'client_email' => $this->user?->email,
+            'confirmed_by' => $this->confirmor?->name,
             'transactions' => $this->paymentTransactions->sortByDesc('created_at')->values()->map(fn($t) => [
                 'id' => $t->id,
                 'amount' => (int) $t->amount,
@@ -107,5 +111,10 @@ class Invoice extends Model
                 'total_amount' => (int) $i->total_amount,
             ]),
         ];
+    }
+
+    public function scopeForUser($q, $userId)
+    {
+        return $q->where('user_id', $userId);
     }
 }

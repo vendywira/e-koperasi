@@ -155,28 +155,12 @@ class InvoiceController extends Controller
 
     public function show(string $id): \Inertia\Response
     {
-        $invoice = \App\Models\Invoice::with("invoiceItems", "user", "confirmor")->findOrFail($id);
-        return \Inertia\Inertia::render("Admin/Invoice/Show", ["invoice" => [
-            "id" => $invoice->id,
-            "invoice_number" => $invoice->invoice_number,
-            "name" => $invoice->name,
-            "domain" => $invoice->domain,
-            "resort_count" => $invoice->resort_count,
-            "price_per_resort" => $invoice->price_per_resort,
-            "months" => $invoice->months,
-            "subtotal" => $invoice->subtotal ?? $invoice->total_amount,
-            "discount_amount" => $invoice->discount_amount ?? 0,
-            "total_amount" => $invoice->total_amount,
-            "status" => $invoice->status,
-            "payment_proof" => $invoice->payment_proof ? asset("storage/" . $invoice->payment_proof) : null,
-            "due_date" => $invoice->due_date?->format("d M Y"),
-            "paid_at" => $invoice->paid_at?->format("d M Y"),
-            "created_at" => $invoice->created_at->format("d M Y"),
-            "client_name" => $invoice->user?->name,
-            "client_email" => $invoice->user?->email,
-            "confirmed_by" => $invoice->confirmor?->name,
-            "items" => $invoice->invoiceItems->map(fn($i) => ["id" => $i->id, "description" => $i->description, "quantity" => $i->quantity, "unit_price" => $i->unit_price, "discount_amount" => $i->discount_amount, "total_amount" => $i->total_amount, ]),
-        ]]);
+        $invoice = \App\Models\Invoice::with('invoiceItems', 'paymentTransactions', 'tenant', 'subscription', 'user', 'confirmor')
+            ->findOrFail($id);
+
+        return \Inertia\Inertia::render('Admin/Invoice/Show', [
+            'invoice' => $invoice->toResourceData(),
+        ]);
     }
 
     public function download(string $id)

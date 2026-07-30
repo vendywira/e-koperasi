@@ -19,7 +19,7 @@ class InvoiceController extends Controller
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($inv) => $inv->toResource());
+            ->map(fn($inv) => $inv->toResourceData());
 
         $paymentChannels = PaymentChannel::active()->get()->map(fn($ch) => [
             'id' => $ch->id,
@@ -41,7 +41,7 @@ class InvoiceController extends Controller
             ->findOrFail($id);
 
         return Inertia::render('Client/InvoiceDetail', [
-            'invoice' => $invoice->toResource(),
+            'invoice' => $invoice->toResourceData(),
             'paymentChannels' => PaymentChannel::active()->get()->map(fn($ch) => [
                 'id' => $ch->id,
                 'code' => $ch->code,
