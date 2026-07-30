@@ -128,17 +128,29 @@ class InvoiceController extends Controller
 
     public function download(string $id)
     {
-        $invoice = Invoice::with('invoiceItems')
+        $invoice = Invoice::with('invoiceItems', 'paymentTransactions')
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
         $companyName = app(\App\Services\SiteConfig::class)->get('company.name', 'e-Koperasi');
         $companyLogo = app(\App\Services\SiteConfig::class)->get('company.logo');
 
+        $latestPayment = $invoice->paymentTransactions->sortByDesc('created_at')->first();
+
         $pdf = Pdf::loadView('pdf.invoice', [
             'invoice' => $invoice,
             'companyName' => $companyName,
             'companyLogo' => $companyLogo,
+            'payment' => $latestPayment ? [
+                'method' => $latestPayment->channel_name ?? ($latestPayment->payment_type === 'manual' ? 'Transfer Manual' : '-'),
+                'payment_type' => $latestPayment->payment_type,
+                'amount' => $latestPayment->amount,
+                'base_amount' => $latestPayment->base_amount,
+                'fee_amount' => $latestPayment->fee_amount,
+                'status' => $latestPayment->status,
+                'paid_at' => $latestPayment->paid_at,
+                'receipt_number' => $latestPayment->receipt_number,
+            ] : null,
         ]);
 
         return response()->make($pdf->output(), 200, [

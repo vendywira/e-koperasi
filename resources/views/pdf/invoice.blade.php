@@ -14,8 +14,9 @@
         .header-right p { margin: 2px 0; font-size: 10px; }
         .header-right .label { color: #94a3b8; }
         .header-right .value { color: #334155; font-weight: bold; }
-        .status-paid { color: #059669; }
+        .status-success { color: #059669; }
         .status-pending { color: #d97706; }
+        .status-expired { color: #dc2626; }
 
         .client-info { margin-bottom: 20px; font-size: 10px; color: #475569; }
 
@@ -36,7 +37,18 @@
         .totals .grand-total td { font-size: 14px; font-weight: bold; color: #059669; border-top: 2px solid #059669; padding-top: 8px; }
         .totals .grand-total td.label { color: #1e293b; }
 
-        .footer { margin-top: 40px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 8px; color: #94a3b8; text-align: center; }
+        .payment-info { margin-top: 25px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; background: #f8fafc; }
+        .payment-info h3 { margin: 0 0 10px 0; font-size: 11px; color: #1e293b; text-transform: uppercase; }
+        .payment-info table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .payment-info td { padding: 4px 8px; }
+        .payment-info td.label { color: #64748b; width: 140px; }
+        .payment-info td.value { color: #334155; font-weight: bold; }
+        .payment-info .divider td { border-top: 1px solid #e2e8f0; padding-top: 8px; }
+
+        .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #e2e8f0; font-size: 8px; color: #94a3b8; text-align: center; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 9px; font-weight: bold; }
+        .badge-success { background: #d1fae5; color: #059669; }
+        .badge-pending { background: #fef3c7; color: #d97706; }
     </style>
 </head>
 <body>
@@ -50,7 +62,11 @@
                 <p><span class="label">No.</span> <span class="value">{{ $invoice->invoice_number ?? $invoice->id }}</span></p>
                 <p><span class="label">Tanggal</span> <span class="value">{{ $invoice->created_at->format('d M Y') }}</span></p>
                 <p><span class="label">Jatuh Tempo</span> <span class="value">{{ $invoice->due_date ? $invoice->due_date->format('d M Y') : '-' }}</span></p>
-                <p><span class="label">Status</span> <span class="value status-{{ $invoice->status }}">{{ strtoupper($invoice->status) }}</span></p>
+                <p><span class="label">Status</span>
+                    <span class="badge badge-{{ $invoice->status === 'paid' ? 'success' : 'pending' }}">
+                        {{ $invoice->status === 'paid' ? 'LUNAS' : strtoupper($invoice->status) }}
+                    </span>
+                </p>
             </td>
         </tr>
     </table>
@@ -89,6 +105,32 @@
             <tr class="grand-total"><td class="label">Total</td><td class="value">Rp{{ number_format($invoice->total_amount, 0, ',', '.') }}</td></tr>
         </table>
     </div>
+
+    @if($payment)
+    <div class="payment-info">
+        <h3>Informasi Pembayaran</h3>
+        <table>
+            <tr><td class="label">Metode Pembayaran</td><td class="value">{{ $payment['method'] }}</td></tr>
+            <tr><td class="label">Tipe Pembayaran</td><td class="value">{{ $payment['payment_type'] === 'gateway' ? 'Gateway (Duitku)' : 'Transfer Manual' }}</td></tr>
+            @if($payment['fee_amount'] > 0)
+            <tr><td class="label">Biaya Layanan</td><td class="value">Rp{{ number_format($payment['fee_amount'], 0, ',', '.') }}</td></tr>
+            @endif
+            <tr><td class="label">Jumlah Dibayar</td><td class="value">Rp{{ number_format($payment['amount'], 0, ',', '.') }}</td></tr>
+            @if($payment['paid_at'])
+            <tr><td class="label">Tanggal Bayar</td><td class="value">{{ $payment['paid_at'] instanceof \Carbon\Carbon ? $payment['paid_at']->format('d M Y H:i') : $payment['paid_at'] }}</td></tr>
+            @endif
+            @if($payment['receipt_number'])
+            <tr><td class="label">No. Receipt</td><td class="value">{{ $payment['receipt_number'] }}</td></tr>
+            @endif
+            <tr class="divider"><td colspan="2"></td></tr>
+            <tr><td class="label">Status Pembayaran</td><td class="value">
+                <span class="badge badge-{{ $payment['status'] === 'success' ? 'success' : 'pending' }}">
+                    {{ $payment['status'] === 'success' ? 'LUNAS' : strtoupper($payment['status']) }}
+                </span>
+            </td></tr>
+        </table>
+    </div>
+    @endif
 
     <div class="footer">
         {{ $companyName ?? 'e-Koperasi' }} — Dokumen digenerate otomatis.
