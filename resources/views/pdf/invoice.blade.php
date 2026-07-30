@@ -77,22 +77,22 @@
 
     <table class="items">
         <thead>
-            <tr><th width="40%">Deskripsi</th><th class="center" width="12%">Jumlah</th><th class="right" width="16%">Harga</th><th class="right" width="16%">Diskon</th><th class="right" width="16%">Total</th></tr>
+            <tr><th width="40%">Paket</th><th class="right" width="15%">Resort</th><th class="right" width="20%">Harga/Resort</th><th class="right" width="25%">Subtotal</th></tr>
         </thead>
         <tbody>
-            @forelse($invoice->invoiceItems as $item)
             <tr>
-                <td>{{ $item->description }}</td>
-                <td class="center">{{ $item->quantity }}</td>
-                <td class="right">Rp{{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                <td class="right">-Rp{{ number_format($item->discount_amount, 0, ',', '.') }}</td>
-                <td class="right">Rp{{ number_format($item->total_amount, 0, ',', '.') }}</td>
+                <td>{{ $invoice->name }}</td>
+                <td class="right">{{ $invoice->resort_count }} resort</td>
+                <td class="right">Rp{{ number_format($invoice->price_per_resort, 0, ",", ".") }}</td>
+                <td class="right">Rp{{ number_format((int)$invoice->price_per_resort * (int)$invoice->resort_count, 0, ",", ".") }}</td>
             </tr>
-            @empty
-            <tr><td colspan="5" style="text-align:center; padding:20px; color:#94a3b8; font-style:italic;">Belum ada rincian item untuk invoice ini.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+            @if($invoice->months > 1)
+            <tr style="font-size:9px; color:#94a3b8;">
+                <td colspan="3" style="text-align:right; padding:4px 8px; font-style:italic;">Periode {{ $invoice->months }} bulan</td>
+                <td class="right" style="padding:4px 8px;">×{{ $invoice->months }}</td>
+            </tr>
+            @endif
+        </tbody>    </table>
 
     <div class="totals">
         <table>

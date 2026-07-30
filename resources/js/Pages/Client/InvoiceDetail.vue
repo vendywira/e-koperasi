@@ -67,31 +67,30 @@ function uploadProof() {
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="border-b border-neutral-200 dark:border-neutral-800">
-                                    <th class="text-left pb-2 font-medium text-neutral-500 text-xs uppercase">Item</th>
-                                    <th class="text-center pb-2 font-medium text-neutral-500 text-xs uppercase w-16">Qty</th>
-                                    <th class="text-right pb-2 font-medium text-neutral-500 text-xs uppercase w-28">Harga</th>
-                                    <th class="text-right pb-2 font-medium text-neutral-500 text-xs uppercase w-24">Diskon</th>
-                                    <th class="text-right pb-2 font-medium text-neutral-500 text-xs uppercase w-28">Total</th>
+                                    <th class="text-left pb-2 font-medium text-neutral-500 text-xs uppercase">Paket</th>
+                                    <th class="text-center pb-2 font-medium text-neutral-500 text-xs uppercase w-20">Resort</th>
+                                    <th class="text-right pb-2 font-medium text-neutral-500 text-xs uppercase w-28">Harga/Resort</th>
+                                    <th class="text-right pb-2 font-medium text-neutral-500 text-xs uppercase w-28">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                                <tr v-if="invoice.items?.length" v-for="item in invoice.items" :key="item.id">
-                                    <td class="py-3 pr-4 text-neutral-700 dark:text-neutral-300">{{ item.description }}</td>
-                                    <td class="py-3 text-center">{{ item.quantity }}</td>
-                                    <td class="py-3 text-right font-mono">Rp{{ Number(item.unit_price).toLocaleString('id-ID') }}</td>
-                                    <td class="py-3 text-right font-mono text-red-500">-Rp{{ Number(item.discount_amount).toLocaleString('id-ID') }}</td>
-                                    <td class="py-3 text-right font-mono font-medium">Rp{{ Number(item.total_amount).toLocaleString('id-ID') }}</td>
+                                <tr>
+                                    <td class="py-3 pr-4 text-neutral-700 dark:text-neutral-300 font-medium">{{ invoice.name }}</td>
+                                    <td class="py-3 text-center">{{ invoice.resort_count }} <span class="text-neutral-400 text-[10px]">resort</span></td>
+                                    <td class="py-3 text-right font-mono">Rp{{ Number(invoice.price_per_resort).toLocaleString('id-ID') }}</td>
+                                    <td class="py-3 text-right font-mono font-medium">Rp{{ Number(invoice.resort_count * invoice.price_per_resort).toLocaleString('id-ID') }}</td>
                                 </tr>
-                                <tr v-if="!invoice.items?.length">
-                                    <td colspan="5" class="py-4 text-center text-xs text-neutral-400 italic">
-                                        Langganan: {{ invoice.resort_count }} resort × Rp{{ Number(invoice.price_per_resort).toLocaleString('id-ID') }} × {{ invoice.months }} bulan
-                                    </td>
+                                <tr v-if="invoice.months > 1" class="text-xs text-neutral-400">
+                                    <td colspan="3" class="py-1 text-right italic pr-4">Periode {{ invoice.months }} bulan</td>
+                                    <td class="py-1 text-right font-mono">×{{ invoice.months }}</td>
                                 </tr>
                             </tbody>
                             <tfoot class="border-t-2 border-neutral-200 dark:border-neutral-800">
-                                <tr v-if="invoice.subtotal"><td colspan="4" class="pt-3 text-right text-sm text-neutral-500">Subtotal</td><td class="pt-3 text-right font-mono text-sm">Rp{{ Number(invoice.subtotal).toLocaleString('id-ID') }}</td></tr>
-                                <tr v-if="Number(invoice.discount_amount) > 0"><td colspan="4" class="pt-1 text-right text-sm text-red-600">Diskon</td><td class="pt-1 text-right font-mono text-sm text-red-600">-Rp{{ Number(invoice.discount_amount).toLocaleString('id-ID') }}</td></tr>
-                                <tr><td colspan="4" class="pt-2 text-right text-base font-bold text-neutral-900 dark:text-white">Total</td><td class="pt-2 text-right font-bold text-base text-primary-700 font-mono">Rp{{ Number(invoice.total_amount).toLocaleString('id-ID') }}</td></tr>
+                                <tr v-if="Number(invoice.discount_amount) > 0">
+                                    <td colspan="3" class="pt-2 text-right text-sm text-red-600">Diskon</td>
+                                    <td class="pt-2 text-right font-mono text-sm text-red-600">-Rp{{ Number(invoice.discount_amount).toLocaleString('id-ID') }}</td>
+                                </tr>
+                                <tr><td colspan="3" class="pt-2 text-right text-base font-bold text-neutral-900 dark:text-white">Total</td><td class="pt-2 text-right font-bold text-base text-primary-700 font-mono">Rp{{ Number(invoice.total_amount).toLocaleString('id-ID') }}</td></tr>
                             </tfoot>
                         </table>
                     </div>
