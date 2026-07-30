@@ -42,7 +42,7 @@ class InvoiceController extends Controller
 
         $view = $user->role === 'admin' ? 'Admin/Invoice/Index' : 'Client/Invoices';
 
-        return Inertia::render($view, [
+        return Inertia::render('Invoice/InvoiceDetail', [
             'invoices' => $invoices,
             'paymentChannels' => $paymentChannels,
         ]);
@@ -58,9 +58,9 @@ class InvoiceController extends Controller
             ->when($user->role !== 'admin', fn($q) => $q->where('user_id', $user->id))
             ->findOrFail($id);
 
-        $view = $user->role === 'admin' ? 'Admin/Invoice/Show' : 'Client/InvoiceDetail';
+        
 
-        return Inertia::render($view, [
+        return Inertia::render('Invoice/InvoiceDetail', [
             'invoice' => $invoice->toResourceData(),
             'paymentChannels' => PaymentChannel::active()->get()->map(fn($ch) => [
                 'id' => $ch->id,
