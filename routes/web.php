@@ -54,10 +54,10 @@ Route::prefix('client')->name('client.')->group(function () {
         Route::get('/request-tenant/check-domain', [\App\Http\Controllers\Client\TenantRequestController::class, 'checkDomain'])->name('request-tenant.check-domain');
 
         // Client: Invoices
-        Route::get('/invoices', [\App\Http\Controllers\Client\InvoiceController::class, 'index'])->name('invoices');
-        Route::post('/invoices/{id}/upload-proof', [\App\Http\Controllers\Client\InvoiceController::class, 'uploadProof'])->name('invoices.upload-proof');
-        Route::get('/invoices/{id}/download', [\App\Http\Controllers\Client\InvoiceController::class, 'download'])->name('invoices.download')->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
-        Route::get('/invoices/{id}', [\App\Http\Controllers\Client\InvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoices', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('invoices');
+        Route::post('/invoices/{id}/upload-proof', [\App\Http\Controllers\InvoiceController::class, 'uploadProof'])->name('invoices.upload-proof');
+        Route::get('/invoices/{id}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('invoices.download')->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+        Route::get('/invoices/{id}', [\App\Http\Controllers\InvoiceController::class, 'show'])->name('invoices.show');
 
         // Client: Coupon validation (AJAX)
         Route::post('/coupon/validate', [\App\Http\Controllers\Client\CouponController::class, 'validate'])->name('coupon.validate');

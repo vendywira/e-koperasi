@@ -74,10 +74,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Invoice management (admin & it-ops)
     Route::middleware('role:admin,it-ops')->prefix('invoices')->name('invoice.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Client\InvoiceController::class, 'index'])->name('index');
-        Route::post('/{id}/generate', [\App\Http\Controllers\Client\InvoiceController::class, 'generate'])->name('generate');
-        Route::post('/{id}/confirm-paid', [\App\Http\Controllers\Client\InvoiceController::class, 'confirmPaid'])->name('confirm-paid');
-        Route::get('/{id}', [\App\Http\Controllers\Client\InvoiceController::class, 'show'])->name('show');
+        Route::get('/', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('index');
+        Route::post('/{id}/generate', [\App\Http\Controllers\InvoiceController::class, 'generate'])->name('generate');
+        Route::post('/{id}/confirm-paid', [\App\Http\Controllers\InvoiceController::class, 'confirmPaid'])->name('confirm-paid');
+        Route::get('/{id}', [\App\Http\Controllers\InvoiceController::class, 'show'])->name('show');
     });
 
     // KSU Tenant Management (admin only — billing/subscription sensitive)
@@ -143,7 +143,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
 
     // Invoice download (admin)
-    Route::get('/invoices/{id}/download', [\App\Http\Controllers\Client\InvoiceController::class, 'download'])->name('invoice.download')->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
+    Route::get('/invoices/{id}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('invoice.download')->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
 
     // Ticket Management (admin & it-ops)
     Route::middleware('role:admin,it-ops')->prefix('tickets')->name('ticket.')->group(function () {
