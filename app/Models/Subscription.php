@@ -78,4 +78,10 @@ class Subscription extends Model
         $elapsed = $this->started_at->diffInDays(now());
         return min(100, max(0, (int) round(($elapsed / $total) * 100)));
     }
+
+    public function getDisplayNameAttribute(): string
+    {
+        $cycleName = \App\Models\BillingCycle::where('slug', $this->billing_cycle)->value('name') ?? 'Bulanan';
+        return ucfirst($this->plan ?? 'Business') . ' - ' . $cycleName;
+    }
 }

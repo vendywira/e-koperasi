@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\PaymentChannel;
-use App\Models\Subscription;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,37 +15,11 @@ class InvoiceController extends Controller
 {
     public function index(): Response
     {
-        $invoices = Invoice::with('invoiceItems', 'paymentTransactions')
+        $invoices = Invoice::with('invoiceItems', 'paymentTransactions', 'tenant', 'subscription')
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($inv) {
-                $latestTxn = $inv->paymentTransactions->sortByDesc('created_at')->first();
-                $sub = Subscription::where('tenant_id', $inv->tenant_id)->first();
-                $cycleName = \App\Models\BillingCycle::where('slug', $sub?->billing_cycle)->value('name') ?? 'Bulanan';
-                $planName = ucfirst($sub?->plan ?? 'Business') . ' - ' . $cycleName;
-                return [
-                    'id' => $inv->id,
-                    'invoice_number' => $inv->invoice_number,
-                    'plan_name' => $planName,
-                    'tenant_name' => $inv->name,
-                    'name' => $inv->name,
-                    'domain' => $inv->domain,
-                    'resort_count' => $inv->resort_count,
-                    'price_per_resort' => $inv->price_per_resort,
-                    'months' => $inv->months,
-                    'subtotal' => $inv->subtotal ?? $inv->total_amount,
-                    'discount_amount' => $inv->discount_amount ?? 0,
-                    'total_amount' => (int) $inv->total_amount,
-                    'status' => $inv->status,
-                    'payment_proof' => $inv->payment_proof ? asset('storage/' . $inv->payment_proof) : null,
-                    'due_date' => $inv->due_date?->format('d M Y'),
-                    'paid_at' => $inv->paid_at?->format('d M Y'),
-                    'created_at' => $inv->created_at->format('d M Y'),
-                    'payment_method' => $latestTxn?->channel_name,
-                    'payment_type' => $latestTxn?->payment_type,
-                ];
-            });
+            ->map(fn($inv) => $inv->toResource());
 
         $paymentChannels = PaymentChannel::active()->get()->map(fn($ch) => [
             'id' => $ch->id,
@@ -63,54 +36,12 @@ class InvoiceController extends Controller
 
     public function show(string $id): Response
     {
-        $invoice = Invoice::with('invoiceItems', 'paymentTransactions')
+        $invoice = Invoice::with('invoiceItems', 'paymentTransactions', 'tenant', 'subscription')
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
-        $sub = Subscription::where('tenant_id', $invoice->tenant_id)->first();
-        $cycleName = \App\Models\BillingCycle::where('slug', $sub?->billing_cycle)->value('name') ?? 'Bulanan';
-                $planName = ucfirst($sub?->plan ?? 'Business') . ' - ' . $cycleName;
-
-        $data = [
-            'id' => $invoice->id,
-            'invoice_number' => $invoice->invoice_number,
-            'plan_name' => $planName,
-            'tenant_name' => $invoice->name,
-            'name' => $invoice->name,
-            'domain' => $invoice->domain,
-            'resort_count' => $invoice->resort_count,
-            'price_per_resort' => $invoice->price_per_resort,
-            'months' => $invoice->months,
-            'subtotal' => $invoice->subtotal ?? $invoice->total_amount,
-            'discount_amount' => $invoice->discount_amount ?? 0,
-            'total_amount' => (int) $invoice->total_amount,
-            'status' => $invoice->status,
-            'payment_proof' => $invoice->payment_proof ? asset('storage/' . $invoice->payment_proof) : null,
-            'due_date' => $invoice->due_date?->format('d M Y'),
-            'paid_at' => $invoice->paid_at?->format('d M Y'),
-            'created_at' => $invoice->created_at->format('d M Y'),
-            'items' => $invoice->invoiceItems->map(fn($i) => [
-                'id' => $i->id,
-                'description' => $i->description,
-                'quantity' => $i->quantity,
-                'unit_price' => $i->unit_price,
-                'discount_amount' => $i->discount_amount,
-                'total_amount' => $i->total_amount,
-            ]),
-            'transactions' => $invoice->paymentTransactions->sortByDesc('created_at')->values()->map(fn($t) => [
-                'id' => $t->id,
-                'amount' => (int) $t->amount,
-                'status' => $t->status,
-                'payment_type' => $t->payment_type,
-                'channel_name' => $t->channel_name,
-                'paid_at' => $t->paid_at?->format('d M Y H:i'),
-                'expiry' => $t->expiry?->format('d M Y H:i'),
-                'notes' => $t->notes,
-            ]),
-        ];
-
         return Inertia::render('Client/InvoiceDetail', [
-            'invoice' => $data,
+            'invoice' => $invoice->toResource(),
             'paymentChannels' => PaymentChannel::active()->get()->map(fn($ch) => [
                 'id' => $ch->id,
                 'code' => $ch->code,
@@ -139,14 +70,13 @@ class InvoiceController extends Controller
 
     public function download(string $id)
     {
-        $invoice = Invoice::with('invoiceItems', 'paymentTransactions')
+        $invoice = Invoice::with('invoiceItems', 'paymentTransactions', 'tenant', 'subscription')
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
+        $latestPayment = $invoice->paymentTransactions->sortByDesc('created_at')->first();
         $companyName = app(\App\Services\SiteConfig::class)->get('company.name', 'e-Koperasi');
         $companyLogo = app(\App\Services\SiteConfig::class)->get('company.logo');
-
-        $latestPayment = $invoice->paymentTransactions->sortByDesc('created_at')->first();
 
         $pdf = Pdf::loadView('pdf.invoice', [
             'invoice' => $invoice,

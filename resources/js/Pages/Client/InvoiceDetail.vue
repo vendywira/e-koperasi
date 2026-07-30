@@ -70,14 +70,14 @@ function uploadProof() {
                                 <tr class="border-b border-neutral-200 dark:border-neutral-800">
                                     <th class="text-left pb-2 font-medium text-neutral-500 text-xs uppercase">Paket</th>
                                     <th class="text-center pb-2 font-medium text-neutral-500 text-xs uppercase w-20">Resort</th>
-                                    <th class="text-right pb-2 font-medium text-neutral-500 text-xs uppercase w-28">Harga/Resort</th>
+                                    <th class="text-right pb-2 font-medium text-neutral-500 text-xs uppercase w-28">Harga</th>
                                     <th class="text-right pb-2 font-medium text-neutral-500 text-xs uppercase w-28">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
                                 <tr>
-                                    <td class="py-3 pr-4 text-neutral-700 dark:text-neutral-300 font-medium">{{ invoice.plan_name || "Langganan" }} — {{ invoice.tenant_name || invoice.name }}</td>
-                                    <td class="py-3 text-center">{{ invoice.resort_count }} <span class="text-neutral-400 text-[10px]">resort</span></td>
+                                    <td class="py-3 pr-4 text-neutral-700 dark:text-neutral-300 font-medium">{{ invoice.plan_name || "Langganan" }}</td>
+                                    <td class="py-3 text-center">{{ invoice.resort_count }} </td>
                                     <td class="py-3 text-right font-mono">Rp{{ Number(invoice.price_per_resort).toLocaleString('id-ID') }}</td>
                                     <td class="py-3 text-right font-mono font-medium">Rp{{ Number(invoice.resort_count * invoice.price_per_resort).toLocaleString('id-ID') }}</td>
                                 </tr>

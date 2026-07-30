@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Invoice extends Model
 {
@@ -50,5 +51,61 @@ class Invoice extends Model
     public function paymentTransaction(): BelongsTo
     {
         return $this->belongsTo(PaymentTransaction::class);
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    public function subscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class, 'tenant_id', 'tenant_id');
+    }
+
+    public function toResource(): array
+    {
+        $latestTxn = $this->paymentTransactions->sortByDesc('created_at')->first();
+        $planName = $this->subscription?->display_name ?? $this->subscription?->plan ?? 'Business';
+
+        return [
+            'id' => $this->id,
+            'invoice_number' => $this->invoice_number,
+            'plan_name' => ucfirst($planName),
+            'tenant_name' => $this->tenant?->name ?? $this->name,
+            'name' => $this->name,
+            'domain' => $this->domain,
+            'resort_count' => (int) $this->resort_count,
+            'price_per_resort' => (int) $this->price_per_resort,
+            'months' => (int) $this->months,
+            'subtotal' => (int) ($this->subtotal ?? $this->total_amount),
+            'discount_amount' => (int) ($this->discount_amount ?? 0),
+            'total_amount' => (int) $this->total_amount,
+            'status' => $this->status,
+            'payment_proof' => $this->payment_proof ? asset('storage/' . $this->payment_proof) : null,
+            'due_date' => $this->due_date?->format('d M Y'),
+            'paid_at' => $this->paid_at?->format('d M Y'),
+            'created_at' => $this->created_at->format('d M Y'),
+            'payment_method' => $latestTxn?->channel_name,
+            'payment_type' => $latestTxn?->payment_type,
+            'transactions' => $this->paymentTransactions->sortByDesc('created_at')->values()->map(fn($t) => [
+                'id' => $t->id,
+                'amount' => (int) $t->amount,
+                'status' => $t->status,
+                'payment_type' => $t->payment_type,
+                'channel_name' => $t->channel_name,
+                'paid_at' => $t->paid_at?->format('d M Y H:i'),
+                'expiry' => $t->expiry?->format('d M Y H:i'),
+                'notes' => $t->notes,
+            ]),
+            'items' => $this->invoiceItems->map(fn($i) => [
+                'id' => $i->id,
+                'description' => $i->description,
+                'quantity' => $i->quantity,
+                'unit_price' => (int) $i->unit_price,
+                'discount_amount' => (int) $i->discount_amount,
+                'total_amount' => (int) $i->total_amount,
+            ]),
+        ];
     }
 }
