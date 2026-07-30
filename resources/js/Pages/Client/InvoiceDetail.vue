@@ -42,9 +42,9 @@ function uploadProof() {
                 <div class="p-6 sm:p-8 border-b border-neutral-200 dark:border-neutral-800">
                     <div class="flex items-start justify-between">
                         <div>
-                            <p class="text-xs font-mono text-neutral-400">{{ invoice.invoice_number || invoice.id?.substring(0, 8) }}</p>
+                            <p class="text-xs font-mono text-emerald-600 dark:text-emerald-400">{{ invoice.invoice_number || invoice.id?.substring(0, 8) }}</p>
                             <h1 class="text-2xl font-bold text-neutral-900 dark:text-white mt-1">{{ invoice.tenant_name || invoice.name }}</h1>
-                            <p v-if="invoice.plan_name" class="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">{{ invoice.plan_name }}</p>
+
                             <p class="text-sm text-neutral-500 font-mono">{{ invoice.domain }}.e-koperasi.com</p>
                         </div>
                         <span class="px-3 py-1 rounded-full text-xs font-semibold"

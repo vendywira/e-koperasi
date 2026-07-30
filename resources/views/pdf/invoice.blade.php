@@ -72,7 +72,7 @@
     </table>
 
     <div class="client-info">
-        <strong>Tagihan untuk:</strong> {{ $invoice->name }} ({{ $invoice->domain }})
+        <strong>Tagihan untuk:</strong> {{ $invoice->tenant?->name ?? $invoice->name }} ({{ $invoice->domain }})
     </div>
 
     <table class="items">
@@ -81,10 +81,10 @@
         </thead>
         <tbody>
             <tr>
-                <td>{{ $invoice->name }}</td>
+                <td>{{ $planName }} — {{ $invoice->tenant?->name ?? $invoice->name }}</td>
                 <td class="right">{{ $invoice->resort_count }} resort</td>
-                <td class="right">Rp{{ number_format($invoice->price_per_resort, 0, ",", ".") }}</td>
-                <td class="right">Rp{{ number_format((int)$invoice->price_per_resort * (int)$invoice->resort_count, 0, ",", ".") }}</td>
+                <td class="right">Rp{{ number_format($invoice->price_per_resort, 0, ',', '.') }}</td>
+                <td class="right">Rp{{ number_format((int)$invoice->price_per_resort * (int)$invoice->resort_count, 0, ',', '.') }}</td>
             </tr>
             @if($invoice->months > 1)
             <tr style="font-size:9px; color:#94a3b8;">
@@ -96,9 +96,7 @@
 
     <div class="totals">
         <table>
-            @if($invoice->subtotal)
-            <tr><td class="label">Subtotal</td><td class="value">Rp{{ number_format($invoice->subtotal, 0, ',', '.') }}</td></tr>
-            @endif
+
             @if(($invoice->discount_amount ?? 0) > 0)
             <tr><td class="label">Diskon</td><td class="value" style="color:#dc2626;">-Rp{{ number_format($invoice->discount_amount, 0, ',', '.') }}</td></tr>
             @endif

@@ -41,7 +41,8 @@ class InvoiceController extends Controller
             ->findOrFail($id);
 
         return Inertia::render('Client/InvoiceDetail', [
-            'invoice' => $invoice->toResourceData(),
+            'invoice' => $invoice,
+            'planName' => $invoice->subscription?->display_name ?? 'Business',
             'paymentChannels' => PaymentChannel::active()->get()->map(fn($ch) => [
                 'id' => $ch->id,
                 'code' => $ch->code,
@@ -80,6 +81,7 @@ class InvoiceController extends Controller
 
         $pdf = Pdf::loadView('pdf.invoice', [
             'invoice' => $invoice,
+            'planName' => $invoice->subscription?->display_name ?? 'Business',
             'companyName' => $companyName,
             'companyLogo' => $companyLogo,
             'payment' => $latestPayment ? [
