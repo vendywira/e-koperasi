@@ -23,11 +23,12 @@ class InvoiceController extends Controller
             ->map(function ($inv) {
                 $latestTxn = $inv->paymentTransactions->sortByDesc('created_at')->first();
                 $sub = Subscription::where('tenant_id', $inv->tenant_id)->first();
-                $planName = $sub?->plan ?? 'Business';
+                $cycleName = \App\Models\BillingCycle::where('slug', $sub?->billing_cycle)->value('name') ?? 'Bulanan';
+                $planName = ucfirst($sub?->plan ?? 'Business') . ' - ' . $cycleName;
                 return [
                     'id' => $inv->id,
                     'invoice_number' => $inv->invoice_number,
-                    'plan_name' => ucfirst($planName),
+                    'plan_name' => $planName,
                     'tenant_name' => $inv->name,
                     'name' => $inv->name,
                     'domain' => $inv->domain,
@@ -67,12 +68,13 @@ class InvoiceController extends Controller
             ->findOrFail($id);
 
         $sub = Subscription::where('tenant_id', $invoice->tenant_id)->first();
-        $planName = $sub?->plan ?? 'Business';
+        $cycleName = \App\Models\BillingCycle::where('slug', $sub?->billing_cycle)->value('name') ?? 'Bulanan';
+                $planName = ucfirst($sub?->plan ?? 'Business') . ' - ' . $cycleName;
 
         $data = [
             'id' => $invoice->id,
             'invoice_number' => $invoice->invoice_number,
-            'plan_name' => ucfirst($planName),
+            'plan_name' => $planName,
             'tenant_name' => $invoice->name,
             'name' => $invoice->name,
             'domain' => $invoice->domain,
