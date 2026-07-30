@@ -25,79 +25,62 @@ class ClientPaymentController extends Controller
             'receipt_number' => 'nullable|string|max:50',
         ]);
 
-        if (empty($validated['receipt_number'])) {
-            $month = date('Ym');
-            $lastSeq = Invoice::where('invoice_number', 'like', "INV-{$month}-%")
-                ->orderByRaw('CAST(SUBSTRING(invoice_number, -4) AS UNSIGNED) DESC')
-                ->value('invoice_number');
-            $seq = $lastSeq ? (int) substr($lastSeq, -4) + 1 : 1;
-            $receiptNumber = sprintf('INV-%s-%04d', $month, $seq);
-        } else {
-            $receiptNumber = $validated['receipt_number'];
+        // Find invoice for this subscription/user, or create a placeholder
+        $invoice = Invoice::where('user_id', $subscription->user_id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
+        if (!$invoice) {
+            $invoice = Invoice::create([
+                'user_id' => $subscription->user_id,
+                'tenant_id' => $subscription->tenant_id,
+                'name' => $subscription->user?->name ?? 'Manual Payment',
+                'domain' => $subscription->tenant?->domain ?? 'manual',
+                'invoice_number' => $validated['receipt_number'] ?? 'MAN-' . now()->format('YmdHis'),
+                'total_amount' => $validated['amount'],
+                'subtotal' => $validated['amount'],
+                'discount_amount' => 0,
+                'status' => 'pending',
+                'due_date' => now()->addDays(14),
+            ]);
         }
 
-        // Find existing invoice or create placeholder
-        $invoice = Invoice::firstOrCreate(
-            [
-                'user_id' => $subscription->user_id,
-                'status' => 'pending',
-                'total_amount' => (int) $validated['amount'],
-            ],
-            [
-                'tenant_request_id' => $subscription->tenant_id,
-                'tenant_id' => $subscription->tenant_id,
-                'requested_by' => $subscription->user_id,
-                'name' => $subscription->user?->name ?? 'Manual',
-                'domain' => $subscription->tenant?->domain ?? 'manual',
-                'resort_count' => $subscription->max_resorts ?? 1,
-                'price_per_resort' => $subscription->price_per_resort ?? 0,
-                'months' => 1,
-                'subtotal' => (int) $validated['amount'],
-                'discount_amount' => 0,
-                'due_date' => now()->addDays(14),
-                'invoice_number' => $receiptNumber,
-            ]
-        );
-
-        $payment = PaymentTransaction::create([
+        PaymentTransaction::create([
             'invoice_id' => $invoice->id,
-            'amount' => (int) $validated['amount'],
-            'base_amount' => (int) $validated['amount'],
+            'amount' => $validated['amount'],
+            'base_amount' => $validated['amount'],
             'fee_amount' => 0,
-            'status' => $validated['status'] === 'paid' ? PaymentTransaction::STATUS_SUCCESS : $validated['status'],
+            'status' => match ($validated['status']) {
+                'paid' => PaymentTransaction::STATUS_SUCCESS,
+                'pending' => PaymentTransaction::STATUS_PENDING,
+                default => PaymentTransaction::STATUS_FAILED,
+            },
             'payment_type' => 'manual',
             'payment_method_name' => 'manual_transfer',
             'paid_at' => $validated['status'] === 'paid' ? $validated['paid_at'] : null,
-            'notes' => $validated['notes'] ?? null,
-            'receipt_number' => $receiptNumber,
+            'notes' => $validated['notes'],
+            'receipt_number' => $validated['receipt_number'] ?? null,
         ]);
 
-        $invoice->update(['payment_transaction_id' => $payment->id]);
-
-        // If payment is paid, update subscription
         if ($validated['status'] === 'paid') {
-            $subscription->update([
-                'status' => 'active',
-                'renewed_at' => now(),
-                'ends_at' => $subscription->ends_at && $subscription->ends_at->isFuture()
-                    ? $subscription->ends_at->addMonth()
-                    : now()->addMonth(),
-                'started_at' => $subscription->started_at ?? now(),
+            $invoice->update([
+                'status' => 'paid',
+                'paid_at' => $validated['paid_at'],
             ]);
-
-            $invoice->update(['status' => 'paid', 'paid_at' => now()]);
-
-            // Notify client about confirmed payment
-            app(NotificationService::class)->send(
-                $subscription->user,
-                'payment',
-                'Pembayaran Dikonfirmasi',
-                "Pembayaran {$payment->receipt_number} sebesar Rp" . number_format($payment->amount, 0, ',', '.') . " telah dikonfirmasi.",
-                "/client/payments/{$payment->id}",
-                $payment
-            );
         }
 
-        return redirect()->back()->with('success', "Pembayaran {$receiptNumber} berhasil dicatat.");
+        // Notify
+        $notifService = app(NotificationService::class);
+        $notifService->send(
+            $subscription->user,
+            'payment',
+            'Pembayaran Manual ' . ($validated['status'] === 'paid' ? 'Dikonfirmasi' : 'Dicatat'),
+            "Admin mencatat pembayaran manual sebesar " . number_format($validated['amount'], 0, ',', '.') . " — status: {$validated['status']}",
+            '/client/payments',
+            $invoice
+        );
+
+        return redirect()->back()->with('success', 'Pembayaran manual berhasil dicatat.');
     }
 }

@@ -45,7 +45,7 @@ Route::prefix('client')->name('client.')->group(function () {
     Route::middleware(['auth', 'role:client'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');
-        Route::get('/payments', [PaymentController::class, 'index'])->name('payments');
+        Route::redirect('/payments', '/client/invoices')->name('payments');
         Route::get('/payments/{id}', [PaymentController::class, 'show'])->name('payments.show');
 
         // Client: Request Tenant

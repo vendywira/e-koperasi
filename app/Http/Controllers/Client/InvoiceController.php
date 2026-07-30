@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\PaymentChannel;
+use App\Models\PaymentTransaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,10 +16,12 @@ class InvoiceController extends Controller
 {
     public function index(): Response
     {
-        $invoices = Invoice::with('invoiceItems')->where('user_id', auth()->id())
+        $invoices = Invoice::with('invoiceItems', 'paymentTransactions')
+            ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($inv) {
+                $latestTxn = $inv->paymentTransactions->sortByDesc('created_at')->first();
                 return [
                     'id' => $inv->id,
                     'invoice_number' => $inv->invoice_number,
@@ -35,6 +38,8 @@ class InvoiceController extends Controller
                     'due_date' => $inv->due_date?->format('d M Y'),
                     'paid_at' => $inv->paid_at?->format('d M Y'),
                     'created_at' => $inv->created_at->format('d M Y'),
+                    'payment_method' => $latestTxn?->channel_name,
+                    'payment_type' => $latestTxn?->payment_type,
                 ];
             });
 
@@ -53,7 +58,7 @@ class InvoiceController extends Controller
 
     public function show(string $id): Response
     {
-        $invoice = Invoice::with('invoiceItems')
+        $invoice = Invoice::with('invoiceItems', 'paymentTransactions')
             ->where('user_id', auth()->id())
             ->findOrFail($id);
 
@@ -80,6 +85,16 @@ class InvoiceController extends Controller
                 'unit_price' => $i->unit_price,
                 'discount_amount' => $i->discount_amount,
                 'total_amount' => $i->total_amount,
+            ]),
+            'transactions' => $invoice->paymentTransactions->sortByDesc('created_at')->values()->map(fn($t) => [
+                'id' => $t->id,
+                'amount' => $t->amount,
+                'status' => $t->status,
+                'payment_type' => $t->payment_type,
+                'channel_name' => $t->channel_name,
+                'paid_at' => $t->paid_at?->format('d M Y H:i'),
+                'expiry' => $t->expiry?->format('d M Y H:i'),
+                'notes' => $t->notes,
             ]),
         ];
 

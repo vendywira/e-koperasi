@@ -25,7 +25,7 @@ const statusBadge = (status: string) => {
 
         <div class="p-4 sm:p-6 lg:p-8 max-w-2xl space-y-6">
             <Link
-                href="/client/payments"
+                :href="'/client/invoices/' + (transaction.invoice_id || '')"
                 class="inline-flex items-center gap-1 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
             >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

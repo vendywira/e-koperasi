@@ -34,7 +34,6 @@ const navGroups = [
     { label: 'Tagihan', items: [
         { key: 'subscription', label: 'Langganan', href: '/client/subscription', icon: 'clipboard' },
         { key: 'invoices', label: 'Invoice', href: '/client/invoices', icon: 'receipt' },
-        { key: 'payments', label: 'Pembayaran', href: '/client/payments', icon: 'credit-card' },
     ]},
     { label: 'Tenant', items: [
         { key: 'request-tenant', label: 'Kelola Tenant', href: '/client/request-tenant', icon: 'building' },

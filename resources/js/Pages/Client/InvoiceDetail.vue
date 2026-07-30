@@ -98,14 +98,46 @@ function uploadProof() {
                 </div>
 
                 <!-- Payment Section (pending only) -->
-                <div v-if="invoice.status === 'pending'" class="p-6 sm:p-8 space-y-4">
-                    <h2 class="text-sm font-semibold">Pembayaran</h2>
-                    <p class="text-xs text-neutral-400">Lanjutkan pembayaran untuk invoice ini</p>
-                    <div class="flex gap-2 pt-2">
+                <div v-if="invoice.status === 'pending'" class="p-6 sm:p-8 border-b border-neutral-200 dark:border-neutral-800">
+                    <h2 class="text-sm font-semibold mb-3">Pembayaran</h2>
+                    <p class="text-xs text-neutral-400 mb-4">Lanjutkan pembayaran untuk invoice ini</p>
+                    <div class="flex gap-2">
                         <Link :href="`/client/invoices/${invoice.id}/payment`" class="px-5 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 cursor-pointer min-h-[44px] inline-flex items-center">
                             Bayar Sekarang
                         </Link>
                         <button @click="uploadProof" class="px-5 py-2.5 border border-neutral-200 rounded-lg text-sm hover:bg-neutral-50 cursor-pointer min-h-[44px]">Upload Bukti Transfer</button>
+                    </div>
+                </div>
+
+                <!-- Payment Transactions History -->
+                <div v-if="invoice.transactions?.length" class="p-6 sm:p-8">
+                    <h2 class="text-sm font-semibold mb-3">Riwayat Pembayaran</h2>
+                    <div class="space-y-2">
+                        <div v-for="txn in invoice.transactions" :key="txn.id"
+                            class="flex items-center justify-between p-3 rounded-lg bg-neutral-50 dark:bg-neutral-800/30 border border-neutral-100 dark:border-neutral-800"
+                        >
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div
+                                    class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                                    :class="txn.status === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' :
+                                        txn.status === 'pending' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' :
+                                        'bg-red-100 dark:bg-red-900/30 text-red-600'"
+                                >
+                                    {{ txn.status === 'success' ? '✓' : txn.status === 'pending' ? '⏳' : '✗' }}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-xs font-medium text-neutral-900 dark:text-white">
+                                        {{ txn.channel_name || (txn.payment_type === 'manual' ? 'Transfer Manual' : 'Pembayaran') }}
+                                    </p>
+                                    <p class="text-[10px] text-neutral-400">
+                                        {{ txn.status === 'success' ? txn.paid_at : txn.status === 'pending' ? 'Menunggu' : txn.expiry || 'Gagal' }}
+                                    </p>
+                                </div>
+                            </div>
+                            <Link :href="'/client/payments/' + txn.id" class="text-xs text-emerald-600 hover:underline shrink-0 ml-3">
+                                Detail
+                            </Link>
+                        </div>
                     </div>
                 </div>
 

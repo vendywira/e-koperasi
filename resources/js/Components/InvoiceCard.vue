@@ -1,44 +1,10 @@
 <script setup lang="ts">
-import { Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Link } from '@inertiajs/vue3';
 
-const props = defineProps<{
+defineProps<{
     invoice: any;
     channels?: any[];
 }>();
-
-const showModal = ref(false);
-
-const paying = ref(false);
-const selectedChannel = ref('');
-
-function uploadProof(id: string) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/png,image/jpeg,image/jpg,application/pdf';
-    input.onchange = () => {
-        if (!input.files?.length) return;
-        const form = new FormData();
-        form.append('payment_proof', input.files[0]);
-        router.post(`/client/invoices/${id}/upload-proof`, form, { preserveScroll: true });
-    };
-    input.click();
-}
-
-function payNow(invoiceId: string) {
-    if (!selectedChannel.value) return;
-    paying.value = true;
-    router.post('/client/payment/duitku', {
-        invoice_id: invoiceId,
-        payment_method: selectedChannel.value,
-    }, {
-        preserveScroll: true,
-        onSuccess: () => { paying.value = false; },
-        onError: () => { paying.value = false; },
-    });
-}
-const downloading = ref<string | null>(null);
-function onDownload() { downloading.value = "loading"; setTimeout(() => { downloading.value = null; }, 3000); }
 </script>
 
 <template>
@@ -63,19 +29,27 @@ function onDownload() { downloading.value = "loading"; setTimeout(() => { downlo
             <div class="text-right"><p class="font-bold text-primary-700">Rp{{ Number(invoice.total_amount).toLocaleString('id-ID') }}</p></div>
         </div>
 
-        <div v-if="invoice.due_date" class="text-xs text-amber-600 mb-2">
+        <div v-if="invoice.due_date && invoice.status === 'pending'" class="text-xs text-amber-600 mb-2">
             ⏳ Jatuh tempo: {{ invoice.due_date }}
         </div>
 
-        <div v-if="invoice.status === 'pending'" class="border-t border-neutral-100 dark:border-neutral-800 pt-3 space-y-3">
+        <!-- Payment method badge (paid) -->
+        <div v-if="invoice.status === 'paid' && invoice.payment_type" class="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400 mt-2 mb-2">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            <span>{{ invoice.payment_method || invoice.payment_type }}</span>
+            <span class="text-emerald-500">·</span>
+            <span>{{ invoice.paid_at }}</span>
+        </div>
+
+        <div v-if="invoice.status === 'pending'" class="border-t border-neutral-100 dark:border-neutral-800 pt-3">
             <Link :href="`/client/invoices/${invoice.id}`"
                 class="block w-full px-4 py-3 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition text-center cursor-pointer">
                 Lihat Detail & Bayar
             </Link>
         </div>
-        <div v-if="invoice.status === 'paid'" class="border-t border-neutral-100 dark:border-neutral-800 pt-3 text-xs text-emerald-600 flex items-center justify-between">
-            <span>✅ Dibayar {{ invoice.paid_at }}</span>
-            <a :href="`/client/invoices/${invoice.id}/download`" target="_blank" class="underline hover:text-emerald-700 cursor-pointer" @click="onDownload">Download PDF</a>
+        <div v-if="invoice.status === 'paid'" class="border-t border-neutral-100 dark:border-neutral-800 pt-3 flex items-center justify-between">
+            <span class="text-xs text-emerald-600">✅ Dibayar {{ invoice.paid_at }}</span>
+            <a :href="`/client/invoices/${invoice.id}/download`" target="_blank" class="text-xs text-emerald-600 hover:underline cursor-pointer">Download PDF</a>
         </div>
     </div>
 </template>
