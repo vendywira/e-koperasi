@@ -267,6 +267,11 @@ class BillingService
             ]);
 
             if ($subscription) {
+                // Renewal: expired/grace/cancelled → active + extend. No provisioning (tenant already exists).
+                $wasInactive = in_array($subscription->status, [
+                    Subscription::STATUS_EXPIRED,
+                    Subscription::STATUS_CANCELLED,
+                ]);
                 $cyc = BillingCycle::where('slug', $subscription->billing_cycle)->first();
                 $cycleMonths = $cyc?->months ?? 1;
                 $base = $subscription->ends_at && $subscription->ends_at->isFuture()
@@ -278,6 +283,14 @@ class BillingService
                     'ends_at' => $base->copy()->addMonths($cycleMonths),
                     'renewed_at' => now(),
                 ]);
+
+                if ($wasInactive) {
+                    \Illuminate\Support\Facades\Log::info('Subscription renewed from inactive state', [
+                        'subscription_id' => $subscription->id,
+                        'was_status' => $wasInactive,
+                        'ends_at' => $subscription->fresh()->ends_at,
+                    ]);
+                }
             }
 
             if ($tenant && $tenant->status === 'suspended') {

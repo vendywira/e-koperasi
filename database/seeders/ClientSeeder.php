@@ -44,11 +44,32 @@ class ClientSeeder extends Seeder
                 'plan' => 'starter',
                 'status' => 'expired',
             ],
+            // Expired within grace period (ends_at 3 days ago, within 7-day grace)
+            [
+                'name' => 'KSU Mitra Abadi',
+                'email' => 'mitra.abadi@e-koperasi.com',
+                'phone' => '081234567895',
+                'plan' => 'premium',
+                'status' => 'expired',
+                'ends_at' => 'grace', // special marker
+            ],
+            // Expired past grace period (ends_at 10 days ago, tenant should be suspended)
+            [
+                'name' => 'Koperasi Buana Lestari',
+                'email' => 'buana.lestari@e-koperasi.com',
+                'phone' => '081234567896',
+                'plan' => 'starter',
+                'status' => 'expired',
+                'ends_at' => 'past-grace', // special marker
+            ],
         ];
 
         foreach ($clients as $data) {
             $plan = $data['plan'] ?? 'premium';
             $status = $data['status'] ?? 'active';
+
+            // Skip existing users (idempotent)
+            if (User::where('email', $data['email'])->exists()) continue;
 
             $user = User::create([
                 'name' => $data['name'],
@@ -59,10 +80,29 @@ class ClientSeeder extends Seeder
             ]);
 
             $startedAt = now()->subMonths(6);
-            $endsAt = $status === 'active' ? now()->addMonths(6) : now()->subMonth();
+            $endsAt = match ($data['ends_at'] ?? $status) {
+                'grace' => now()->subDays(3),      // in grace period
+                'past-grace' => now()->subDays(10), // past grace → tenant suspended
+                'active' => now()->addMonths(6),
+                default => now()->subMonth(),        // expired
+            };
+
+            // Create tenant for this subscription (needed for renewal provisioning)
+            $slug = \Illuminate\Support\Str::slug($user->name);
+            $tenant = \App\Models\Tenant::firstOrCreate(
+                ['domain' => $slug],
+                [
+                    'name' => $user->name,
+                    'domain' => $slug,
+                    'db_name' => str_replace('-', '_', $slug) . '_db',
+                    'status' => ($data['ends_at'] ?? null) === 'past-grace' ? 'suspended' : 'active',
+                    'requested_by' => $user->id,
+                ]
+            );
 
             $subscription = Subscription::create([
                 'user_id' => $user->id,
+                'tenant_id' => $tenant->id,
                 'plan' => $plan,
                 'status' => $status,
                 'started_at' => $startedAt,
@@ -84,18 +124,26 @@ class ClientSeeder extends Seeder
 
                 $receiptNumber = 'INV-' . $paidAt->format('Ym') . '-' . str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT);
 
-                // Create invoice first
-                $invoice = Invoice::create([
-                    'user_id' => $user->id,
-                    'tenant_id' => $subscription->tenant_id,
-                    'status' => $paymentStatus === 'paid' ? 'paid' : 'pending',
-                    'total_amount' => $price,
-                    'name' => $user->name,
-                    'domain' => $subscription->tenant?->domain ?? 'manual',
-                    'invoice_number' => $receiptNumber,
-                    'due_date' => $paidAt->copy()->addDays(14),
-                    'paid_at' => $paymentStatus === 'paid' ? $paidAt : null,
-                ]);
+                // Create invoice first (idempotent — skip if invoice_number exists)
+                $invoice = Invoice::firstOrCreate(
+                    ['invoice_number' => $receiptNumber],
+                    [
+                        'user_id' => $user->id,
+                        'tenant_id' => $subscription->tenant_id,
+                        'status' => $paymentStatus === 'paid' ? 'paid' : 'pending',
+                        'total_amount' => $price,
+                        'name' => $user->name,
+                        'domain' => $subscription->tenant?->domain ?? 'manual',
+                        'due_date' => $paidAt->copy()->addDays(14),
+                        'paid_at' => $paymentStatus === 'paid' ? $paidAt : null,
+                        'resort_count' => $subscription->max_resorts ?? 1,
+                        'price_per_resort' => $subscription->price_per_resort ?? $price,
+                        'months' => 1,
+                        'subtotal' => $price,
+                        'discount_amount' => 0,
+                    ]
+                );
+                if (!$invoice->wasRecentlyCreated) continue; // already seeded
 
                 PaymentTransaction::create([
                     'invoice_id' => $invoice->id,

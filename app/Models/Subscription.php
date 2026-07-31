@@ -59,9 +59,33 @@ class Subscription extends Model
         );
     }
 
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_EXPIRED = 'expired';
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_TRIALING = 'trialing';
+
     public function isActive(): bool
     {
-        return $this->status === 'active' && ($this->ends_at === null || $this->ends_at->isFuture());
+        return $this->status === self::STATUS_ACTIVE && ($this->ends_at === null || $this->ends_at->isFuture());
+    }
+
+    public function isGrace(): bool
+    {
+        return $this->status === self::STATUS_EXPIRED
+            && $this->ends_at !== null
+            && $this->graceEndsAt()->isFuture();
+    }
+
+    public function graceDaysRemaining(): int
+    {
+        if (!$this->ends_at) return 0;
+        return (int) max(0, now()->diffInDays($this->graceEndsAt(), false));
+    }
+
+    public function graceEndsAt(): \Carbon\CarbonInterface
+    {
+        $graceDays = (int) ($this->grace_period_days ?? 7);
+        return $this->ends_at->copy()->addDays($graceDays);
     }
 
     public function daysRemaining(): int

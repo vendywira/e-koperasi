@@ -76,8 +76,8 @@ function daysLeft(endsAt: string | null): number | null {
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="px-3 py-1 rounded-full text-xs font-semibold"
-                            :class="sub.status === 'active' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-neutral-100 text-neutral-500'">
-                            {{ sub.status === 'active' ? 'Aktif' : sub.status }}
+                            :class="sub.is_grace ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' : sub.status === 'active' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-neutral-100 text-neutral-500'">
+                            {{ sub.is_grace ? 'Masa Tenggang' : sub.status === 'active' ? 'Aktif' : sub.status }}
                         </span>
                         <span class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
                             :class="daysLeft(sub.ends_at) !== null && (sub.ends_at) && daysLeft(sub.ends_at)! <= 7 ? 'bg-red-50 text-red-700' : 'bg-neutral-100 text-neutral-600'">
@@ -116,6 +116,13 @@ function daysLeft(endsAt: string | null): number | null {
                             <div class="h-full rounded-full transition-all" :class="sub.is_active ? 'bg-emerald-500' : 'bg-neutral-400'" :style="{ width: Math.min(100, sub.usage_percent || 0) + '%' }" />
                         </div>
                         <p class="text-xs text-neutral-400 mt-1">{{ sub.started_at }} — {{ sub.ends_at }}</p>
+                    </div>
+
+                    <!-- Grace banner -->
+                    <div v-if="sub.is_grace" class="mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                        <p class="text-xs font-semibold text-amber-800 dark:text-amber-200">⚠️ Masa Tenggang — Sisa {{ sub.grace_days_remaining }} hari</p>
+                        <p class="text-xs text-amber-700 dark:text-amber-300 mt-1">Perpanjang sebelum <strong>{{ sub.grace_ends_at }}</strong> untuk menghindari penonaktifan.</p>
+                        <Link href="/client/invoices" class="mt-1.5 inline-block text-xs font-semibold text-amber-700 dark:text-amber-300 underline cursor-pointer">Bayar Sekarang →</Link>
                     </div>
 
                     <!-- Actions -->

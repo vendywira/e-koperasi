@@ -40,11 +40,13 @@ const priceLabel = computed(() => {
 
 const statusColor = computed(() => {
     if (!props.subscription) return 'bg-neutral-400';
+    if (props.subscription.is_grace) return 'bg-amber-500';
     return props.subscription.is_active ? 'bg-emerald-500' : 'bg-red-500';
 });
 
 const statusLabel = computed(() => {
     if (!props.subscription) return 'Belum Aktif';
+    if (props.subscription.is_grace) return 'Masa Tenggang';
     return props.subscription.is_active ? 'Aktif' : 'Tidak Aktif';
 });
 </script>
@@ -100,6 +102,24 @@ const statusLabel = computed(() => {
                     </div>
                     <div v-else>
                         <p class="text-sm text-neutral-500 dark:text-neutral-400">Belum ada langganan aktif. Hubungi admin.</p>
+                    </div>
+                </div>
+
+                <!-- Grace Banner -->
+                <div v-if="subscription?.is_grace" class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-5 sm:p-6 shadow-sm sm:col-span-2">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-800/30 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">Masa Tenggang — Langganan Hampir Berakhir</p>
+                            <p class="text-xs text-amber-700 dark:text-amber-300 mt-1 leading-relaxed">
+                                Langganan sudah lewat masa aktif. Bayar segera sebelum <strong>{{ subscription.grace_ends_at }}</strong> — tersisa <strong>{{ subscription.grace_days_remaining }} hari</strong>.
+                            </p>
+                            <Link href="/client/invoices" class="mt-2 inline-block text-xs font-semibold text-amber-700 dark:text-amber-300 underline hover:text-amber-800 cursor-pointer">
+                                Bayar Sekarang →
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
