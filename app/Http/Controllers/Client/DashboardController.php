@@ -27,9 +27,19 @@ class DashboardController extends Controller
 
         $recentPayments = $subscription
             ? $subscription->paymentTransactions()
+                ->with('invoice')
                 ->orderBy('created_at', 'desc')
                 ->take(5)
                 ->get()
+                ->map(fn($t) => [
+                    'id' => $t->id,
+                    'invoice_id' => $t->invoice_id,
+                    'invoice_number' => $t->invoice?->invoice_number,
+                    'amount' => (int) $t->amount,
+                    'status' => $t->status,
+                    'paid_at' => $t->paid_at?->format('d M Y'),
+                    'created_at' => $t->created_at->format('d M Y'),
+                ])
             : [];
 
         // Ticket statistics

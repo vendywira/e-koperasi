@@ -224,7 +224,7 @@ const statusLabel = computed(() => {
                     <h3 class="font-semibold text-neutral-900 dark:text-white">Riwayat Pembayaran</h3>
                     <Link
                         v-if="recentPayments.length > 0"
-                        href="/client/payments"
+                        href="/client/invoices"
                         class="text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
                     >
                         Lihat Semua
@@ -245,8 +245,8 @@ const statusLabel = computed(() => {
                             <tr v-for="payment in recentPayments" :key="payment.id" class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors">
                                 <td class="px-5 sm:px-6 py-3 text-neutral-700 dark:text-neutral-300">{{ payment.paid_at ?? payment.created_at }}</td>
                                 <td class="px-5 sm:px-6 py-3">
-                                    <Link :href="'/client/payments/' + payment.id" class="text-emerald-600 dark:text-emerald-400 hover:underline font-mono text-xs">
-                                        {{ payment.receipt_number }}
+                                    <Link :href="'/client/invoices/' + payment.invoice_id" class="text-emerald-600 dark:text-emerald-400 hover:underline font-mono text-xs">
+                                        {{ payment.invoice_number }}
                                     </Link>
                                 </td>
                                 <td class="px-5 sm:px-6 py-3 text-right font-medium text-neutral-900 dark:text-white">
@@ -255,9 +255,9 @@ const statusLabel = computed(() => {
                                 <td class="px-5 sm:px-6 py-3 text-center">
                                     <span
                                         class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium"
-                                        :class="payment.status === 'paid' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'"
+                                        :class="payment.status === 'success' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'"
                                     >
-                                        {{ payment.status === 'paid' ? 'Lunas' : payment.status }}
+                                        {{ payment.status === 'success' ? 'Lunas' : payment.status }}
                                     </span>
                                 </td>
                             </tr>

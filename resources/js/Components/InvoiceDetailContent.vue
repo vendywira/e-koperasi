@@ -148,7 +148,6 @@ const backLabel = isAdmin ? 'Kembali' : 'Kembali ke Invoice';
                                 </p>
                             </div>
                         </div>
-                        <Link :href="'/client/payments/' + txn.id" class="text-xs text-emerald-600 hover:underline shrink-0 ml-3">Detail</Link>
                     </div>
                 </div>
             </div>
@@ -159,13 +158,9 @@ const backLabel = isAdmin ? 'Kembali' : 'Kembali ke Invoice';
                 <button @click="showProof = true" class="text-sm text-primary-600 hover:underline cursor-pointer">Lihat bukti</button>
             </div>
 
-            <!-- Admin: Confirm Paid -->
-            <div v-if="isAdmin && invoice.status === 'pending'" class="px-6 sm:px-8 py-4 border-b border-neutral-200 dark:border-neutral-800">
-                <button @click="showConfirm = true" class="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 cursor-pointer min-h-[44px]">Konfirmasi Dibayar</button>
-            </div>
-
-            <!-- Download -->
-            <div class="px-6 sm:px-8 py-4 flex justify-end">
+            <!-- Actions -->
+            <div class="px-6 sm:px-8 py-4 flex justify-end gap-3">
+                <button v-if="isAdmin && invoice.status === 'pending'" @click="showConfirm = true" class="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 cursor-pointer min-h-[44px]">Konfirmasi Dibayar</button>
                 <button @click="onDownload" :disabled="downloading"
                     class="px-5 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 cursor-pointer flex items-center gap-2 min-h-[44px]">
                     <svg v-if="downloading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
