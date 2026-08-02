@@ -77,6 +77,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('index');
         Route::post('/{id}/generate', [\App\Http\Controllers\InvoiceController::class, 'generate'])->name('generate');
         Route::post('/{id}/confirm-paid', [\App\Http\Controllers\InvoiceController::class, 'confirmPaid'])->name('confirm-paid');
+        Route::post('/{id}/cancel', [\App\Http\Controllers\InvoiceController::class, 'cancel'])->name('cancel');
         Route::get('/{id}', [\App\Http\Controllers\InvoiceController::class, 'show'])->name('show');
     });
 

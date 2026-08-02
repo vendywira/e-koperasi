@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\Plan;
 use App\Models\Subscription;
+use App\Models\Tenant;
 use App\Services\BillingService;
 use App\Services\CouponService;
 use App\Services\SiteConfig;
@@ -18,12 +20,16 @@ class SubscriptionController extends Controller
     {
         $user = auth()->user();
 
+        $allPlans = Plan::with('features')->active()->get();
+
         $subscriptions = $user->ksuSubscriptions()->with('tenant')->get()->map(fn($sub) => [
             'id' => $sub->id,
+            'tenant_id' => $sub->tenant_id,
             'tenant_name' => $sub->tenant?->name ?? '-',
             'tenant_domain' => $sub->tenant?->domain ?? '-',
             'tenant_status' => $sub->tenant?->status ?? '-',
             'plan' => $sub->plan,
+            'plan_id' => $sub->plan_id,
             'max_resorts' => $sub->max_resorts,
             'price_per_resort' => $sub->price_per_resort,
             'status' => $sub->status,
@@ -37,22 +43,208 @@ class SubscriptionController extends Controller
             'days_remaining' => $sub->daysRemaining(),
             'usage_percent' => $sub->usagePercent(),
             'next_bill_date' => $sub->ends_at?->copy()->subDays(7)->format('d M Y'),
+            'available_plans' => $this->availablePlansForTenant($sub->tenant_id, $allPlans),
+            'pending_invoice' => (function () use ($sub) {
+                if (!$sub->tenant_id) return null;
+                $inv = \App\Models\Invoice::where('tenant_id', $sub->tenant_id)
+                    ->where('status', 'pending')
+                    ->latest()
+                    ->first();
+                return $inv ? [
+                    'id' => $inv->id,
+                    'invoice_number' => $inv->invoice_number,
+                    'total_amount' => (int) $inv->total_amount,
+                ] : null;
+            })(),
         ]);
 
-        $plans = \App\Models\Plan::with('features')->active()->get();
+        // Tenants owned by this user that have no subscription yet (order flow)
+        $subscribedTenantIds = $user->ksuSubscriptions()->pluck('tenant_id')->filter()->toArray();
+        $orderTenants = Tenant::where('requested_by', $user->id)
+            ->whereNotIn('id', $subscribedTenantIds)
+            ->get()
+            ->map(fn($t) => [
+                'tenant_id' => $t->id,
+                'tenant_name' => $t->name,
+                'tenant_domain' => $t->domain,
+                'used_trial' => $this->tenantUsedTrial($t->id),
+                'available_plans' => $this->availablePlansForTenant($t->id, $allPlans),
+            ]);
 
         return Inertia::render('Client/Subscription', [
             'subscriptions' => $subscriptions,
-            'plans' => $plans,
+            'plans' => $allPlans,
+            'billingCycles' => \App\Models\BillingCycle::orderBy('months')->get(),
+            'orderTenants' => $orderTenants,
         ]);
     }
 
-    public function upgrade(Request $request, BillingService $billing, CouponService $couponService): RedirectResponse
+    public function plans(): Response
+    {
+        $user = auth()->user();
+        $allPlans = Plan::with('features')->active()->get();
+
+        $subscribedTenantIds = $user->ksuSubscriptions()->pluck('tenant_id')->filter()->toArray();
+
+        // Tenants without subscription → order flow
+        $orderTenants = Tenant::where('requested_by', $user->id)
+            ->whereNotIn('id', $subscribedTenantIds)
+            ->get()
+            ->map(fn($t) => [
+                'tenant_id' => $t->id,
+                'tenant_name' => $t->name,
+                'tenant_domain' => $t->domain,
+                'used_trial' => $this->tenantUsedTrial($t->id),
+                'available_plans' => $this->availablePlansForTenant($t->id, $allPlans),
+            ]);
+
+        // Tenants with subscription → upgrade flow
+        $upgradeTenants = $user->ksuSubscriptions()->with('tenant')->get()->map(fn($sub) => [
+            'tenant_id' => $sub->tenant_id,
+            'tenant_name' => $sub->tenant?->name ?? '-',
+            'subscription_id' => $sub->id,
+            'current_plan' => $sub->plan,
+            'max_resorts' => $sub->max_resorts,
+            'price_per_resort' => $sub->price_per_resort,
+            'billing_cycle' => $sub->billing_cycle ?? 'monthly',
+            'available_plans' => $this->availablePlansForTenant($sub->tenant_id, $allPlans),
+        ]);
+
+        $hasAnyTenant = Tenant::where('requested_by', $user->id)->exists();
+
+        return Inertia::render('Client/Plans', [
+            'plans' => $allPlans,
+            'billingCycles' => \App\Models\BillingCycle::orderBy('months')->get(),
+            'orderTenants' => $orderTenants,
+            'upgradeTenants' => $upgradeTenants,
+            'hasAnyTenant' => $hasAnyTenant,
+        ]);
+    }
+
+    /**
+     * Whether a tenant has ever used the Trial plan (past or present subscription).
+     */
+    private function tenantUsedTrial(?string $tenantId): bool
+    {
+        if (!$tenantId) return false;
+
+        return Subscription::where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->where('plan', 'like', '%trial%')
+                    ->orWhere('status', 'trialing')
+                    ->orWhereNotNull('trial_ends_at');
+            })
+            ->exists();
+    }
+
+    /**
+     * Active plans, minus Trial if the tenant already used it.
+     */
+    private function availablePlansForTenant(?string $tenantId, $allPlans)
+    {
+        $usedTrial = $this->tenantUsedTrial($tenantId);
+        // Trial hidden if tenant ever used it OR already has any non-trial subscription
+        $hasPaidSubscription = $tenantId && Subscription::where('tenant_id', $tenantId)
+            ->where(function ($q) {
+                $q->where('plan', 'not like', '%trial%')
+                    ->orWhereNull('trial_ends_at');
+            })
+            ->exists();
+
+        return $allPlans
+            ->filter(fn($p) => !($p->type === 'trial' && ($usedTrial || $hasPaidSubscription)))
+            ->values();
+    }
+
+    public function order(Request $request, BillingService $billing): RedirectResponse
+    {
+        $validated = $request->validate([
+            'plan_id' => 'required|exists:plans,id',
+            'tenant_id' => 'required|exists:tenants,id',
+            'resort_qty' => 'required|integer|min:1',
+            'billing_cycle' => 'required|in:monthly,quarterly,semiannual,yearly',
+        ]);
+
+        $tenant = Tenant::where('id', $validated['tenant_id'])
+            ->where('requested_by', auth()->id())
+            ->firstOrFail();
+
+        if ($tenant->subscription) {
+            return redirect()->route('client.subscription')
+                ->with('error', 'Tenant sudah punya langganan. Gunakan Ganti Paket.');
+        }
+
+        $plan = Plan::findOrFail($validated['plan_id']);
+
+        // Tenant already used trial → Trial plan not allowed
+        if ($plan->type === 'trial' && $this->tenantUsedTrial($tenant->id)) {
+            return redirect()->back()
+                ->with('error', 'Tenant ini sudah pernah menggunakan paket Trial.');
+        }
+
+        $subscription = Subscription::create([
+            'user_id' => auth()->id(),
+            'tenant_id' => $tenant->id,
+            'plan_id' => $plan->id,
+            'plan' => $plan->name,
+            'billing_cycle' => $validated['billing_cycle'],
+            'max_resorts' => $validated['resort_qty'],
+            'price_per_resort' => $plan->pricing_config['price_per_resort'] ?? ($plan->price_per_month / max(1, $plan->max_resorts)),
+            'status' => $plan->type === 'trial' ? 'trialing' : 'pending',
+            'trial_ends_at' => $plan->type === 'trial' ? now()->addDays($plan->trial_days) : null,
+        ]);
+
+        $billing->generateInvoice($subscription, null, true);
+
+        return redirect()->route('client.invoices')
+            ->with('success', 'Tagihan dibuat. Selesaikan pembayaran untuk aktivasi.');
+    }
+
+    public function regenerateInvoice(Request $request, BillingService $billing): RedirectResponse
     {
         $validated = $request->validate([
             'subscription_id' => 'required|exists:subscriptions,id',
-            'max_resorts' => 'required|integer|min:1',
-            'price_per_resort' => 'required|numeric|min:0',
+        ]);
+
+        $subscription = Subscription::where('id', $validated['subscription_id'])
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        // Hanya sub pending/trialing yang butuh invoice
+        if (!in_array($subscription->status, ['pending', 'trialing'])) {
+            return redirect()->route('client.subscription')
+                ->with('error', 'Langganan sudah aktif, tidak perlu tagihan baru.');
+        }
+
+        // Cek apakah sudah ada invoice pending
+        $existingPending = $subscription->tenant_id
+            ? \App\Models\Invoice::where('tenant_id', $subscription->tenant_id)
+                ->where('status', 'pending')
+                ->exists()
+            : false;
+        if ($existingPending) {
+            return redirect()->route('client.subscription')
+                ->with('info', 'Masih ada tagihan pending. Selesaikan pembayaran yang ada.');
+        }
+
+        $invoice = $billing->generateInvoice($subscription, null, true);
+
+        if (!$invoice) {
+            return redirect()->route('client.subscription')
+                ->with('error', 'Gagal membuat tagihan. Hubungi admin.');
+        }
+
+        return redirect()->route('client.invoices')
+            ->with('success', 'Tagihan baru dibuat. Selesaikan pembayaran untuk aktivasi.');
+    }
+
+    public function upgrade(Request $request, BillingService $billing): RedirectResponse
+    {
+        $validated = $request->validate([
+            'subscription_id' => 'required|exists:subscriptions,id',
+            'plan_id' => 'required|exists:plans,id',
+            'max_resorts' => 'nullable|integer|min:1',
+            'billing_cycle' => 'nullable|in:monthly,quarterly,semiannual,yearly',
             'coupon_code' => 'nullable|string|max:50',
         ]);
 
@@ -60,28 +252,24 @@ class SubscriptionController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        $coupon = null;
-        if ($couponCode = $validated['coupon_code'] ?? null) {
-            $coupon = $couponService->validateCoupon($couponCode, $subscription->plan_id ?? '');
-        }
+        $plan = Plan::findOrFail($validated['plan_id']);
+        $newPrice = (float) ($plan->pricing_config['price_per_resort']
+            ?? ($plan->price_per_month / max(1, $plan->max_resorts)));
 
-        $proration = $billing->calculateProration(
-            $subscription,
-            (int) $validated['max_resorts'],
-            (float) $validated['price_per_resort']
-        );
+        // Resort default: pakai dari invoice terakhir (paid/pending) kalau ada, fallback 1
+        $lastResort = \App\Models\Invoice::where('tenant_id', $subscription->tenant_id)
+            ->whereNotNull('resort_count')
+            ->latest()
+            ->value('resort_count');
+        $newMax = (int) ($validated['max_resorts'] ?? $lastResort ?: 1);
 
-        if ($proration['type'] === 'upgrade' && $proration['prorated_amount'] > 0) {
-            $billing->upgrade($subscription, (int) $validated['max_resorts'], (float) $validated['price_per_resort'], $coupon);
-            return redirect()->route('client.invoices')
-                ->with('success', 'Paket di-upgrade. Silakan bayar invoice prorata.');
-        }
+        $newCycle = $validated['billing_cycle'] ?? $subscription->billing_cycle ?? 'monthly';
 
-        $proration['new_price_per_resort'] = (float) $validated['price_per_resort'];
-        $billing->downgradeCredit($subscription, $proration);
+        // Update invoice in-place (paket + cycle). Subscription berubah setelah bayar.
+        $billing->applyPlanChange($subscription, $newMax, $newPrice, $newCycle, $plan->id);
 
-        return redirect()->route('client.subscription')
-            ->with('success', 'Paket diubah. Selisih akan dikreditkan ke invoice bulan depan.');
+        return redirect()->route('client.invoices')
+            ->with('success', 'Perubahan paket menunggu pembayaran. Bayar invoice untuk mengaktifkan paket baru.');
     }
 
     public function changeCycle(Request $request): RedirectResponse

@@ -74,6 +74,26 @@ class InvoiceController extends Controller
         ]);
     }
 
+    // ── Shared: cancel pending invoice (client owns it, admin can cancel any) ──
+
+    public function cancel(string $id): RedirectResponse
+    {
+        $user = auth()->user();
+
+        $invoice = Invoice::where('id', $id)
+            ->when($user->role !== 'admin', fn($q) => $q->where('user_id', $user->id))
+            ->where('status', 'pending')
+            ->firstOrFail();
+
+        // Cancel pending payment transactions for this invoice too
+        $invoice->paymentTransactions()->where('status', 'pending')->update(['status' => 'cancelled']);
+
+        $invoice->update(['status' => 'cancelled']);
+
+        $back = $user->role === 'admin' ? 'admin.invoice.index' : 'client.invoices';
+        return redirect()->route($back)->with('success', 'Invoice dibatalkan.');
+    }
+
     // ── Admin: generate invoice for tenant ──
 
     public function generate(string $id): RedirectResponse
@@ -214,7 +234,8 @@ class InvoiceController extends Controller
             'companyLogo' => $companyLogo,
             'payment' => $latestPayment ? [
                 'method' => $latestPayment->channel_name ?? ($latestPayment->payment_type === 'manual' ? 'Transfer Manual' : '-'),
-                'count' => (int) $latestPayment->amount,
+                'payment_type' => $latestPayment->payment_type,
+                'amount' => (int) $latestPayment->amount,
                 'base_amount' => (int) $latestPayment->base_amount,
                 'fee_amount' => (int) $latestPayment->fee_amount,
                 'status' => $latestPayment->status,

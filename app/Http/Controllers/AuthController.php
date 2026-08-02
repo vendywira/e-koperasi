@@ -83,6 +83,11 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        // Preselect plan from landing pricing link (?plan={id})
+        if ($request->has('plan')) {
+            return redirect()->route('client.subscription', ['plan' => $request->query('plan')]);
+        }
+
         return redirect()->route('client.dashboard');
     }
 

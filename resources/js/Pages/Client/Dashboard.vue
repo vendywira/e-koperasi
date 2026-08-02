@@ -11,6 +11,7 @@ const props = defineProps<{
     pendingInvoices: any[];
     userTenants: any[];
     recentPayments: any[];
+    plans?: any[];
     ticketStats?: {
         total: number;
         pending: number;
@@ -20,22 +21,21 @@ const props = defineProps<{
     };
 }>();
 
+const currentPlan = computed(() =>
+    props.plans?.find(p => p.name.toLowerCase() === props.subscription?.plan?.toLowerCase())
+);
+
 const planLabel = computed(() => {
-    const labels: Record<string, string> = {
-        starter: 'Starter',
-        premium: 'Premium',
-        enterprise: 'Enterprise',
-    };
-    return labels[props.subscription?.plan] || props.subscription?.plan || '-';
+    return currentPlan.value?.name ?? props.subscription?.plan ?? '-';
 });
 
 const priceLabel = computed(() => {
-    const prices: Record<string, string> = {
-        starter: 'Rp499.000 / bln',
-        premium: 'Rp1.500.000 / bln',
-        enterprise: 'Custom',
-    };
-    return prices[props.subscription?.plan] || '-';
+    const plan = currentPlan.value;
+    if (!plan) return '-';
+    const cfg = plan.pricing_config || {};
+    if (cfg.price_per_resort) return `Rp${Number(cfg.price_per_resort).toLocaleString('id-ID')}/resort`;
+    if (plan.price_per_month) return `Rp${Number(plan.price_per_month).toLocaleString('id-ID')}/bln`;
+    return 'Custom';
 });
 
 const statusColor = computed(() => {
@@ -133,15 +133,56 @@ const statusLabel = computed(() => {
                         </div>
                         <span class="text-3xl opacity-10">📦</span>
                     </div>
-                    <Link
-                        href="/client/subscription"
-                        class="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-                    >
-                        Lihat Detail Paket
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                        </svg>
-                    </Link>
+                    <div class="flex flex-wrap gap-2">
+                        <Link
+                            href="/client/subscription"
+                            class="inline-flex items-center gap-1 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition cursor-pointer"
+                        >
+                            {{ subscription?.plan ? 'Ganti Paket' : 'Pilih Paket' }}
+                        </Link>
+                        <Link
+                            href="/client/subscription"
+                            class="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors px-2"
+                        >
+                            Detail
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ajukan Tenant CTA -->
+            <div v-if="!subscription || !subscription.is_active" class="bg-gradient-to-br from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-800 rounded-xl shadow-sm overflow-hidden">
+                <div class="p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                            <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Mulai Ajukan Tenant Koperasi</h3>
+                            <p class="text-sm text-white/80 mt-1 max-w-lg leading-relaxed">
+                                Buat koperasi digital untuk usaha simpan pinjam Anda. Pilih paket, isi data, dan tim kami siapkan infrastrukturnya.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 shrink-0">
+                        <Link
+                            href="/client/request-tenant"
+                            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-primary-700 rounded-lg text-sm font-bold hover:bg-primary-50 transition-colors cursor-pointer"
+                        >
+                            Ajukan Tenant
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                        </Link>
+                        <Link
+                            href="/client/plans"
+                            class="inline-flex items-center justify-center px-5 py-2.5 border border-white/30 text-white rounded-lg text-sm font-medium hover:bg-white/10 transition-colors cursor-pointer"
+                        >
+                            Lihat Paket
+                        </Link>
+                    </div>
                 </div>
             </div>
 

@@ -9,6 +9,7 @@ const isAdmin = user?.role === 'admin';
 const downloading = ref(false);
 const showProof = ref(false);
 const showConfirm = ref(false);
+const showCancel = ref(false);
 const isProcessing = ref(false);
 
 function onDownload() {
@@ -39,6 +40,15 @@ function doConfirmPaid() {
     });
 }
 
+function doCancel() {
+    isProcessing.value = true;
+    const base = isAdmin ? '/admin' : '/client';
+    router.post(`${base}/invoices/${props.invoice.id}/cancel`, {}, {
+        preserveScroll: true,
+        onFinish: () => { showCancel.value = false; isProcessing.value = false; },
+    });
+}
+
 const backUrl = isAdmin ? '/admin/billing' : '/client/invoices';
 const backLabel = isAdmin ? 'Kembali' : 'Kembali ke Invoice';
 </script>
@@ -62,8 +72,8 @@ const backLabel = isAdmin ? 'Kembali' : 'Kembali ke Invoice';
                         <p v-if="invoice.plan_name" class="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">{{ invoice.plan_name }}</p>
                     </div>
                     <span class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
-                        :class="invoice.status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30'">
-                        {{ invoice.status === 'paid' ? 'LUNAS' : 'BELUM DIBAYAR' }}
+                        :class="invoice.status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : invoice.status === 'cancelled' ? 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30'">
+                        {{ invoice.status === 'paid' ? 'LUNAS' : invoice.status === 'cancelled' ? 'DIBATALKAN' : 'BELUM DIBAYAR' }}
                     </span>
                 </div>
 
@@ -161,6 +171,7 @@ const backLabel = isAdmin ? 'Kembali' : 'Kembali ke Invoice';
             <!-- Actions -->
             <div class="px-6 sm:px-8 py-4 flex justify-end gap-3">
                 <button v-if="isAdmin && invoice.status === 'pending'" @click="showConfirm = true" class="px-5 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 cursor-pointer min-h-[44px]">Konfirmasi Dibayar</button>
+                <button v-if="invoice.status === 'pending'" @click="showCancel = true" class="px-5 py-2.5 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer min-h-[44px]">Batalkan Invoice</button>
                 <button @click="onDownload" :disabled="downloading"
                     class="px-5 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 cursor-pointer flex items-center gap-2 min-h-[44px]">
                     <svg v-if="downloading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
@@ -197,6 +208,20 @@ const backLabel = isAdmin ? 'Kembali' : 'Kembali ke Invoice';
                     <div class="flex gap-3 mt-6 justify-end">
                         <button @click="showConfirm = false" class="px-4 py-2 border border-neutral-200 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-50 cursor-pointer">Batal</button>
                         <button @click="doConfirmPaid" :disabled="isProcessing" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 cursor-pointer">{{ isProcessing ? 'Memproses...' : 'Ya, Konfirmasi' }}</button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <!-- Cancel Dialog -->
+        <Teleport to="body">
+            <div v-if="showCancel" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" @click.self="showCancel = false">
+                <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xl max-w-md w-full p-6">
+                    <h3 class="text-lg font-bold text-neutral-900 dark:text-white">Batalkan Invoice</h3>
+                    <p class="text-sm text-neutral-500 mt-2">Yakin ingin membatalkan invoice <strong>{{ invoice.invoice_number }}</strong>? Invoice yang dibatalkan tidak akan dianggap lagi.</p>
+                    <div class="flex gap-3 mt-6 justify-end">
+                        <button @click="showCancel = false" class="px-4 py-2 border border-neutral-200 rounded-lg text-sm font-medium text-neutral-600 hover:bg-neutral-50 cursor-pointer">Batal</button>
+                        <button @click="doCancel" :disabled="isProcessing" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 cursor-pointer">{{ isProcessing ? 'Memproses...' : 'Ya, Batalkan' }}</button>
                     </div>
                 </div>
             </div>

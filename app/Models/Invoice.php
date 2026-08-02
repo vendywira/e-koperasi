@@ -15,7 +15,7 @@ class Invoice extends Model
     protected $fillable = [
         'tenant_request_id', 'tenant_id', 'user_id', 'requested_by', 'name', 'domain',
         'resort_count', 'price_per_resort', 'months', 'total_amount',
-        'invoice_number', 'subtotal', 'discount_amount', 'coupon_id',
+        'invoice_number', 'subtotal', 'discount_amount', 'coupon_id', 'plan_id',
         'due_date', 'payment_channel', 'payment_transaction_id',
         'status', 'paid_at', 'payment_proof', 'confirmed_by',
     ];

@@ -45,6 +45,7 @@ Route::prefix('client')->name('client.')->group(function () {
     Route::middleware(['auth', 'role:client'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription');
+        Route::get('/plans', [SubscriptionController::class, 'plans'])->name('plans');
         Route::redirect('/payments', '/client/invoices')->name('payments');
         Route::get('/payments/{id}', [PaymentController::class, 'show'])->name('payments.show');
 
@@ -56,6 +57,7 @@ Route::prefix('client')->name('client.')->group(function () {
         // Client: Invoices
         Route::get('/invoices', [\App\Http\Controllers\InvoiceController::class, 'index'])->name('invoices');
         Route::post('/invoices/{id}/upload-proof', [\App\Http\Controllers\InvoiceController::class, 'uploadProof'])->name('invoices.upload-proof');
+        Route::post('/invoices/{id}/cancel', [\App\Http\Controllers\InvoiceController::class, 'cancel'])->name('invoices.cancel');
         Route::get('/invoices/{id}/download', [\App\Http\Controllers\InvoiceController::class, 'download'])->name('invoices.download')->withoutMiddleware([\App\Http\Middleware\HandleInertiaRequests::class]);
         Route::get('/invoices/{id}', [\App\Http\Controllers\InvoiceController::class, 'show'])->name('invoices.show');
 
@@ -75,6 +77,8 @@ Route::prefix('client')->name('client.')->group(function () {
         Route::post('/payment/simulate-callback', [\App\Http\Controllers\Client\PaymentController::class, 'simulateCallback'])->name('payment.simulate-callback');
 
         // Client: Subscription upgrade/downgrade
+        Route::post('/subscription/order', [\App\Http\Controllers\Client\SubscriptionController::class, 'order'])->name('subscription.order');
+        Route::post('/subscription/regenerate-invoice', [\App\Http\Controllers\Client\SubscriptionController::class, 'regenerateInvoice'])->name('subscription.regenerate-invoice');
         Route::post('/subscription/upgrade', [\App\Http\Controllers\Client\SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
         Route::post('/subscription/change-cycle', [\App\Http\Controllers\Client\SubscriptionController::class, 'changeCycle'])->name('subscription.change-cycle');
         Route::post('/subscription/cancel', [\App\Http\Controllers\Client\SubscriptionController::class, 'cancel'])->name('subscription.cancel');

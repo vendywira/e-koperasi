@@ -89,6 +89,7 @@ class DashboardController extends Controller
             ] : null,
             'recentPayments' => $recentPayments,
             'ticketStats' => $ticketStats,
+            'plans' => \App\Models\Plan::with('features')->active()->get(),
         ]);
     }
 }

@@ -72,7 +72,7 @@ class BillingService
 
         $invoice = DB::transaction(function () use (
             $subscription, $tenant, $invoiceNumber, $subtotal,
-            $cycleDiscount, $couponDiscount, $total, $cycleMonths, $coupon, $qty, $price
+            $cycleDiscount, $cycleDiscountPct, $couponDiscount, $total, $cycleMonths, $coupon, $qty, $price
         ) {
             $inv = Invoice::create([
                 'tenant_id' => $tenant?->id,
@@ -230,10 +230,8 @@ class BillingService
             'total_amount' => $total,
         ]);
 
-        $subscription->update([
-            'max_resorts' => $newMaxResorts,
-            'price_per_resort' => $newPricePerResort,
-        ]);
+        // Subscription NOT updated here — plan change activates only after invoice is paid
+        // (confirmPayment applies invoice resort_count/price_per_resort as target)
 
         return $invoice;
     }
@@ -255,6 +253,101 @@ class BillingService
         ]);
     }
 
+    public function applyPlanChange(Subscription $subscription, int $newMaxResorts, float $newPricePerResort, string $newCycle, ?string $planId = null): ?Invoice
+    {
+        $tenant = Tenant::find($subscription->tenant_id);
+        $cycle = BillingCycle::where('slug', $newCycle)->first();
+        $cycleMonths = $cycle?->months ?? 1;
+        $discountPct = $cycle?->discount_percent ?? 0;
+        $subtotal = $newMaxResorts * $newPricePerResort * $cycleMonths;
+        $discount = $subtotal * $discountPct / 100;
+        $total = max(0, $subtotal - $discount);
+
+        // Existing pending invoice → update in-place
+        $invoice = Invoice::where('tenant_id', $tenant?->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
+
+        if ($invoice) {
+            $invoice->update([
+                'resort_count' => $newMaxResorts,
+                'price_per_resort' => $newPricePerResort,
+                'months' => $cycleMonths,
+                'subtotal' => $subtotal,
+                'discount_amount' => $discount,
+                'total_amount' => $total,
+                'plan_id' => $planId,
+                'due_date' => now()->addDays(14),
+            ]);
+            // Replace items
+            $invoice->invoiceItems()->delete();
+            $invoice->invoiceItems()->create([
+                'description' => "Langganan {$tenant?->name} — {$newMaxResorts} resort × {$cycleMonths} bulan",
+                'quantity' => 1,
+                'unit_price' => $subtotal,
+                'total_amount' => $subtotal,
+                'type' => 'subscription',
+            ]);
+            if ($discount > 0) {
+                $invoice->invoiceItems()->create([
+                    'description' => "Diskon siklus {$newCycle} ({$discountPct}%)",
+                    'quantity' => 1,
+                    'unit_price' => -$discount,
+                    'discount_amount' => $discount,
+                    'total_amount' => -$discount,
+                    'type' => 'discount',
+                ]);
+            }
+            return $invoice;
+        }
+
+        // No pending invoice → create new with passed cycle/data
+        $month = now()->format('Ym');
+        $lastSeq = Invoice::where('invoice_number', 'like', "INV-{$month}-%")
+            ->orderByRaw('CAST(SUBSTRING(invoice_number, -4) AS UNSIGNED) DESC')
+            ->value('invoice_number');
+        $seq = $lastSeq ? (int) substr($lastSeq, -4) + 1 : 1;
+        $invoiceNumber = sprintf('INV-%s-%04d', $month, $seq);
+
+        $invoice = Invoice::create([
+            'tenant_id' => $tenant?->id,
+            'user_id' => $subscription->user_id,
+            'name' => $tenant?->name ?? '',
+            'domain' => $tenant?->domain ?? '',
+            'invoice_number' => $invoiceNumber,
+            'resort_count' => $newMaxResorts,
+            'price_per_resort' => $newPricePerResort,
+            'months' => $cycleMonths,
+            'subtotal' => $subtotal,
+            'discount_amount' => $discount,
+            'total_amount' => $total,
+            'plan_id' => $planId,
+            'status' => 'pending',
+            'due_date' => now()->addDays(14),
+        ]);
+
+        $invoice->invoiceItems()->create([
+            'description' => "Langganan {$tenant?->name} — {$newMaxResorts} resort × {$cycleMonths} bulan",
+            'quantity' => 1,
+            'unit_price' => $subtotal,
+            'total_amount' => $subtotal,
+            'type' => 'subscription',
+        ]);
+        if ($discount > 0) {
+            $invoice->invoiceItems()->create([
+                'description' => "Diskon siklus {$newCycle} ({$discountPct}%)",
+                'quantity' => 1,
+                'unit_price' => -$discount,
+                'discount_amount' => $discount,
+                'total_amount' => -$discount,
+                'type' => 'discount',
+            ]);
+        }
+
+        return $invoice;
+    }
+
     public function confirmPayment(Invoice $invoice): void
     {
         $tenant = Tenant::find($invoice->tenant_id);
@@ -265,6 +358,20 @@ class BillingService
                 'status' => 'paid',
                 'paid_at' => now(),
             ]);
+
+            // Apply plan change target: resort_count, price_per_resort, cycle, plan (from updated invoice)
+            $invoice->load('invoiceItems');
+            $prorationItem = $invoice->invoiceItems->firstWhere('type', 'proration');
+            if ($subscription && ($prorationItem || $invoice->months > 0)) {
+                $plan = $invoice->plan_id ? Plan::find($invoice->plan_id) : null;
+                $subscription->update([
+                    'max_resorts' => (int) ($invoice->resort_count ?: $subscription->max_resorts),
+                    'price_per_resort' => (float) ($invoice->price_per_resort ?: $subscription->price_per_resort),
+                    'billing_cycle' => $this->cycleSlugForMonths((int) $invoice->months),
+                    'plan_id' => $plan?->id ?? $subscription->plan_id,
+                    'plan' => $plan?->name ?? $subscription->plan,
+                ]);
+            }
 
             if ($subscription) {
                 // Renewal: expired/grace/cancelled → active + extend. No provisioning (tenant already exists).
@@ -312,5 +419,15 @@ class BillingService
         ]);
 
         Tenant::where('id', $subscription->tenant_id)->update(['status' => 'active']);
+    }
+
+    private function cycleSlugForMonths(int $months): string
+    {
+        return match ($months) {
+            3 => 'quarterly',
+            6 => 'semiannual',
+            12 => 'yearly',
+            default => 'monthly',
+        };
     }
 }

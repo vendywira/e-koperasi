@@ -78,11 +78,17 @@ class TenantRequestController extends Controller
 
     public function store(Request $request, BillingService $billing): RedirectResponse
     {
+        $planId = $request->input('plan_id');
+        $planType = $planId ? Plan::where('id', $planId)->value('type') : null;
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'domain' => 'required|string|max:100|unique:tenants,domain|regex:/^[a-z0-9]+(-[a-z0-9]+)*$/',
             'plan_id' => 'required|exists:plans,id',
-            'resort_qty' => 'nullable|integer|min:0',
+            // Business plan requires at least 1 resort; trial/enterprise default
+            'resort_qty' => $planType === 'business'
+                ? 'required|integer|min:1'
+                : 'nullable|integer|min:1',
             'billing_cycle' => 'nullable|in:monthly,quarterly,semiannual,yearly',
             'notes' => 'nullable|string|max:500',
             'company_address' => 'nullable|string|max:500',
@@ -121,7 +127,9 @@ class TenantRequestController extends Controller
                 'plan_id' => $plan->id,
                 'plan' => $plan->name,
                 'billing_cycle' => $cycle,
-                'max_resorts' => $plan->max_resorts,
+                'max_resorts' => !empty($validated['resort_qty'])
+                    ? (int) $validated['resort_qty']
+                    : (int) ($plan->max_resorts ?: 1),
                 'price_per_resort' => ($plan->pricing_config['price_per_resort'] ?? ($plan->price_per_month / max(1, $plan->max_resorts))),
                 'status' => 'pending',
                 'started_at' => now(),
