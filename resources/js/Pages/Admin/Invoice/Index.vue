@@ -2,7 +2,7 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
-const props = defineProps<{ invoices: any }>();
+const props = defineProps<{ invoices: any[]; paymentChannels: any[] }>();
 
 function confirmPaid(id: string, name: string) {
     if (!confirm(`Konfirmasi pembayaran untuk "${name}"?`)) return;
@@ -39,9 +39,9 @@ const statusBadge = (s: string) => {
                         </tr>
                     </thead>
                     <tbody class="divide-y">
-                        <tr v-for="inv in invoices.data" :key="inv.id" class="hover:bg-neutral-50">
+                        <tr v-for="inv in invoices" :key="inv.id" class="hover:bg-neutral-50">
                             <td class="px-4 py-3 font-medium">{{ inv.name }}</td>
-                            <td class="px-4 py-3 text-xs text-neutral-500">{{ inv.user?.email }}</td>
+                            <td class="px-4 py-3 text-xs text-neutral-500">{{ inv.client_email ?? '-' }}</td>
                             <td class="px-4 py-3 text-center">{{ inv.resort_count }} x Rp {{ Number(inv.price_per_resort).toLocaleString('id-ID') }}</td>
                             <td class="px-4 py-3 text-right font-medium">Rp {{ Number(inv.total_amount).toLocaleString('id-ID') }}</td>
                             <td class="px-4 py-3 text-center">
@@ -52,10 +52,10 @@ const statusBadge = (s: string) => {
                                     class="px-3 py-1.5 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium">
                                     Konfirmasi Bayar
                                 </button>
-                                <span v-else class="text-xs text-neutral-400">{{ inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('id-ID') : '-' }}</span>
+                                <span v-else class="text-xs text-neutral-400">{{ inv.paid_at ?? '-' }}</span>
                             </td>
                         </tr>
-                        <tr v-if="invoices.data.length === 0">
+                        <tr v-if="invoices.length === 0">
                             <td colspan="6" class="px-4 py-12 text-center text-neutral-400">Belum ada invoice.</td>
                         </tr>
                     </tbody>

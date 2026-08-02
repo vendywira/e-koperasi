@@ -78,7 +78,8 @@ class TenantRequestController extends Controller
         // 3. Update status tenant & subscription
         if (!$provisionFailed) {
             $tenant->update(['status' => 'active']);
-            if ($tenant->subscription) {
+            // Trial sub tetep trialing (trial period berjalan), non-trial → active
+            if ($tenant->subscription && $tenant->subscription->status !== 'trialing') {
                 $tenant->subscription->update(['status' => 'active']);
             }
         }

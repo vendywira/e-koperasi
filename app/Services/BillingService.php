@@ -153,6 +153,11 @@ class BillingService
             return $inv;
         });
 
+        // 0-amount invoice (e.g. trial) → anggap sudah bayar, auto-confirm, gak perlu payment UI (== biar 0.0 float kena)
+        if ($total == 0 && $invoice) {
+            $this->confirmPayment($invoice);
+        }
+
         return $invoice;
     }
 

@@ -106,13 +106,16 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Tenant sudah diproses.');
         }
 
-        $billing = SiteConfig::get('billing', []);
-        $pricePerResort = $billing['price_per_unit'] ?? 100000;
+        // Harga dari subscription (trial = 0 → invoice 0 → auto-paid, skip pending pembayaran)
+        $sub = $tenant->subscription;
+        $pricePerResort = $sub?->price_per_resort ?? 100000;
         $months = 1;
-        $maxResorts = $tenant->subscription?->max_resorts ?? 1;
+        $maxResorts = $sub?->max_resorts ?? 1;
         $userId = $tenant->requested_by ?? $tenant->subscription?->user_id ?? auth()->id();
 
-        Invoice::create([
+        $total = $maxResorts * $pricePerResort * $months;
+
+        $invoice = Invoice::create([
             'tenant_id' => $tenant->id,
             'user_id' => $userId,
             'name' => $tenant->name,
@@ -120,9 +123,14 @@ class InvoiceController extends Controller
             'resort_count' => $maxResorts,
             'price_per_resort' => $pricePerResort,
             'months' => $months,
-            'total_amount' => $maxResorts * $pricePerResort * $months,
+            'total_amount' => $total,
             'status' => 'pending',
         ]);
+
+        // 0-amount = free → anggap lunas, jalanin proses konfirmasi pembayaran (provision + activate + notify)
+        if ($total == 0) {
+            $this->confirmPaid($invoice->id);
+        }
 
         return redirect()->route('admin.invoice.index')
             ->with('success', "Invoice untuk '{$tenant->name}' berhasil dibuat.");
@@ -163,7 +171,8 @@ class InvoiceController extends Controller
 
             if (!$provisionFailed) {
                 $tenant->update(['status' => 'active']);
-                if ($tenant->subscription) {
+                // Trial sub tetep trialing (trial period berjalan), non-trial → active
+                if ($tenant->subscription && $tenant->subscription->status !== 'trialing') {
                     $tenant->subscription->update([
                         'status' => 'active',
                         'started_at' => now(),

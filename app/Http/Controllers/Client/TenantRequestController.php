@@ -140,20 +140,18 @@ class TenantRequestController extends Controller
                 'trial_ends_at' => $isTrial ? now()->addDays($plan->trial_days) : null,
             ]);
 
-            // Trial: langsung aktif gratis, gak bikin invoice payable
+            $provisionMode = SiteConfig::get('config.provision_mode', 'manual');
+            $isAutoProvision = $provisionMode === 'auto';
+
+            // Trial: gratis, gak bikin invoice payable. Ikut provision_mode — manual → pending, auto → aktif + provision.
             if ($isTrial) {
-                $tenant->update(['status' => 'active']);
-                return ['tenant' => $tenant, 'invoice' => null, 'auto_activate' => true];
+                return ['tenant' => $tenant, 'invoice' => null, 'auto_activate' => $isAutoProvision];
             }
 
             // Non-trial: generate invoice
             $invoice = $billing->generateInvoice($subscription, null, true);
 
-            // Auto-provision mode: provision + activate langsung
-            $provisionMode = SiteConfig::get('billing.provision_mode', 'manual');
-            $isAutoProvision = ($provisionMode === 'auto' && $invoice);
-
-            return ['tenant' => $tenant, 'invoice' => $invoice, 'auto_provision' => $isAutoProvision];
+            return ['tenant' => $tenant, 'invoice' => $invoice, 'auto_provision' => ($isAutoProvision && $invoice)];
         });
 
         // Auto-provision: lakukan di luar transaction
@@ -171,8 +169,17 @@ class TenantRequestController extends Controller
             }
         }
 
-        // Trial: redirect ke langganan dengan pesan success
+        // Trial auto: tenant aktif langsung, provision juga
         if ($result['auto_activate'] ?? false) {
+            $tenant = $result['tenant'];
+            $tenant->update(['status' => 'active']);
+
+            try {
+                app(\App\Services\ProvisionService::class)->provision($tenant, auth()->user());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Auto-provision trial {$tenant->domain}: " . $e->getMessage());
+            }
+
             return redirect()->route('client.subscription')
                 ->with('success', "Trial {$plan->name} aktif! Berlaku selama {$plan->trial_days} hari.");
         }

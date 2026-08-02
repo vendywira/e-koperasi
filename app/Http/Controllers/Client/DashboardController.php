@@ -51,9 +51,10 @@ class DashboardController extends Controller
             'close' => Ticket::where('user_id', $user->id)->where('status', 'close')->count(),
         ];
 
-        // Pending invoices — unpaid
+        // Pending invoices — unpaid (0-amount = free, skip)
         $pendingInvoices = Invoice::where('user_id', $user->id)
             ->where('status', 'pending')
+            ->where('total_amount', '>', 0)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($inv) => [

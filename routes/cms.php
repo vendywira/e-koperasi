@@ -41,6 +41,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         });
     });
 
+    // Operational config — admin only (flags/parameters)
+    Route::middleware('role:admin')->prefix('config')->name('config.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\ConfigController::class, 'index'])->name('index');
+        Route::put('/', [\App\Http\Controllers\Admin\ConfigController::class, 'update'])->name('update');
+    });
+
     // Client Management
     Route::prefix('clients')->name('client.')->group(function () {
         Route::get('/', [ClientController::class, 'index'])->name('index');

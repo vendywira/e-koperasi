@@ -48,8 +48,10 @@ class SubscriptionController extends Controller
             'available_plans' => $this->availablePlansForTenant($sub->tenant_id, $allPlans),
             'pending_invoice' => (function () use ($sub) {
                 if (!$sub->tenant_id) return null;
+                // 0-amount = free, gak perlu pembayaran → skip
                 $inv = \App\Models\Invoice::where('tenant_id', $sub->tenant_id)
                     ->where('status', 'pending')
+                    ->where('total_amount', '>', 0)
                     ->latest()
                     ->first();
                 return $inv ? [
@@ -207,11 +209,21 @@ class SubscriptionController extends Controller
             'trial_ends_at' => $plan->type === 'trial' ? now()->addDays($plan->trial_days) : null,
         ]);
 
-        // Trial → langsung aktif gratis, gak bikin invoice payable
+        // Trial → gratis, gak bikin invoice payable. Ikut provision_mode — manual → pending, auto → aktif + provision.
         if ($plan->type === 'trial') {
-            $tenant->update(['status' => 'active']);
+            $provisionMode = SiteConfig::get('config.provision_mode', 'manual');
+            if ($provisionMode === 'auto') {
+                $tenant->update(['status' => 'active']);
+                try {
+                    app(\App\Services\ProvisionService::class)->provision($tenant, auth()->user());
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error("Auto-provision trial {$tenant->domain}: " . $e->getMessage());
+                }
+                return redirect()->route('client.subscription')
+                    ->with('success', 'Trial dimulai! Aktif selama ' . $plan->trial_days . ' hari.');
+            }
             return redirect()->route('client.subscription')
-                ->with('success', 'Trial dimulai! Aktif selama ' . $plan->trial_days . ' hari.');
+                ->with('info', 'Trial dimulai. Menunggu persetujuan admin untuk aktivasi tenant.');
         }
 
         $billing->generateInvoice($subscription, null, true);

@@ -4,9 +4,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Billing
+    | Config (operational flags/parameters — admin only)
     |--------------------------------------------------------------------------
     */
+    'config' => [
+        'provision_mode' => 'manual', // auto | manual
+    ],
+
     'brand' => [
         'name' => 'e-Koperasi',
         'tagline' => 'Platform Digital Koperasi Indonesia',
