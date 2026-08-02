@@ -12,13 +12,15 @@ class Plan extends Model
 
     protected $fillable = [
         'name', 'description', 'type', 'pricing_config', 'max_resorts', 'price_per_month',
-        'trial_days', 'sort_order', 'is_active',
+        'trial_days', 'sort_order', 'is_active', 'is_default', 'is_popular',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
+            'is_popular' => 'boolean',
             'pricing_config' => 'array',
         ];
     }

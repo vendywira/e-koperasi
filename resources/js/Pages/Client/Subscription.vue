@@ -27,6 +27,19 @@ const tenantWithoutSub = computed(() => {
 
 const cycleLabels: Record<string, string> = { monthly: 'Bulanan', quarterly: '3 Bulan', semiannual: '6 Bulan', yearly: '12 Bulan' };
 
+function preselectPlan() {
+    const plans = upgradePlans.value;
+    if (!plans.length) return;
+    // 1. plan aktif terakhir (dari subscription plan_id)
+    const active = plans.find(p => p.id === targetSub.value?.plan_id);
+    // 2. is_default
+    const def = plans.find(p => p.is_default);
+    // 3. Business (type business)
+    const biz = plans.find(p => p.type === 'business');
+    const target = active || def || biz || plans[0];
+    onPlanSelectUpgrade(target);
+}
+
 function openModal(type: string, sub: any) {
     activeModal.value = type;
     targetSub.value = sub;
@@ -35,6 +48,7 @@ function openModal(type: string, sub: any) {
         upgradeForm.subscription_id = sub.id;
         upgradeForm.max_resorts = sub.max_resorts || 1;
         upgradeForm.billing_cycle = sub.billing_cycle || 'monthly';
+        preselectPlan();
     } else if (type === 'order') {
         orderForm.reset();
         orderTenant.value = sub;
@@ -49,18 +63,63 @@ function openModal(type: string, sub: any) {
 const upgradePlans = computed(() => targetSub.value?.available_plans ?? props.plans ?? []);
 const orderPlans = computed(() => orderTenant.value?.available_plans ?? props.plans ?? []);
 
+// One-time (enterprise) atau trial → resort & siklus gak berlaku (fix)
+const isFixedPlan = computed(() => {
+    const plan = selectedPlan.value;
+    if (!plan) return false;
+    return plan.type === 'trial' || plan.pricing_config?.has_cycle === false;
+});
+
+const selectedPlan = computed(() => {
+    const id = activeModal.value === 'upgrade' ? upgradeForm.plan_id : orderForm.plan_id;
+    if (!id) return null;
+    const plans = activeModal.value === 'upgrade' ? upgradePlans.value : orderPlans.value;
+    return plans.find(p => p.id === id);
+});
+
+const priceSimulation = computed(() => {
+    const plan = selectedPlan.value;
+    if (!plan) return null;
+    const cycleSlug = activeModal.value === 'upgrade' ? upgradeForm.billing_cycle : orderForm.billing_cycle;
+    const cycle = props.billingCycles?.find(c => c.slug === cycleSlug);
+    const resort = activeModal.value === 'upgrade' ? upgradeForm.max_resorts : orderForm.resort_qty;
+    if (!resort || resort < 1) return null;
+
+    const cfg = plan.pricing_config || {};
+    if (cfg.has_cycle === false) {
+        const price = Number(cfg.price || 0);
+        const discountPct = Number(cfg.discount_percent || 0);
+        const subtotal = price;
+        const discount = subtotal * discountPct / 100;
+        return { ppu: price, months: 0, subtotal, discountPct, discount, total: Math.max(0, subtotal - discount), oneTime: true };
+    }
+
+    const ppu = cfg.price_per_resort || plan.price_per_month / Math.max(1, plan.max_resorts);
+    const months = cycle?.months ?? 1;
+    const subtotal = resort * ppu * months;
+    const discountPct = cycle?.discount_percent ?? 0;
+    const discount = subtotal * discountPct / 100;
+    const total = Math.max(0, subtotal - discount);
+
+    return { ppu, months, subtotal, discountPct, discount, total, oneTime: false };
+});
+
 function onPlanSelectUpgrade(plan: any) {
     upgradeForm.plan_id = plan?.id || '';
     if (plan) {
-        // Upgrade: harga dari plan (backend derive), client cuma set resort count
-        upgradeForm.max_resorts = plan.max_resorts || 1;
+        // Upgrade: harga dari plan (backend derive), client cuma set resort count.
+        // Default resort = resort yang sudah dipakai sebelumnya (dari targetSub), min 1.
+        upgradeForm.max_resorts = targetSub.value?.max_resorts && targetSub.value.max_resorts >= 1
+            ? targetSub.value.max_resorts
+            : 1;
     }
 }
 
 function onPlanSelectOrder(plan: any) {
     orderForm.plan_id = plan?.id || '';
     if (plan) {
-        orderForm.resort_qty = plan.max_resorts || 1;
+        // Order = tenant baru, default resort 1 (minimal)
+        orderForm.resort_qty = 1;
     }
 }
 function closeModal() {
@@ -95,6 +154,23 @@ function submitResume() {
 function daysLeft(endsAt: string | null): number | null {
     if (!endsAt) return null;
     return Math.max(0, Math.ceil((new Date(endsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+}
+
+const cycleMonths = (slug: string) => {
+    const map: Record<string, number> = { monthly: 1, quarterly: 3, semiannual: 6, yearly: 12 };
+    return map[slug] || 1;
+};
+
+// Periode: aktif → dari data; pending → perkiraan dari sekarang + siklus
+function periodLabel(sub: any): string {
+    if (sub.is_active && sub.started_at && sub.ends_at) {
+        return `${sub.started_at} — ${sub.ends_at}`;
+    }
+    const end = new Date(Date.now() + cycleMonths(sub.billing_cycle) * 30 * 86400000);
+    const endStr = end.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    return sub.status === 'pending'
+        ? `Sekarang — ${endStr} (perkiraan)`
+        : `${sub.started_at || '-'} — ${sub.ends_at || '-'}`;
 }
 </script>
 
@@ -134,8 +210,8 @@ function daysLeft(endsAt: string | null): number | null {
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="px-3 py-1 rounded-full text-xs font-semibold"
-                            :class="sub.is_grace ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' : sub.status === 'active' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-neutral-100 text-neutral-500'">
-                            {{ sub.is_grace ? 'Masa Tenggang' : sub.status === 'active' ? 'Aktif' : sub.status }}
+                            :class="sub.is_grace ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' : sub.is_trialing ? 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-400' : sub.status === 'active' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-neutral-100 text-neutral-500'">
+                            {{ sub.is_grace ? 'Masa Tenggang' : sub.is_trialing ? 'Trial' : sub.status === 'active' ? 'Aktif' : sub.status }}
                         </span>
                         <span class="px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
                             :class="daysLeft(sub.ends_at) !== null && (sub.ends_at) && daysLeft(sub.ends_at)! <= 7 ? 'bg-red-50 text-red-700' : 'bg-neutral-100 text-neutral-600'">
@@ -173,7 +249,7 @@ function daysLeft(endsAt: string | null): number | null {
                         <div class="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2 overflow-hidden">
                             <div class="h-full rounded-full transition-all" :class="sub.is_active ? 'bg-emerald-500' : 'bg-neutral-400'" :style="{ width: Math.min(100, sub.usage_percent || 0) + '%' }" />
                         </div>
-                        <p class="text-xs text-neutral-400 mt-1">{{ sub.started_at }} — {{ sub.ends_at }}</p>
+                        <p class="text-xs text-neutral-400 mt-1">{{ periodLabel(sub) }}</p>
                     </div>
 
                     <!-- Pending invoice banner -->
@@ -194,6 +270,13 @@ function daysLeft(endsAt: string | null): number | null {
                         <button @click="regenerateInvoice(sub)" :disabled="regenerating" class="mt-1.5 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition cursor-pointer disabled:opacity-50">
                             {{ regenerating ? 'Memproses...' : 'Buat Tagihan & Bayar' }}
                         </button>
+                    </div>
+
+                    <!-- Trial banner -->
+                    <div v-if="sub.is_trialing" class="mt-4 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/10 border border-sky-200 dark:border-sky-800">
+                        <p class="text-xs font-semibold text-sky-800 dark:text-sky-200">✨ Masa Trial — Berakhir {{ sub.trial_ends_at }}</p>
+                        <p class="text-xs text-sky-700 dark:text-sky-300 mt-1">Perpanjang ke paket Business sebelum trial habis untuk lanjut.</p>
+                        <button @click="openModal('upgrade', sub)" class="mt-1.5 inline-block px-4 py-2 bg-sky-600 text-white rounded-lg text-xs font-semibold hover:bg-sky-700 transition cursor-pointer">Perpanjang Sekarang</button>
                     </div>
 
                     <!-- Grace banner -->
@@ -224,7 +307,7 @@ function daysLeft(endsAt: string | null): number | null {
                             @select="onPlanSelectUpgrade"
                         />
                         <form @submit.prevent="submitUpgrade" class="space-y-3 pt-2">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div v-if="!isFixedPlan" class="grid grid-cols-2 gap-3">
                                 <div><label class="text-sm font-medium">Jumlah Resort</label><input v-model.number="upgradeForm.max_resorts" type="number" min="1" class="w-full px-3 py-2 border rounded-lg text-sm dark:bg-neutral-800 dark:border-neutral-700" /></div>
                                 <div>
                                     <label class="text-sm font-medium">Siklus Tagihan</label>
@@ -238,6 +321,14 @@ function daysLeft(endsAt: string | null): number | null {
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                            <p v-else class="text-sm text-neutral-500">{{ selectedPlan?.type === 'trial' ? `Gratis ${selectedPlan.trial_days} hari, 1 resort` : 'One-time · Unlimited resort' }}</p>
+                            <div v-if="priceSimulation" class="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-2">
+                                <p class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase">Simulasi Tagihan</p>
+                                <div class="flex justify-between text-sm"><span class="text-neutral-500">Harga/Resort</span><span class="font-medium">Rp{{ Number(priceSimulation.ppu).toLocaleString('id-ID') }}</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-neutral-500">{{ priceSimulation.oneTime ? 'One-time' : `${upgradeForm.max_resorts} resort × ${priceSimulation.months} bulan` }}</span><span class="font-medium">Rp{{ Number(priceSimulation.subtotal).toLocaleString('id-ID') }}</span></div>
+                                <div v-if="priceSimulation.discount > 0" class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400"><span>Diskon ({{ priceSimulation.discountPct }}%)</span><span>-Rp{{ Number(priceSimulation.discount).toLocaleString('id-ID') }}</span></div>
+                                <div class="flex justify-between text-sm font-bold pt-2 border-t border-neutral-200 dark:border-neutral-700"><span>Total</span><span>Rp{{ Number(priceSimulation.total).toLocaleString('id-ID') }}</span></div>
                             </div>
                             <div class="flex gap-2 pt-2">
                                 <button type="submit" :disabled="upgradeForm.processing" class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 cursor-pointer">{{ upgradeForm.processing ? 'Memproses...' : 'Simpan' }}</button>
@@ -259,7 +350,7 @@ function daysLeft(endsAt: string | null): number | null {
                                 @select="onPlanSelectOrder"
                             />
                             <form @submit.prevent="submitOrder" class="space-y-3 pt-2">
-                                <div class="grid grid-cols-2 gap-3">
+                                <div v-if="!isFixedPlan" class="grid grid-cols-2 gap-3">
                                     <div><label class="text-sm font-medium">Jumlah Resort</label><input v-model.number="orderForm.resort_qty" type="number" min="1" class="w-full px-3 py-2 border rounded-lg text-sm dark:bg-neutral-800 dark:border-neutral-700" /></div>
                                     <div>
                                         <label class="text-sm font-medium">Siklus</label>
@@ -273,6 +364,14 @@ function daysLeft(endsAt: string | null): number | null {
                                             </button>
                                         </div>
                                     </div>
+                                </div>
+                                <p v-else class="text-sm text-neutral-500">{{ selectedPlan?.type === 'trial' ? `Gratis ${selectedPlan.trial_days} hari, 1 resort` : 'One-time · Unlimited resort' }}</p>
+                                <div v-if="priceSimulation" class="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-2">
+                                    <p class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase">Simulasi Tagihan</p>
+                                    <div class="flex justify-between text-sm"><span class="text-neutral-500">Harga/Resort</span><span class="font-medium">Rp{{ Number(priceSimulation.ppu).toLocaleString('id-ID') }}</span></div>
+                                    <div class="flex justify-between text-sm"><span class="text-neutral-500">{{ priceSimulation.oneTime ? 'One-time' : `${orderForm.resort_qty} resort × ${priceSimulation.months} bulan` }}</span><span class="font-medium">Rp{{ Number(priceSimulation.subtotal).toLocaleString('id-ID') }}</span></div>
+                                    <div v-if="priceSimulation.discount > 0" class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400"><span>Diskon ({{ priceSimulation.discountPct }}%)</span><span>-Rp{{ Number(priceSimulation.discount).toLocaleString('id-ID') }}</span></div>
+                                    <div class="flex justify-between text-sm font-bold pt-2 border-t border-neutral-200 dark:border-neutral-700"><span>Total</span><span>Rp{{ Number(priceSimulation.total).toLocaleString('id-ID') }}</span></div>
                                 </div>
                                 <div class="flex gap-2 pt-2">
                                     <button type="submit" :disabled="orderForm.processing" class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 cursor-pointer">{{ orderForm.processing ? 'Memproses...' : 'Pesan Paket' }}</button>

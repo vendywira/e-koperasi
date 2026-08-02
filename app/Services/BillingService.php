@@ -37,31 +37,55 @@ class BillingService
         $config = $plan?->pricing_config ?? [];
         $qty = $subscription->max_resorts ?? 1;
         
-        if (($plan?->type ?? 'business') === 'enterprise') {
+        if (($config['has_cycle'] ?? true) === false) {
+            // One-time plan: flat price, discount_percent sebagai harga coret, no cycle/resort
             $price = $config['price'] ?? 0;
+            $discountPct = (int) ($config['discount_percent'] ?? 0);
             $subtotal = $price;
+            $discount = $subtotal * $discountPct / 100;
+            $total = max(0, $subtotal - $discount);
             $cycleMonths = 0;
+            $cycleDiscount = $discount;   // reuse sebagai discount invoice
+            $cycleDiscountPct = 0;
+            $couponDiscount = 0;
         } elseif (($plan?->type ?? 'business') === 'trial') {
             $price = 0;
             $subtotal = 0;
             $cycleMonths = 0;
+            $cycleDiscount = 0;
+            $cycleDiscountPct = 0;
+            $couponDiscount = 0;
+            $total = 0;
         } else {
             $price = $config['price_per_resort'] ?? ($subscription->price_per_resort ?? 0);
             $subtotal = $qty * $price * $cycleMonths;
-        }
-        $cycleDiscountPct = $this->cycleDiscountPercent($subscription->billing_cycle);
-        $cycleDiscount = $subtotal * $cycleDiscountPct / 100;
-        $couponDiscount = 0;
+            $cycleDiscountPct = $this->cycleDiscountPercent($subscription->billing_cycle);
+            $cycleDiscount = $subtotal * $cycleDiscountPct / 100;
+            $couponDiscount = 0;
 
-        if ($coupon) {
-            $afterCycle = $subtotal - $cycleDiscount;
-            $couponDiscount = $coupon->discount_type === 'percentage'
-                ? $afterCycle * $coupon->discount_value / 100
-                : $coupon->discount_value;
-            $couponDiscount = min($couponDiscount, $afterCycle);
-        }
+            if ($coupon) {
+                $afterCycle = $subtotal - $cycleDiscount;
+                $couponDiscount = $coupon->discount_type === 'percentage'
+                    ? $afterCycle * $coupon->discount_value / 100
+                    : $coupon->discount_value;
+                $couponDiscount = min($couponDiscount, $afterCycle);
+            }
 
-        $total = max(0, $subtotal - $cycleDiscount - $couponDiscount);
+            $total = max(0, $subtotal - $cycleDiscount - $couponDiscount);
+        }
+        if (($config['has_cycle'] ?? true) !== false) {
+            $couponDiscount = 0;
+
+            if ($coupon) {
+                $afterCycle = $subtotal - $cycleDiscount;
+                $couponDiscount = $coupon->discount_type === 'percentage'
+                    ? $afterCycle * $coupon->discount_value / 100
+                    : $coupon->discount_value;
+                $couponDiscount = min($couponDiscount, $afterCycle);
+            }
+
+            $total = max(0, $subtotal - $cycleDiscount - $couponDiscount);
+        }
 
         $month = now()->format('Ym');
         $lastSeq = Invoice::where('invoice_number', 'like', "INV-{$month}-%")
@@ -86,6 +110,7 @@ class BillingService
                 'subtotal' => $subtotal,
                 'discount_amount' => $cycleDiscount + $couponDiscount,
                 'coupon_id' => $coupon?->id,
+                'plan_id' => $subscription->plan_id,
                 'total_amount' => $total,
                 'status' => 'pending',
                 'due_date' => now()->addDays(14),
@@ -103,7 +128,7 @@ class BillingService
             if ($cycleDiscount > 0) {
                 InvoiceItem::create([
                     'invoice_id' => $inv->id,
-                    'description' => "Diskon siklus {$subscription->billing_cycle} ({$cycleDiscountPct}%)",
+                    'description' => "Diskon {$subscription->billing_cycle} ({$cycleDiscountPct}%)",
                     'quantity' => 1,
                     'unit_price' => -$cycleDiscount,
                     'discount_amount' => $cycleDiscount,
@@ -256,10 +281,17 @@ class BillingService
     public function applyPlanChange(Subscription $subscription, int $newMaxResorts, float $newPricePerResort, string $newCycle, ?string $planId = null): ?Invoice
     {
         $tenant = Tenant::find($subscription->tenant_id);
+        $plan = $planId ? Plan::find($planId) : null;
+        $isOneTime = ($plan?->pricing_config['has_cycle'] ?? true) === false;
+
         $cycle = BillingCycle::where('slug', $newCycle)->first();
-        $cycleMonths = $cycle?->months ?? 1;
-        $discountPct = $cycle?->discount_percent ?? 0;
-        $subtotal = $newMaxResorts * $newPricePerResort * $cycleMonths;
+        $cycleMonths = $isOneTime ? 0 : ($cycle?->months ?? 1);
+        $discountPct = $isOneTime
+            ? (int) ($plan?->pricing_config['discount_percent'] ?? 0)
+            : ($cycle?->discount_percent ?? 0);
+        $subtotal = $isOneTime
+            ? (float) ($plan?->pricing_config['price'] ?? 0)
+            : $newMaxResorts * $newPricePerResort * $cycleMonths;
         $discount = $subtotal * $discountPct / 100;
         $total = max(0, $subtotal - $discount);
 
@@ -291,7 +323,7 @@ class BillingService
             ]);
             if ($discount > 0) {
                 $invoice->invoiceItems()->create([
-                    'description' => "Diskon siklus {$newCycle} ({$discountPct}%)",
+                    'description' => "Diskon {$newCycle} ({$discountPct}%)",
                     'quantity' => 1,
                     'unit_price' => -$discount,
                     'discount_amount' => $discount,
@@ -336,7 +368,7 @@ class BillingService
         ]);
         if ($discount > 0) {
             $invoice->invoiceItems()->create([
-                'description' => "Diskon siklus {$newCycle} ({$discountPct}%)",
+                'description' => "Diskon {$newCycle} ({$discountPct}%)",
                 'quantity' => 1,
                 'unit_price' => -$discount,
                 'discount_amount' => $discount,
@@ -381,13 +413,26 @@ class BillingService
                 ]);
                 $cyc = BillingCycle::where('slug', $subscription->billing_cycle)->first();
                 $cycleMonths = $cyc?->months ?? 1;
-                $base = $subscription->ends_at && $subscription->ends_at->isFuture()
-                    ? $subscription->ends_at->copy()->addDay()
-                    : now()->addDay();
+
+                // Order baru (belum pernah aktif) → periode mulai dari tanggal bayar (paid_at = now)
+                $isFirstActivation = in_array($subscription->status, [
+                    'pending',
+                    Subscription::STATUS_TRIALING,
+                ]) || !$subscription->ends_at;
+
+                $base = $isFirstActivation
+                    ? now()->addDay()
+                    : ($subscription->ends_at && $subscription->ends_at->isFuture()
+                        ? $subscription->ends_at->copy()->addDay()
+                        : now()->addDay());
+
+                // One-time plan → selamanya (ends_at null)
+                $isOneTime = ($invoice->plan_id ? Plan::find($invoice->plan_id)?->pricing_config['has_cycle'] ?? true : true) === false;
+
                 $subscription->update([
                     'status' => 'active',
-                    'started_at' => $subscription->started_at ?? now(),
-                    'ends_at' => $base->copy()->addMonths($cycleMonths),
+                    'started_at' => $isFirstActivation ? now() : ($subscription->started_at ?? now()),
+                    'ends_at' => $isOneTime ? null : $base->copy()->addMonths($cycleMonths),
                     'renewed_at' => now(),
                 ]);
 

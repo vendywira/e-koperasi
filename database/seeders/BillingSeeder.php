@@ -21,6 +21,7 @@ class BillingSeeder extends Seeder
                     ['key' => 'nasabah', 'label' => 'Nasabah'],
                     ['key' => 'user', 'label' => 'User (pengguna)'],
                 ],
+                'provision_mode' => 'manual', // auto | manual
                 'notes' => 'Harga per unit per bulan. Admin bisa mengganti jenis unit billing kapan saja.',
             ],
         ]);

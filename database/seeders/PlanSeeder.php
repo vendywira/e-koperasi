@@ -19,6 +19,7 @@ class PlanSeeder extends Seeder
                 'price_per_month' => 0,
                 'trial_days' => 30,
                 'sort_order' => 0,
+                'is_default' => true,
                 'features' => [
                     '1 resort / koperasi',
                     'Simpan pinjam & simpanan',
@@ -36,6 +37,7 @@ class PlanSeeder extends Seeder
                 'price_per_month' => 100000,
                 'trial_days' => 0,
                 'sort_order' => 1,
+                'is_popular' => true,
                 'features' => [
                     'Unlimited anggota & transaksi',
                     'Laporan keuangan lengkap',
@@ -49,7 +51,7 @@ class PlanSeeder extends Seeder
                 'name' => 'Enterprise',
                 'description' => 'Solusi on-premise untuk koperasi besar. Server dikelola sendiri.',
                 'type' => 'enterprise',
-                'pricing_config' => ['price' => 20000000, 'has_cycle' => false, 'unlimited' => true],
+                'pricing_config' => ['price' => 20000000, 'has_cycle' => false, 'unlimited' => true, 'discount_percent' => 20],
                 'max_resorts' => 0,
                 'price_per_month' => 20000000,
                 'trial_days' => 0,

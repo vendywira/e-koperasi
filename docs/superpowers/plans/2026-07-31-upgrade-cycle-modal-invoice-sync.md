@@ -91,7 +91,7 @@ public function applyPlanChange(Subscription $subscription, int $newMaxResorts, 
         ]);
         if ($discount > 0) {
             $invoice->invoiceItems()->create([
-                'description' => "Diskon siklus {$newCycle} ({$discountPct}%)",
+                'description' => "Diskon {$newCycle} ({$discountPct}%)",
                 'quantity' => 1,
                 'unit_price' => -$discount,
                 'discount_amount' => $discount,

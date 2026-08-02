@@ -24,3 +24,6 @@ Schedule::command('billing:cancel-expired')->dailyAt('04:00');
 
 // Expire stale payment transactions
 Schedule::command('billing:expire-transactions')->everyMinute();
+
+// Expire trial subscriptions past their trial period
+Schedule::command('billing:trial-expire')->dailyAt('00:30');

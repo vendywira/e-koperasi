@@ -32,6 +32,60 @@ const activePlans = computed(() => {
     return activeTenant.value.available_plans ?? [];
 });
 
+// One-time (enterprise) atau trial → resort & siklus gak berlaku (fix)
+const isFixedPlan = computed(() => {
+    const plan = selectedPlan.value;
+    if (!plan) return false;
+    return plan.type === 'trial' || plan.pricing_config?.has_cycle === false;
+});
+
+const selectedPlan = computed(() => {
+    const plans = activeMode.value === 'order' ? orderForm.plan_id : upgradeForm.plan_id;
+    if (!plans) return null;
+    return (activeTenant.value?.available_plans ?? []).find(p => p.id === plans);
+});
+
+const priceSimulation = computed(() => {
+    const plan = selectedPlan.value;
+    if (!plan) return null;
+    const cycleSlug = activeMode.value === 'order' ? orderForm.billing_cycle : upgradeForm.billing_cycle;
+    const cycle = props.billingCycles?.find(c => c.slug === cycleSlug);
+    const resort = activeMode.value === 'order' ? orderForm.resort_qty : upgradeForm.max_resorts;
+    if (!resort || resort < 1) return null;
+
+    const cfg = plan.pricing_config || {};
+    if (cfg.has_cycle === false) {
+        // One-time: flat price + discount_percent, no cycle/resort
+        const price = Number(cfg.price || 0);
+        const discountPct = Number(cfg.discount_percent || 0);
+        const subtotal = price;
+        const discount = subtotal * discountPct / 100;
+        return { ppu: price, months: 0, subtotal, discountPct, discount, total: Math.max(0, subtotal - discount), oneTime: true };
+    }
+
+    const ppu = cfg.price_per_resort || plan.price_per_month / Math.max(1, plan.max_resorts);
+    const months = cycle?.months ?? 1;
+    const subtotal = resort * ppu * months;
+    const discountPct = cycle?.discount_percent ?? 0;
+    const discount = subtotal * discountPct / 100;
+    const total = Math.max(0, subtotal - discount);
+
+    return { ppu, months, subtotal, discountPct, discount, total, oneTime: false };
+});
+
+function preselectPlan() {
+    const plans = activePlans.value;
+    if (!plans.length) return;
+    // 1. plan aktif terakhir (dari subscription plan_id)
+    const active = plans.find(p => p.id === activeTenant.value?.plan_id);
+    // 2. is_default
+    const def = plans.find(p => p.is_default);
+    // 3. Business (type business)
+    const biz = plans.find(p => p.type === 'business');
+    const target = active || def || biz || plans[0];
+    onPlanSelect(target);
+}
+
 function selectTenant(mode: 'order' | 'upgrade', tenantId: string) {
     activeMode.value = mode;
     selectedTenantId.value = tenantId;
@@ -44,17 +98,23 @@ function selectTenant(mode: 'order' | 'upgrade', tenantId: string) {
         upgradeForm.subscription_id = t?.subscription_id ?? '';
         upgradeForm.max_resorts = t?.max_resorts ?? 1;
         upgradeForm.billing_cycle = t?.billing_cycle ?? 'monthly';
+        preselectPlan();
     }
 }
 
 function onPlanSelect(plan: any) {
     if (activeMode.value === 'order') {
         orderForm.plan_id = plan?.id || '';
-        if (plan) orderForm.resort_qty = plan.max_resorts || 1;
+        // Order = tenant baru, default resort 1 (minimal)
+        orderForm.resort_qty = 1;
     } else {
-        // Upgrade: harga dari plan (backend derive), client cuma set resort count
+        // Upgrade: harga dari plan (backend derive), client cuma set resort count.
+        // Default resort = resort yang sudah dipakai sebelumnya (dari upgradeTenants), min 1.
         upgradeForm.plan_id = plan?.id || '';
-        if (plan) upgradeForm.max_resorts = plan.max_resorts || 1;
+        const current = activeTenant.value;
+        upgradeForm.max_resorts = current?.max_resorts && current.max_resorts >= 1
+            ? current.max_resorts
+            : 1;
     }
 }
 
@@ -151,7 +211,7 @@ function submitUpgrade() {
                         <PlanPicker :plans="activePlans" :selected-plan-id="activeMode === 'order' ? orderForm.plan_id : upgradeForm.plan_id" @select="onPlanSelect" />
 
                         <form v-if="activeMode === 'order'" @submit.prevent="submitOrder" class="space-y-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div v-if="!isFixedPlan" class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="text-sm font-medium">Jumlah Resort</label>
                                     <input v-model.number="orderForm.resort_qty" type="number" min="1" class="w-full px-3 py-2 border rounded-lg text-sm dark:bg-neutral-800 dark:border-neutral-700" />
@@ -169,13 +229,21 @@ function submitUpgrade() {
                                     </div>
                                 </div>
                             </div>
+                            <p v-else class="text-sm text-neutral-500">{{ selectedPlan?.type === 'trial' ? `Gratis ${selectedPlan.trial_days} hari, 1 resort` : 'One-time · Unlimited resort' }}</p>
+                            <div v-if="priceSimulation" class="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-2">
+                                <p class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase">Simulasi Tagihan</p>
+                                <div class="flex justify-between text-sm"><span class="text-neutral-500">Harga/Resort</span><span class="font-medium">Rp{{ Number(priceSimulation.ppu).toLocaleString('id-ID') }}</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-neutral-500">{{ priceSimulation.oneTime ? 'One-time' : `${orderForm.resort_qty} resort × ${priceSimulation.months} bulan` }}</span><span class="font-medium">Rp{{ Number(priceSimulation.subtotal).toLocaleString('id-ID') }}</span></div>
+                                <div v-if="priceSimulation.discount > 0" class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400"><span>Diskon ({{ priceSimulation.discountPct }}%)</span><span>-Rp{{ Number(priceSimulation.discount).toLocaleString('id-ID') }}</span></div>
+                                <div class="flex justify-between text-sm font-bold pt-2 border-t border-neutral-200 dark:border-neutral-700"><span>Total</span><span>Rp{{ Number(priceSimulation.total).toLocaleString('id-ID') }}</span></div>
+                            </div>
                             <button type="submit" :disabled="!orderForm.plan_id || orderForm.processing" class="w-full px-4 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 cursor-pointer">
                                 {{ orderForm.processing ? 'Memproses...' : 'Pesan Paket & Buat Tagihan' }}
                             </button>
                         </form>
 
                         <form v-else @submit.prevent="submitUpgrade" class="space-y-3 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div v-if="!isFixedPlan" class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="text-sm font-medium">Jumlah Resort</label>
                                     <input v-model.number="upgradeForm.max_resorts" type="number" min="1" class="w-full px-3 py-2 border rounded-lg text-sm dark:bg-neutral-800 dark:border-neutral-700" />
@@ -192,6 +260,14 @@ function submitUpgrade() {
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                            <p v-else class="text-sm text-neutral-500">{{ selectedPlan?.type === 'trial' ? `Gratis ${selectedPlan.trial_days} hari, 1 resort` : 'One-time · Unlimited resort' }}</p>
+                            <div v-if="priceSimulation" class="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-2">
+                                <p class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase">Simulasi Tagihan</p>
+                                <div class="flex justify-between text-sm"><span class="text-neutral-500">Harga/Resort</span><span class="font-medium">Rp{{ Number(priceSimulation.ppu).toLocaleString('id-ID') }}</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-neutral-500">{{ priceSimulation.oneTime ? 'One-time' : `${upgradeForm.max_resorts} resort × ${priceSimulation.months} bulan` }}</span><span class="font-medium">Rp{{ Number(priceSimulation.subtotal).toLocaleString('id-ID') }}</span></div>
+                                <div v-if="priceSimulation.discount > 0" class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400"><span>Diskon ({{ priceSimulation.discountPct }}%)</span><span>-Rp{{ Number(priceSimulation.discount).toLocaleString('id-ID') }}</span></div>
+                                <div class="flex justify-between text-sm font-bold pt-2 border-t border-neutral-200 dark:border-neutral-700"><span>Total</span><span>Rp{{ Number(priceSimulation.total).toLocaleString('id-ID') }}</span></div>
                             </div>
                             <button type="submit" :disabled="!upgradeForm.plan_id || upgradeForm.processing" class="w-full px-4 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 cursor-pointer">
                                 {{ upgradeForm.processing ? 'Memproses...' : 'Simpan Perubahan Paket' }}

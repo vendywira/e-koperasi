@@ -8,6 +8,7 @@ use App\Models\InvoiceItem;
 use App\Models\Plan;
 use App\Models\Tenant;
 use App\Services\BillingService;
+use App\Services\SiteConfig;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -119,8 +120,10 @@ class TenantRequestController extends Controller
                 'status' => 'pending',
             ]);
 
+            $isTrial = $plan->type === 'trial';
             $cycle = !empty($validated['billing_cycle']) ? $validated['billing_cycle'] : 'monthly';
             if ($plan->type !== 'business') $cycle = 'monthly';
+
             $subscription = $tenant->subscription()->create([
                 'user_id' => auth()->id(),
                 'type' => 'ksu',
@@ -131,18 +134,56 @@ class TenantRequestController extends Controller
                     ? (int) $validated['resort_qty']
                     : (int) ($plan->max_resorts ?: 1),
                 'price_per_resort' => ($plan->pricing_config['price_per_resort'] ?? ($plan->price_per_month / max(1, $plan->max_resorts))),
-                'status' => 'pending',
+                'status' => $isTrial ? 'trialing' : 'pending',
                 'started_at' => now(),
-                'ends_at' => $plan->type === 'trial' ? now()->addDays($plan->trial_days) : now()->addDays(30),
-                'trial_ends_at' => $plan->type === 'trial' ? now()->addDays($plan->trial_days) : null,
+                'ends_at' => $isTrial ? now()->addDays($plan->trial_days) : now()->addDays(30),
+                'trial_ends_at' => $isTrial ? now()->addDays($plan->trial_days) : null,
             ]);
 
-            // Generate draft invoice (preview for admin approval)
+            // Trial: langsung aktif gratis, gak bikin invoice payable
+            if ($isTrial) {
+                $tenant->update(['status' => 'active']);
+                return ['tenant' => $tenant, 'invoice' => null, 'auto_activate' => true];
+            }
+
+            // Non-trial: generate invoice
             $invoice = $billing->generateInvoice($subscription, null, true);
 
-            return ['tenant' => $tenant, 'invoice' => $invoice];
+            // Auto-provision mode: provision + activate langsung
+            $provisionMode = SiteConfig::get('billing.provision_mode', 'manual');
+            $isAutoProvision = ($provisionMode === 'auto' && $invoice);
+
+            return ['tenant' => $tenant, 'invoice' => $invoice, 'auto_provision' => $isAutoProvision];
         });
 
+        // Auto-provision: lakukan di luar transaction
+        if ($result['auto_provision'] ?? false) {
+            $tenant = $result['tenant'];
+            $subscription = $tenant->subscription;
+            $tenant->update(['status' => 'active']);
+            $subscription->update(['status' => 'active', 'started_at' => now()]);
+            $result['invoice']->update(['status' => 'paid', 'paid_at' => now()]);
+
+            try {
+                app(\App\Services\ProvisionService::class)->provision($tenant, auth()->user());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Auto-provision {$tenant->domain}: " . $e->getMessage());
+            }
+        }
+
+        // Trial: redirect ke langganan dengan pesan success
+        if ($result['auto_activate'] ?? false) {
+            return redirect()->route('client.subscription')
+                ->with('success', "Trial {$plan->name} aktif! Berlaku selama {$plan->trial_days} hari.");
+        }
+
+        // Auto-provision
+        if ($result['auto_provision'] ?? false) {
+            return redirect()->route('client.dashboard')
+                ->with('success', "Tenant {$validated['name']} aktif! Infrastruktur sedang dipersiapkan.");
+        }
+
+        // Manual: tenant pending, admin approve
         return redirect()->route('client.dashboard')
             ->with('success', "Permintaan tenant {$validated['name']} berhasil dikirim. Admin akan memproses dalam 1x24 jam.");
     }

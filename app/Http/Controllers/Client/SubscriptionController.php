@@ -34,6 +34,8 @@ class SubscriptionController extends Controller
             'price_per_resort' => $sub->price_per_resort,
             'status' => $sub->status,
             'is_active' => $sub->isActive(),
+            'is_trialing' => $sub->status === 'trialing',
+            'trial_ends_at' => $sub->trial_ends_at?->format('d M Y'),
             'is_grace' => $sub->isGrace(),
             'grace_days_remaining' => $sub->graceDaysRemaining(),
             'grace_ends_at' => $sub->isGrace() ? $sub->graceEndsAt()->format('d M Y') : null,
@@ -104,6 +106,7 @@ class SubscriptionController extends Controller
             'tenant_name' => $sub->tenant?->name ?? '-',
             'subscription_id' => $sub->id,
             'current_plan' => $sub->plan,
+            'plan_id' => $sub->plan_id,
             'max_resorts' => $sub->max_resorts,
             'price_per_resort' => $sub->price_per_resort,
             'billing_cycle' => $sub->billing_cycle ?? 'monthly',
@@ -182,17 +185,34 @@ class SubscriptionController extends Controller
                 ->with('error', 'Tenant ini sudah pernah menggunakan paket Trial.');
         }
 
+        // One-time plan → flat price, resort diabaikan (unlimited)
+        $cfg = $plan->pricing_config ?? [];
+        $isOneTime = ($cfg['has_cycle'] ?? true) === false;
+        $pricePerResort = $isOneTime
+            ? (float) ($cfg['price'] ?? 0)
+            : ($cfg['price_per_resort'] ?? ($plan->price_per_month / max(1, $plan->max_resorts)));
+        $maxResorts = $isOneTime ? 1 : (int) $validated['resort_qty'];
+
         $subscription = Subscription::create([
             'user_id' => auth()->id(),
             'tenant_id' => $tenant->id,
             'plan_id' => $plan->id,
             'plan' => $plan->name,
-            'billing_cycle' => $validated['billing_cycle'],
-            'max_resorts' => $validated['resort_qty'],
-            'price_per_resort' => $plan->pricing_config['price_per_resort'] ?? ($plan->price_per_month / max(1, $plan->max_resorts)),
+            'billing_cycle' => $isOneTime ? 'monthly' : $validated['billing_cycle'],
+            'max_resorts' => $maxResorts,
+            'price_per_resort' => $pricePerResort,
             'status' => $plan->type === 'trial' ? 'trialing' : 'pending',
+            'started_at' => now(),
+            'ends_at' => $plan->type === 'trial' ? now()->addDays($plan->trial_days) : null,
             'trial_ends_at' => $plan->type === 'trial' ? now()->addDays($plan->trial_days) : null,
         ]);
+
+        // Trial → langsung aktif gratis, gak bikin invoice payable
+        if ($plan->type === 'trial') {
+            $tenant->update(['status' => 'active']);
+            return redirect()->route('client.subscription')
+                ->with('success', 'Trial dimulai! Aktif selama ' . $plan->trial_days . ' hari.');
+        }
 
         $billing->generateInvoice($subscription, null, true);
 
@@ -253,17 +273,21 @@ class SubscriptionController extends Controller
             ->firstOrFail();
 
         $plan = Plan::findOrFail($validated['plan_id']);
-        $newPrice = (float) ($plan->pricing_config['price_per_resort']
-            ?? ($plan->price_per_month / max(1, $plan->max_resorts)));
+        $cfg = $plan->pricing_config ?? [];
+        $isOneTime = ($cfg['has_cycle'] ?? true) === false;
+        $newPrice = $isOneTime
+            ? (float) ($cfg['price'] ?? 0)
+            : (float) ($cfg['price_per_resort'] ?? ($plan->price_per_month / max(1, $plan->max_resorts)));
 
-        // Resort default: pakai dari invoice terakhir (paid/pending) kalau ada, fallback 1
+        // Resort default: pakai dari invoice terakhir (paid/pending) kalau ada, fallback 1.
+        // One-time → resort diabaikan.
         $lastResort = \App\Models\Invoice::where('tenant_id', $subscription->tenant_id)
             ->whereNotNull('resort_count')
             ->latest()
             ->value('resort_count');
-        $newMax = (int) ($validated['max_resorts'] ?? $lastResort ?: 1);
+        $newMax = $isOneTime ? 1 : (int) ($validated['max_resorts'] ?? $lastResort ?: 1);
 
-        $newCycle = $validated['billing_cycle'] ?? $subscription->billing_cycle ?? 'monthly';
+        $newCycle = $isOneTime ? 'monthly' : ($validated['billing_cycle'] ?? $subscription->billing_cycle ?? 'monthly');
 
         // Update invoice in-place (paket + cycle). Subscription berubah setelah bayar.
         $billing->applyPlanChange($subscription, $newMax, $newPrice, $newCycle, $plan->id);

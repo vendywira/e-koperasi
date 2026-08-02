@@ -666,6 +666,7 @@ export const sectionSchemas: SectionSchema[] = [
             },
             { key: 'unit_label', type: 'text', label: 'Label Satuan', props: { placeholder: 'Resort' } },
             { key: 'price_per_unit', type: 'text', label: 'Harga Per Satuan (Rp)', props: { placeholder: '100000' } },
+            { key: 'provision_mode', type: 'select', label: 'Mode Provisioning', props: { options: [{ value: 'auto', label: 'Auto (Otomatis)' }, { value: 'manual', label: 'Manual (Butuh Approval Admin)' }] } },
             { key: 'currency', type: 'text', label: 'Mata Uang', props: { placeholder: 'IDR' } },
             {
                 key: 'available_units',
