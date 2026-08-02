@@ -181,7 +181,12 @@ function periodLabel(sub: any): string {
             <h2 class="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white">Langganan KSU</h2>
 
             <div v-if="subscriptions.length === 0 && !orderTenants?.length" class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-8 text-center">
-                <p class="text-neutral-500">Belum ada langganan. Ajukan tenant baru melalui menu Tenant.</p>
+                <p class="text-3xl mb-3">🏢</p>
+                <h3 class="text-lg font-bold text-neutral-900 dark:text-white">Belum Punya Tenant</h3>
+                <p class="text-sm text-neutral-500 mt-1 max-w-sm mx-auto">Ajukan tenant koperasi dulu untuk mulai berlangganan. Tim kami siapkan infrastrukturnya.</p>
+                <Link href="/client/request-tenant" class="mt-4 inline-block px-6 py-2.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition cursor-pointer">
+                    Ajukan Tenant Baru
+                </Link>
             </div>
 
             <!-- Order: tenant tanpa subscription -->
@@ -297,8 +302,8 @@ function periodLabel(sub: any): string {
 
             <!-- Modal: Ganti Paket -->
             <Teleport to="body">
-                <div v-if="activeModal === 'upgrade' && targetSub" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeModal">
-                    <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xl max-w-2xl w-full p-6 space-y-4">
+                <div v-if="activeModal === 'upgrade' && targetSub" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-y-auto" @click.self="closeModal">
+                    <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xl max-w-2xl w-full p-4 sm:p-6 space-y-4 my-auto max-h-[88vh] overflow-y-auto">
                         <div class="flex items-center justify-between"><h3 class="text-lg font-bold">Ganti Paket — {{ targetSub.tenant_name }}</h3><button @click="closeModal" class="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer">&times;</button></div>
                         <p class="text-sm text-neutral-500">Pilih paket baru. Upgrade → bayar prorata. Downgrade → kredit bulan depan.</p>
                         <PlanPicker
@@ -325,8 +330,8 @@ function periodLabel(sub: any): string {
                             <p v-else class="text-sm text-neutral-500">{{ selectedPlan?.type === 'trial' ? `Gratis ${selectedPlan.trial_days} hari, 1 resort` : 'One-time · Unlimited resort' }}</p>
                             <div v-if="priceSimulation" class="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-2">
                                 <p class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase">Simulasi Tagihan</p>
-                                <div class="flex justify-between text-sm"><span class="text-neutral-500">Harga/Resort</span><span class="font-medium">Rp{{ Number(priceSimulation.ppu).toLocaleString('id-ID') }}</span></div>
-                                <div class="flex justify-between text-sm"><span class="text-neutral-500">{{ priceSimulation.oneTime ? 'One-time' : `${upgradeForm.max_resorts} resort × ${priceSimulation.months} bulan` }}</span><span class="font-medium">Rp{{ Number(priceSimulation.subtotal).toLocaleString('id-ID') }}</span></div>
+                                <div v-if="!priceSimulation.oneTime" class="flex justify-between text-sm"><span class="text-neutral-500">Harga/Resort</span><span class="font-medium">Rp{{ Number(priceSimulation.ppu).toLocaleString('id-ID') }}</span></div>
+                                <div class="flex justify-between text-sm"><span class="text-neutral-500">{{ priceSimulation.oneTime ? 'Harga Normal' : `${upgradeForm.max_resorts} resort × ${priceSimulation.months} bulan` }}</span><span class="font-medium">Rp{{ Number(priceSimulation.subtotal).toLocaleString('id-ID') }}</span></div>
                                 <div v-if="priceSimulation.discount > 0" class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400"><span>Diskon ({{ priceSimulation.discountPct }}%)</span><span>-Rp{{ Number(priceSimulation.discount).toLocaleString('id-ID') }}</span></div>
                                 <div class="flex justify-between text-sm font-bold pt-2 border-t border-neutral-200 dark:border-neutral-700"><span>Total</span><span>Rp{{ Number(priceSimulation.total).toLocaleString('id-ID') }}</span></div>
                             </div>
@@ -341,8 +346,8 @@ function periodLabel(sub: any): string {
 
                 <!-- Modal: Order (tenant tanpa sub) -->
                 <Teleport to="body">
-                    <div v-if="activeModal === 'order' && orderTenant" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" @click.self="closeModal">
-                        <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xl max-w-2xl w-full p-6 space-y-4">
+                    <div v-if="activeModal === 'order' && orderTenant" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 overflow-y-auto" @click.self="closeModal">
+                        <div class="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-xl max-w-2xl w-full p-4 sm:p-6 space-y-4 my-auto max-h-[88vh] overflow-y-auto">
                             <div class="flex items-center justify-between"><h3 class="text-lg font-bold">Pilih Paket — {{ orderTenant.tenant_name }}</h3><button @click="closeModal" class="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer">&times;</button></div>
                             <PlanPicker
                                 :plans="orderPlans"
@@ -368,8 +373,8 @@ function periodLabel(sub: any): string {
                                 <p v-else class="text-sm text-neutral-500">{{ selectedPlan?.type === 'trial' ? `Gratis ${selectedPlan.trial_days} hari, 1 resort` : 'One-time · Unlimited resort' }}</p>
                                 <div v-if="priceSimulation" class="p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-700 space-y-2">
                                     <p class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase">Simulasi Tagihan</p>
-                                    <div class="flex justify-between text-sm"><span class="text-neutral-500">Harga/Resort</span><span class="font-medium">Rp{{ Number(priceSimulation.ppu).toLocaleString('id-ID') }}</span></div>
-                                    <div class="flex justify-between text-sm"><span class="text-neutral-500">{{ priceSimulation.oneTime ? 'One-time' : `${orderForm.resort_qty} resort × ${priceSimulation.months} bulan` }}</span><span class="font-medium">Rp{{ Number(priceSimulation.subtotal).toLocaleString('id-ID') }}</span></div>
+                                    <div v-if="!priceSimulation.oneTime" class="flex justify-between text-sm"><span class="text-neutral-500">Harga/Resort</span><span class="font-medium">Rp{{ Number(priceSimulation.ppu).toLocaleString('id-ID') }}</span></div>
+                                    <div class="flex justify-between text-sm"><span class="text-neutral-500">{{ priceSimulation.oneTime ? 'Harga Normal' : `${orderForm.resort_qty} resort × ${priceSimulation.months} bulan` }}</span><span class="font-medium">Rp{{ Number(priceSimulation.subtotal).toLocaleString('id-ID') }}</span></div>
                                     <div v-if="priceSimulation.discount > 0" class="flex justify-between text-sm text-emerald-600 dark:text-emerald-400"><span>Diskon ({{ priceSimulation.discountPct }}%)</span><span>-Rp{{ Number(priceSimulation.discount).toLocaleString('id-ID') }}</span></div>
                                     <div class="flex justify-between text-sm font-bold pt-2 border-t border-neutral-200 dark:border-neutral-700"><span>Total</span><span>Rp{{ Number(priceSimulation.total).toLocaleString('id-ID') }}</span></div>
                                 </div>

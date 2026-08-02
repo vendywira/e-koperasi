@@ -75,7 +75,7 @@ function getIconBg(tier: { type: string }) {
             :key="tier.id"
             type="button"
             @click="emit('select', props.plans.find(p => p.id === tier.id))"
-            class="relative p-6 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer group"
+            class="relative p-4 sm:p-6 min-w-0 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer group"
             :class="selectedPlanId === tier.id
                 ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10 shadow-lg shadow-emerald-500/10'
                 : 'border-neutral-200 dark:border-neutral-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:shadow-md'"
@@ -98,14 +98,14 @@ function getIconBg(tier: { type: string }) {
             </div>
 
             <!-- Name & Tagline -->
-            <h3 class="text-lg font-bold text-neutral-900 dark:text-white">{{ tier.name }}</h3>
-            <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed">{{ tier.tagline }}</p>
+            <h3 class="text-lg font-bold text-neutral-900 dark:text-white break-words">{{ tier.name }}</h3>
+            <p class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 leading-relaxed break-words">{{ tier.tagline }}</p>
 
             <!-- Price Section -->
             <div class="mt-4 mb-4">
-                <p v-if="tier.priceOriginal" class="text-sm text-neutral-400 line-through mb-0.5">{{ tier.priceOriginal }}</p>
-                <div class="flex items-baseline gap-1">
-                    <span class="text-2xl font-bold text-neutral-900 dark:text-white">{{ tier.price }}</span>
+                <p v-if="tier.priceOriginal" class="text-sm text-neutral-400 line-through mb-0.5 break-words">{{ tier.priceOriginal }}</p>
+                <div class="flex items-baseline gap-1 flex-wrap">
+                    <span class="text-2xl font-bold text-neutral-900 dark:text-white break-words">{{ tier.price }}</span>
                     <span class="text-xs text-neutral-500 dark:text-neutral-400">/ {{ tier.period }}</span>
                 </div>
                 <p v-if="tier.discountPct > 0" class="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">
@@ -121,7 +121,7 @@ function getIconBg(tier: { type: string }) {
             <ul v-if="showFeatures && tier.features?.length" class="space-y-2 mb-4">
                 <li v-for="f in tier.features" :key="f.id || f.feature_text || f" class="flex items-start gap-2 text-xs text-neutral-600 dark:text-neutral-300">
                     <Check class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-                    <span>{{ f.feature_text || f.name || f }}</span>
+                    <span class="break-words min-w-0">{{ f.feature_text || f.name || f }}</span>
                 </li>
             </ul>
 
