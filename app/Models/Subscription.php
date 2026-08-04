@@ -59,6 +59,12 @@ class Subscription extends Model
         );
     }
 
+    // Alias for backward compatibility (e.g., TenantController stats query)
+    public function payments(): HasManyThrough
+    {
+        return $this->paymentTransactions();
+    }
+
     public const STATUS_ACTIVE = 'active';
     public const STATUS_EXPIRED = 'expired';
     public const STATUS_CANCELLED = 'cancelled';

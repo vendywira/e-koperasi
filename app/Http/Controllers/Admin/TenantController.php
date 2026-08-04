@@ -64,8 +64,8 @@ class TenantController extends Controller
                     $q->where('status', 'expired')->orWhere('status', 'cancelled');
                 })->count(),
                 'total_revenue' => Subscription::where('type', 'ksu')
-                    ->whereHas('payments', fn($q) => $q->where('status', 'paid'))
-                    ->withSum(['payments as paid_sum' => fn($q) => $q->where('status', 'paid')], 'amount')
+                    ->whereHas('payments', fn($q) => $q->where('payment_transactions.status', 'paid'))
+                    ->withSum(['payments as paid_sum' => fn($q) => $q->where('payment_transactions.status', 'paid')], 'amount')
                     ->get()->sum('paid_sum'),
             ],
         ]);
